@@ -26,7 +26,8 @@ import { RemoteConfigService } from 'src/renderer/app/services/remote-config.ser
 import { SyncService } from 'src/renderer/app/services/sync.service';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+// import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 import { environment as env } from 'src/renderer/environments/environment';
@@ -82,7 +83,7 @@ export class HeaderComponent implements OnInit {
   constructor(
     private store: Store,
     private environmentsService: EnvironmentsService,
-    private userService: UserService,
+    private userService: UserServiceSupabase,
     private remoteConfigService: RemoteConfigService,
     private uiService: UIService,
     private syncService: SyncService,
@@ -98,6 +99,7 @@ export class HeaderComponent implements OnInit {
     this.activeEnvironment$ = this.store.selectActiveEnvironment();
     this.activeEnvironmentState$ = this.store.selectActiveEnvironmentStatus();
     this.environmentLogs$ = this.store.selectActiveEnvironmentLogs();
+    // this.userService.authStateChanges
 
     this.tabs = [
       {

@@ -3,7 +3,7 @@ import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
 import { SettingsService } from 'src/renderer/app/services/settings.service';
 import { TourService } from 'src/renderer/app/services/tour.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Config } from 'src/renderer/config';
 
 @Component({
@@ -19,7 +19,7 @@ export class WelcomeModalComponent {
     private settingsService: SettingsService,
     private uiService: UIService,
     private tourService: TourService,
-    private userService: UserService
+    private userService: UserServiceSupabase
   ) {}
 
   public close(takeTour: boolean) {
@@ -27,6 +27,7 @@ export class WelcomeModalComponent {
     this.settingsService.updateSettings({ welcomeShown: true });
 
     if (this.isWeb) {
+      // TODO: GREEN START AUTH FLOW
       this.userService.webAuthHandler().subscribe();
     }
 

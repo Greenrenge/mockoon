@@ -38,14 +38,13 @@ import {
   switchMap,
   tap
 } from 'rxjs';
-import { major } from 'semver';
 import { Socket, io } from 'socket.io-client';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
 import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
 import { SyncPayloadsService } from 'src/renderer/app/services/sync-payloads.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import {
   updateSettingsEnvironmentDescriptorAction,
   updateSyncAction
@@ -62,7 +61,7 @@ export class SyncService {
   private migrationApproval: boolean;
 
   constructor(
-    private userService: UserService,
+    private userService: UserServiceSupabase,
     private store: Store,
     private syncPayloadsService: SyncPayloadsService,
     private environmentsService: EnvironmentsService,
@@ -114,15 +113,16 @@ export class SyncService {
                * On web, it's always the latest version. So, the migration is not a positive action from the user and it's better to ask for confirmation.
                * The migration will be done by the sync backend like before but only if the user confirms the action.
                */
-              if (
-                Config.isWeb &&
-                user.cloudSyncHighestMajorVersion != null &&
-                user.cloudSyncHighestMajorVersion < major(Config.appVersion)
-              ) {
-                return this.confirmMigration().pipe(
-                  map((allow) => ({ user, token, allow }))
-                );
-              }
+              // TODO: GREEN, remove migration
+              // if (
+              //   Config.isWeb &&
+              //   user.cloudSyncHighestMajorVersion != null &&
+              //   user.cloudSyncHighestMajorVersion < major(Config.appVersion)
+              // ) {
+              //   return this.confirmMigration().pipe(
+              //     map((allow) => ({ user, token, allow }))
+              //   );
+              // }
 
               return of({ user, token, allow: true });
             }),
@@ -157,22 +157,22 @@ export class SyncService {
    * Reconnect the socket
    */
   public reconnect() {
-    const user = this.store.get('user');
-
-    if (user) {
-      (Config.isWeb &&
-      !this.migrationApproval &&
-      user.cloudSyncHighestMajorVersion != null &&
-      user.cloudSyncHighestMajorVersion < major(Config.appVersion)
-        ? this.confirmMigration()
-        : of(true)
-      ).subscribe((confirmed) => {
-        if (confirmed) {
-          this.store.update(updateSyncAction({ offlineReason: null }));
-          this.socket?.connect();
-        }
-      });
-    }
+    // TODO: GREEN  REMOVE MIGRATION
+    // const user = this.store.get('user');
+    // if (user) {
+    //   (Config.isWeb &&
+    //   !this.migrationApproval &&
+    //   user.cloudSyncHighestMajorVersion != null &&
+    //   user.cloudSyncHighestMajorVersion < major(Config.appVersion)
+    //     ? this.confirmMigration()
+    //     : of(true)
+    //   ).subscribe((confirmed) => {
+    //     if (confirmed) {
+    //       this.store.update(updateSyncAction({ offlineReason: null }));
+    //       this.socket?.connect();
+    //     }
+    //   });
+    // }
   }
 
   private initListeners() {

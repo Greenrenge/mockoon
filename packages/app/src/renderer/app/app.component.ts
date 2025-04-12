@@ -42,7 +42,7 @@ import { TelemetryService } from 'src/renderer/app/services/telemetry.service';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
 import { TourService } from 'src/renderer/app/services/tour.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { environment } from 'src/renderer/environments/environment';
 
@@ -86,7 +86,7 @@ export class AppComponent implements OnInit {
     private mainApiListenerService: MainApiListenerService,
     private settingsService: SettingsService,
     private appQuitService: AppQuitService,
-    private userService: UserService,
+    private userService: UserServiceSupabase,
     private title: Title,
     private tourService: TourService,
     private remoteConfigService: RemoteConfigService,

@@ -55,14 +55,9 @@ export const SharedConfig = (options: {
     defaultSecondaryMenuSize: 200,
     storageSaveDelay: 1000, // ms
     fileReWatchDelay: 3000, // ms
-    firebaseConfig: {
-      apiKey: 'AIzaSyCIkzTtimLebXjf-gfCQ6iwCVFsYRhCRvs',
-      authDomain: 'mockoon-ba3e2.firebaseapp.com',
-      databaseURL: 'https://mockoon-ba3e2.firebaseio.com',
-      projectId: 'mockoon-ba3e2',
-      storageBucket: 'mockoon-ba3e2.appspot.com',
-      messagingSenderId: '902702764744',
-      appId: '1:902702764744:web:599e8dc8d6a1ef6542cbfd'
+    supabaseConfig: {
+      url: 'YOUR_SUPABASE_URL',
+      anonKey: 'YOUR_SUPABASE_ANON_KEY'
     }
   };
 };

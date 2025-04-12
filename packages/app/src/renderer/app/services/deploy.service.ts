@@ -14,7 +14,7 @@ import {
   tap
 } from 'rxjs';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import {
   addDeployInstanceAction,
   removeDeployInstanceAction,
@@ -29,7 +29,7 @@ import { Config } from 'src/renderer/config';
 @Injectable({ providedIn: 'root' })
 export class DeployService {
   constructor(
-    private userService: UserService,
+    private userService: UserServiceSupabase,
     private store: Store,
     private remoteConfig: RemoteConfigService,
     private httpClient: HttpClient
@@ -55,6 +55,7 @@ export class DeployService {
       this.userService.getIdToken()
     ]).pipe(
       switchMap(([user, token]) => {
+        // TODO: GREEN
         if (user?.plan !== Plans.FREE) {
           return this.httpClient.get<DeployInstance[]>(
             `${Config.apiURL}deployments`,

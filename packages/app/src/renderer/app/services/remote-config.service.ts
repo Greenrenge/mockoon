@@ -9,7 +9,7 @@ import {
   switchMap,
   tap
 } from 'rxjs/operators';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Config } from 'src/renderer/config';
 import { environment } from 'src/renderer/environments/environment';
 
@@ -19,8 +19,16 @@ export class RemoteConfigService {
 
   constructor(
     private httpClient: HttpClient,
-    private userService: UserService
+    private userService: UserServiceSupabase
   ) {}
+
+  // TODO: GREEN
+  // {
+  //   "enableTelemetry": true,
+  //   "geoipEndpoint": "http://ip-api.com/json/",
+  //   "cloudSyncUrl": "wss://sync.mockoon.com",
+  //   "deployUrl": "https://api.mockoon.com"
+  // }
 
   /**
    * Get a remote config specific property

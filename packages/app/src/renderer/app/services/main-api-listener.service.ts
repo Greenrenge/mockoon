@@ -7,7 +7,7 @@ import { ImportExportService } from 'src/renderer/app/services/import-export.ser
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
 import { TourService } from 'src/renderer/app/services/tour.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 import { FileWatcherOptions } from 'src/shared/models/settings.model';
@@ -20,7 +20,7 @@ export class MainApiListenerService {
     private importExportService: ImportExportService,
     private store: Store,
     private zone: NgZone,
-    private userService: UserService,
+    private userService: UserServiceSupabase,
     private uiService: UIService,
     private tourService: TourService,
     private mainApiService: MainApiService

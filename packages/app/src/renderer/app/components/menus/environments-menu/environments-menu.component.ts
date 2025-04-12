@@ -54,7 +54,7 @@ import { EventsService } from 'src/renderer/app/services/events.service';
 import { SettingsService } from 'src/renderer/app/services/settings.service';
 import { SyncService } from 'src/renderer/app/services/sync.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 import {
@@ -323,7 +323,7 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     private syncsService: SyncService,
     private uiService: UIService,
-    private userService: UserService
+    private userService: UserServiceSupabase
   ) {}
 
   ngOnInit() {
