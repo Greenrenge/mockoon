@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.json",
+	"transpileOnly": true,
+	"ts-node": {
+		"transpileOnly": true
+	},
+	"compilerOptions": {
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"allowJs": true
+	},
+	"include": [
+		"./.*.cjs", // root commonjs files
+		"./.*.js", // root javascript config files
+		"**/*.js", // javascript files
+		"**/*.ts", // typescript files,
+		"src/**/*.ts",
+	]
+}

@@ -1,0 +1,8 @@
+packages:
+  - 'packages/api-server'
+  - 'packages/commons'
+  - 'packages/commons-server'
+  - 'packages/cloud'
+  - 'packages/serverless'
+  - 'packages/cli'
+  - 'packages/app'

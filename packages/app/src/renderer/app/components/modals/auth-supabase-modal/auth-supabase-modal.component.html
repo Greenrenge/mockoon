@@ -1,11 +1,11 @@
 <div class="row flex-center flex">
   <div class="col-6 form-widget" aria-live="polite">
     <h1 class="header">Login With Supabase</h1>
-    <form (ngSubmit)="onSubmit()" class="form-widget">
-      <div>
-        <button type="submit" class="button block">Login with Github</button>
-      </div>
-    </form>
+    <div>
+      <button (click)="onSubmit()" type="submit" class="button block">
+        Login with Github
+      </button>
+    </div>
     <!-- <p class="description">Sign in via magic link with your email below</p>
     <form [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="form-widget">
       <div>

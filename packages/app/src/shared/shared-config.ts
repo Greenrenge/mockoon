@@ -56,8 +56,9 @@ export const SharedConfig = (options: {
     storageSaveDelay: 1000, // ms
     fileReWatchDelay: 3000, // ms
     supabaseConfig: {
-      url: 'YOUR_SUPABASE_URL',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY'
+      url: 'https://uvxumifocjshijbqfbuf.supabase.co',
+      anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2eHVtaWZvY2pzaGlqYnFmYnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNTE0MTMsImV4cCI6MjA1OTkyNzQxM30.L80vddpXnbJYzU11FGUEGelWP_z9v4PZ9imfH1ea8Q4'
     }
   };
 };

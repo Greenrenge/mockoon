@@ -79,6 +79,7 @@ export class SyncService {
   public init() {
     this.setDeviceId();
 
+    // TODO: GREEN socket io ??????
     return this.remoteConfig.get('cloudSyncUrl').pipe(
       filter((cloudSyncUrl) => !!cloudSyncUrl),
       tap((cloudSyncUrl) => {

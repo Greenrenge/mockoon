@@ -42,12 +42,12 @@ module.exports = (env, argv) => {
         IS_TESTING: env.isTesting ? true : false,
         WEBSITE_URL: JSON.stringify(
           argv.mode === 'development'
-            ? 'http://localhost:3000/'
+            ? 'http://localhost:3000/api'
             : 'https://mockoon.com/'
         ),
         API_URL: JSON.stringify(
           argv.mode === 'development'
-            ? 'http://localhost:5003/'
+            ? 'http://localhost:5003/api'
             : 'https://api.mockoon.com/'
         )
       })

@@ -18,7 +18,7 @@ import {
 } from 'rxjs';
 import { DeepPartial } from 'src/renderer/app/libs/utils.lib';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
-import { UserService } from 'src/renderer/app/services/user.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { updateUserAction } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
@@ -39,7 +39,7 @@ export class TemplatesService {
 
   constructor(
     private httpClient: HttpClient,
-    private userService: UserService,
+    private userService: UserServiceSupabase,
     private toastsService: ToastsService,
     private store: Store
   ) {}

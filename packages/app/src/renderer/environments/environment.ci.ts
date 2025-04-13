@@ -6,5 +6,5 @@ export const environment: AppEnvironment = {
   remoteConfig: 'dev',
   ci: true,
   websiteURL: 'http://localhost:3000/',
-  apiURL: 'http://localhost:5003/'
+  apiURL: 'http://localhost:5003/api/'
 };

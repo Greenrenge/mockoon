@@ -1,0 +1,176 @@
+import cookieParser from 'cookie-parser'
+import helmet from 'helmet'
+import type { ClientRequest, ServerResponse } from 'http'
+import { pick } from 'lodash'
+import { Context, ServiceBroker } from 'moleculer'
+import ApiGateway, { ApiSettingsSchema, GatewayResponse, IncomingRequest } from 'moleculer-web'
+
+const api = {
+	name: 'api',
+	version: 1,
+	mixins: [ApiGateway],
+	settings: {
+		rest: '/_api-gateway', // turns /api/v1/api to "/api/_internal/list-aliases",
+		cors: {
+			origin: '*',
+			// credentials: true,
+			allowedHeaders: '*',
+			methods: ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'],
+		},
+		// Global middlewares. Applied to all routes.
+		use: [
+			cookieParser(),
+			helmet(
+				// CSP fixed for gql playground freezed on loading screen
+				// https://github.com/graphql/graphql-playground/issues/1283#issuecomment-703631091
+				{
+					contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+				},
+			),
+		],
+		port: 5003,
+		routes: [
+			{
+				path: '/api',
+				bodyParsers: {
+					json: true,
+					urlencoded: { extended: true },
+				},
+				mappingPolicy: 'restrict',
+				whitelist: ['v1.api.listAliases', 'v1.mockoon.*'],
+				aliases: {
+					'GET /_info': 'v1.api.info',
+					'GET /_aliases': 'v1.api.listAliases',
+					'GET /_health': 'v1.api.health',
+				},
+				autoAliases: true, // allow v1.api.* to be called directly with rest: config
+				authentication: true, // allow request authorization header to ctx.meta.accessToken/accountId
+				// authorization: true, // the authorization check should be done in the nested-api/micro service level
+				/**
+				 * 	all - enable to request all routes with or without aliases (default)
+				 *	restrict - enable to request only the routes with aliases.
+				 */
+				use: [
+					function errorHandler(
+						this: ServiceBroker & ApiSettingsSchema,
+						err: any,
+						req: IncomingRequest,
+						res: GatewayResponse,
+						next: (err?: any) => void,
+					) {
+						this.logger.error('Error is occurred in middlewares!')
+						this.sendError(req, res, err)
+					},
+				],
+				onError(req: IncomingRequest, res: GatewayResponse, err: any) {
+					res.setHeader('Content-Type', 'application/json')
+					res.writeHead(err.code || 500)
+					res.end(JSON.stringify({ error: { message: err.message } }))
+				},
+			},
+			...(process.env.NODE_ENV === 'production'
+				? []
+				: [
+						{
+							// for moleculer-web API Gateway UI
+							path: '/$moleculer',
+							bodyParsers: {
+								json: true,
+								urlencoded: { extended: true },
+							},
+							whitelist: ['$node.services', '$node.actions', 'v1.api.options', '$node.list'],
+							aliases: {
+								'GET /nodes/services': '$node.services',
+								'GET /nodes/actions': '$node.actions',
+								'GET /nodes/options': 'v1.api.options',
+								'GET /nodes/list': '$node.list',
+							},
+							// authentication: true,
+							// authorization: true,
+							/**
+							 * 	all - enable to request all routes with or without aliases (default)
+							 *	restrict - enable to request only the routes with aliases.
+							 */
+							mappingPolicy: 'restrict',
+							use: [
+								function errorHandler(
+									this: ServiceBroker & ApiSettingsSchema,
+									err: any,
+									req: IncomingRequest,
+									res: GatewayResponse,
+									next: (err?: any) => void,
+								) {
+									this.logger.error('Error is occurred in middlewares!')
+									this.sendError(req, res, err)
+								},
+							],
+							onError(req: IncomingRequest, res: GatewayResponse, err: any) {
+								res.setHeader('Content-Type', 'application/json')
+								res.writeHead(err.code || 500)
+								res.end(JSON.stringify({ error: { message: err.message } }))
+							},
+						},
+					]),
+		],
+		assets: {
+			folder: '../app/dist/renderer',
+			options: {},
+		},
+		onError(req: ClientRequest, res: ServerResponse, err: Error) {
+			res.setHeader('Content-Type', 'text/plain')
+			const code =
+				err instanceof Error && 'code' in err && typeof err.code === 'number' ? err.code : 500
+			res.writeHead(code)
+			res.end(`Global error: ${err.message}`)
+		},
+	},
+	actions: {
+		info: {
+			handler() {
+				return 'API Gateway Service'
+			},
+		},
+		health: {
+			handler() {
+				return 'OK'
+			},
+		},
+		options: {
+			handler(ctx: Context) {
+				const { broker } = ctx
+				const { options } = broker
+				return {
+					...pick(options, [
+						'logLevel',
+						'namespace',
+						'serializer',
+						'maxCallLevel',
+						'tracking',
+						'disableBalancer',
+						'nodeID',
+						'middlewares',
+						'metadata',
+						'registry',
+						'metrics',
+						'tracing',
+					]),
+					...(options?.transporter && {
+						transporter:
+							typeof options?.transporter === 'string' &&
+							options?.transporter?.startsWith('nats://')
+								? 'nats'
+								: false,
+					}),
+					...(options?.cacher &&
+						typeof options?.cacher === 'object' &&
+						'type' in options.cacher && {
+							cacher: options?.cacher?.type || false,
+						}),
+				}
+			},
+		},
+	},
+	events: {},
+}
+
+export default api
