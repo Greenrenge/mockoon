@@ -7,7 +7,7 @@
 	"compilerOptions": {
 		"skipLibCheck": true,
 		"skipDefaultLibCheck": true,
-		"allowJs": true
+		"allowJs": true,
 	},
 	"include": [
 		"./.*.cjs", // root commonjs files

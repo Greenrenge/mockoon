@@ -2,10 +2,18 @@ import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import type { ClientRequest, ServerResponse } from 'http'
 import { pick } from 'lodash'
-import { Context, ServiceBroker } from 'moleculer'
-import ApiGateway, { ApiSettingsSchema, GatewayResponse, IncomingRequest } from 'moleculer-web'
+import { Context, Errors, ServiceBroker } from 'moleculer'
+import ApiGateway, {
+	Alias,
+	ApiSettingsSchema,
+	GatewayResponse,
+	IncomingRequest,
+	Route,
+} from 'moleculer-web'
+import supabase from '../supabase'
+import { AuthContextMeta } from '../types/common'
 
-const api = {
+export default {
 	name: 'api',
 	version: 1,
 	mixins: [ApiGateway],
@@ -171,6 +179,47 @@ const api = {
 		},
 	},
 	events: {},
-}
+	methods: {
+		authorize(ctx: AuthContextMeta) {
+			if (!ctx.meta.accountId) {
+				throw new Errors.MoleculerClientError('Unauthorized', 401, 'UNAUTHORIZED')
+			}
+		},
+		// automatically called by moleculer-web, authentication: true
+		async authenticate(
+			this: ServiceBroker & ApiSettingsSchema,
+			ctx: AuthContextMeta,
+			route: Route,
+			req: IncomingRequest,
+			res: GatewayResponse,
+			alias: Alias,
+		) {
+			const token =
+				req.headers.authorization &&
+				req.headers.authorization.startsWith('Bearer ') &&
+				req.headers.authorization.slice(7)
 
-export default api
+			if (token) {
+				try {
+					// Verify the token by getting the user session
+					const { data, error } = await ctx.call<ReturnType<typeof supabase.auth.getUser>, any>(
+						'v1.supabase.getUser',
+						{
+							token,
+						},
+					)
+					if (data?.user) {
+						// Include user info in the request context
+						ctx.meta.accountId = data.user.id
+						ctx.meta.accessToken = token
+					}
+					return data?.user // saved to ctx.meta.user
+				} catch (err) {
+					this.logger.error('Error authenticating user:', err)
+					return null
+				}
+			}
+			return null
+		},
+	},
+}

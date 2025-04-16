@@ -34,13 +34,14 @@
     "moleculer-apollo-server": "^0.3.8",
     "moleculer-repl": "^0.7.4",
     "moleculer-web": "0.11.0-beta1",
-    "nats": "^2.28.2"
+    "nats": "^2.28.2",
+    "@supabase/supabase-js": "2.49.4"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/lodash": "^4.17.13",
+    "@types/lodash": "^4.17.16",
     "@types/luxon": "^3.4.2",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.10.2",
