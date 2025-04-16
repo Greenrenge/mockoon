@@ -159,21 +159,15 @@ export class SyncService {
    */
   public reconnect() {
     // TODO: GREEN  REMOVE MIGRATION
-    // const user = this.store.get('user');
-    // if (user) {
-    //   (Config.isWeb &&
-    //   !this.migrationApproval &&
-    //   user.cloudSyncHighestMajorVersion != null &&
-    //   user.cloudSyncHighestMajorVersion < major(Config.appVersion)
-    //     ? this.confirmMigration()
-    //     : of(true)
-    //   ).subscribe((confirmed) => {
-    //     if (confirmed) {
-    //       this.store.update(updateSyncAction({ offlineReason: null }));
-    //       this.socket?.connect();
-    //     }
-    //   });
-    // }
+    const user = this.store.get('user');
+    if (user) {
+      of(true).subscribe((confirmed) => {
+        if (confirmed) {
+          this.store.update(updateSyncAction({ offlineReason: null }));
+          this.socket?.connect();
+        }
+      });
+    }
   }
 
   private initListeners() {
