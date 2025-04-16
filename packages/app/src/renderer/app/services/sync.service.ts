@@ -288,6 +288,7 @@ export class SyncService {
     );
   }
 
+  // TODO: GREEN Start sync
   /**
    * Listen to env list messages and compare the local and remote hashes to decide if we need to pull or push the environment.
    * We do nothing if there are actions in the send buffer.

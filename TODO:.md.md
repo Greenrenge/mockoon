@@ -6,3 +6,5 @@ TODO:
 - read to the supabase db subscription to run instance of mockoon? or cloudfunction like the supabase function?
 
 - create new ServerInstance for the server side
+
+- SSE Event?

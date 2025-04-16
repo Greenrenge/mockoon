@@ -1,3 +1,4 @@
+import { User } from '@mockoon/cloud'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import type { ClientRequest, ServerResponse } from 'http'
@@ -10,12 +11,10 @@ import ApiGateway, {
 	IncomingRequest,
 	Route,
 } from 'moleculer-web'
-import supabase from '../supabase'
 import { AuthContextMeta } from '../types/common'
 
 export default {
 	name: 'api',
-	version: 1,
 	mixins: [ApiGateway],
 	settings: {
 		rest: '/_api-gateway', // turns /api/v1/api to "/api/_internal/list-aliases",
@@ -45,13 +44,13 @@ export default {
 					urlencoded: { extended: true },
 				},
 				mappingPolicy: 'restrict',
-				whitelist: ['v1.api.listAliases', 'v1.mockoon.*'],
+				whitelist: ['api.listAliases', 'mockoon.*'],
 				aliases: {
-					'GET /_info': 'v1.api.info',
-					'GET /_aliases': 'v1.api.listAliases',
-					'GET /_health': 'v1.api.health',
+					'GET /_info': 'api.info',
+					'GET /_aliases': 'api.listAliases',
+					'GET /_health': 'api.health',
 				},
-				autoAliases: true, // allow v1.api.* to be called directly with rest: config
+				autoAliases: true, // allow api.* to be called directly with rest: config
 				authentication: true, // allow request authorization header to ctx.meta.accessToken/accountId
 				// authorization: true, // the authorization check should be done in the nested-api/micro service level
 				/**
@@ -86,11 +85,11 @@ export default {
 								json: true,
 								urlencoded: { extended: true },
 							},
-							whitelist: ['$node.services', '$node.actions', 'v1.api.options', '$node.list'],
+							whitelist: ['$node.services', '$node.actions', 'api.options', '$node.list'],
 							aliases: {
 								'GET /nodes/services': '$node.services',
 								'GET /nodes/actions': '$node.actions',
-								'GET /nodes/options': 'v1.api.options',
+								'GET /nodes/options': 'api.options',
 								'GET /nodes/list': '$node.list',
 							},
 							// authentication: true,
@@ -187,7 +186,7 @@ export default {
 		},
 		// automatically called by moleculer-web, authentication: true
 		async authenticate(
-			this: ServiceBroker & ApiSettingsSchema,
+			this: ServiceBroker,
 			ctx: AuthContextMeta,
 			route: Route,
 			req: IncomingRequest,
@@ -202,18 +201,15 @@ export default {
 			if (token) {
 				try {
 					// Verify the token by getting the user session
-					const { data, error } = await ctx.call<ReturnType<typeof supabase.auth.getUser>, any>(
-						'v1.supabase.getUser',
-						{
-							token,
-						},
-					)
-					if (data?.user) {
+					const user = await ctx.call<User, any>('auth.validateToken', {
+						token,
+					})
+					if (user) {
 						// Include user info in the request context
-						ctx.meta.accountId = data.user.id
+						ctx.meta.accountId = user.uid
 						ctx.meta.accessToken = token
 					}
-					return data?.user // saved to ctx.meta.user
+					return user // saved to ctx.meta.user
 				} catch (err) {
 					this.logger.error('Error authenticating user:', err)
 					return null

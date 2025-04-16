@@ -197,7 +197,7 @@ export class DeployInstanceModalComponent implements OnInit {
     }
 
     this.taskInProgress$.next(true);
-
+    // TODO: GREEN DEPLOY INSTANCE
     this.deployService
       .deploy(
         environmentUuid,

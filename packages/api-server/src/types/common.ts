@@ -1,4 +1,4 @@
-import { User } from '@supabase/supabase-js'
+import { User } from '@mockoon/cloud'
 import type {
 	ActionHandler,
 	ActionParamTypes,
@@ -11,11 +11,14 @@ import type {
 	ServiceSettingSchema,
 } from 'moleculer'
 import { IResolvers, ServiceResolverSchema } from 'moleculer-apollo-server'
+import SequelizeDbAdapter, { CountOptions, QueryOptions } from 'moleculer-db-adapter-sequelize'
 
-export type MoleculerService<TExtend = any> = Service<AppServiceSettingSchema & TExtend>
-export type AppBroker = ServiceBroker & {} & {
-	callInternal: typeof ServiceBroker.prototype.call
+export type AppMoleculerService<TExtend = any> = Service<AppServiceSettingSchema & TExtend> & {
+	adapter: SequelizeDbAdapter & {
+		count(filters?: CountOptions & { query: QueryOptions }): Promise<number>
+	}
 }
+export type AppBroker = ServiceBroker & {} & {}
 export type AuthContextMeta<Params = any> = Context<
 	Params,
 	{
@@ -66,7 +69,10 @@ type ActionHookError<TParams = any, TResp = any> = (
 	err: Error,
 ) => Promise<void> | void
 
-export type AppService<TMethods = {}, S = AppServiceSettingSchema> = Omit<Service<S>, 'broker'> &
+export type AppService<TMethods = {}, S = AppServiceSettingSchema> = Omit<
+	AppMoleculerService<S>,
+	'broker'
+> &
 	TMethods & {
 		broker: AppBroker
 	}
@@ -96,6 +102,12 @@ export type AppServiceActionsSchema<S = AppServiceSettingSchema> = {
 	[key: string]: AppActionSchema | ActionHandler | boolean
 } & ThisType<AppService>
 
-export type AppServiceSchema<S = AppServiceSettingSchema> = ServiceSchema<S> & {
-	channels?: Record<string, AppEventSchema>
+export type AppServiceSchema<S = AppServiceSettingSchema> = ServiceSchema<
+	S & {
+		fields?: string[]
+	}
+> & {
+	adapter?: any
+	model?: any
+	afterConnected?: () => Promise<void> | void
 }
