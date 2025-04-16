@@ -62,4 +62,4 @@ const AuthService: AppServiceSchema = {
 	},
 }
 
-export = AuthService
+export default AuthService

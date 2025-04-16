@@ -23,7 +23,8 @@ interface CountParams {
 const DevicesService: AppServiceSchema = {
 	name: 'devices',
 	mixins: [DbService as any],
-	adapter: new SequelizeAdapter('sqlite://:memory:'),
+	// adapter: new SequelizeAdapter('sqlite://:memory:'),
+	adapter: new SequelizeAdapter({ dialect: 'sqlite', storage: './devices.db' }),
 	model: {
 		name: 'device',
 		define: {
@@ -54,12 +55,15 @@ const DevicesService: AppServiceSchema = {
 				version: { type: 'string', optional: true },
 			},
 			async handler(this: AppService, ctx: Context<RegisterParams>) {
-				const existing = await this.adapter.findOne({
-					userId: ctx.params.userId,
-					deviceId: ctx.params.deviceId,
-				})
+				const existing = (await this.adapter.findOne({
+					where: {
+						userId: ctx.params.userId,
+						deviceId: ctx.params.deviceId,
+					},
+				})) as any
+
 				if (existing) {
-					await this.adapter.updateById(ctx.params.deviceId, {
+					await this.adapter.updateById(existing.id, {
 						userId: ctx.params.userId,
 						deviceId: ctx.params.deviceId,
 						version: ctx.params.version,
@@ -88,10 +92,8 @@ const DevicesService: AppServiceSchema = {
 			},
 			async handler(this: AppService, ctx: Context<UnregisterParams>) {
 				await this.adapter.removeMany({
-					query: {
-						userId: ctx.params.userId,
-						deviceId: ctx.params.deviceId,
-					},
+					userId: ctx.params.userId,
+					deviceId: ctx.params.deviceId,
 				})
 				return { success: true }
 			},
@@ -115,4 +117,4 @@ const DevicesService: AppServiceSchema = {
 	},
 }
 
-export = DevicesService
+export default DevicesService

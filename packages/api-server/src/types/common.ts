@@ -39,6 +39,11 @@ export type AuthContextMeta<Params = any> = Context<
 		$responseHeaders?: Record<string, string>
 		$location?: string
 		$repl?: boolean
+
+		$join: string | string[]
+		$leave: string | string[]
+		$socketId: string
+		$rooms: string[]
 	}
 > & {
 	broker: AppBroker

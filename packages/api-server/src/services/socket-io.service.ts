@@ -1,15 +1,8 @@
 // sync.service.ts
-import {
-	BaseSyncAction,
-	Plans,
-	SyncActions,
-	SyncErrors,
-	SyncMessageTypes,
-	User,
-} from '@mockoon/cloud'
+import { BaseSyncAction, SyncActions, SyncErrors, SyncMessageTypes, User } from '@mockoon/cloud'
 import SocketIOService from 'moleculer-io'
 import { Socket } from 'socket.io'
-import { AppService, AppServiceSchema } from '../types/common'
+import { AppService, AppServiceSchema, AuthContextMeta } from '../types/common'
 
 // Define custom socket interface with our properties
 interface CustomSocket extends Socket {
@@ -17,117 +10,45 @@ interface CustomSocket extends Socket {
 	appVersion: string
 	highestMigrationId: string
 	user: User
+	$service: AppService // Reference to the service instance
 }
 
 const SyncService: AppServiceSchema = {
-	name: 'sync',
+	name: 'socket-io',
 	mixins: [SocketIOService as any],
 	settings: {
 		//@ts-ignore
-		port: process.env.SOCKET_PORT || 3000,
+		port: process.env.SOCKET_PORT || 4001,
 		io: {
-			options: {
-				transports: ['websocket'],
-			},
 			namespaces: {
 				'/': {
-					middlewares: [
-						// Middleware to handle authentication
-						function (this: AppService, socket: CustomSocket, next: (err?: Error) => void) {
-							const deviceId = socket.handshake.query.deviceId as string
-							const version = socket.handshake.query.version as string
-							const highestMigrationId = socket.handshake.query.highestMigrationId as string
-
-							// Store these on the socket for later use
-							socket.deviceId = deviceId
-							socket.appVersion = version
-							socket.highestMigrationId = highestMigrationId
-
-							// Check authentication token
-							const token = socket.handshake.auth.token as string
-
-							if (!token) {
-								return next(new Error(SyncErrors.UNAUTHORIZED))
-							}
-
-							// Validate token with your auth service
-							this.broker
-								.call('auth.validateToken', { token })
-								.then((unTypedUser) => {
-									if (!unTypedUser) {
-										return next(new Error(SyncErrors.UNAUTHORIZED))
-									}
-									const user = unTypedUser as User
-
-									// Check if user plan is not free
-									if (user.plan === Plans.FREE) {
-										return next(new Error(SyncErrors.UNAUTHORIZED))
-									}
-
-									// Check if device count exceeds limit
-									this.broker.call('devices.count', { userId: user.uid }).then((count: any) => {
-										// if (count > user.deviceLimit) {
-										// 	return next(new Error(SyncErrors.TOO_MANY_DEVICES))
-										// }
-
-										// Store user on socket
-										socket.user = user
-										next()
-									})
-								})
-								.catch((err) => {
-									this.logger.error('Authentication error', err)
-									next(new Error(SyncErrors.UNAUTHORIZED))
-								})
-						},
-					],
+					authorization: true, // add authorization middleware (socketAuthorize method)
+					middlewares: [],
 					events: {
-						// Handle initial connection
-						connection: function (this: AppService, socket: CustomSocket) {
-							// Register device
-							this.broker.call('devices.register', {
-								deviceId: socket.deviceId,
-								userId: socket.user.uid,
-								version: socket.appVersion,
-							})
-
-							// Add socket to user's room for broadcasting
-							socket.join(`user:${socket.user.uid}`)
-
-							// Send connected message with migration status
-							const migrationNeeded = false
-
-							socket.emit(SyncMessageTypes.CONNECTED, {
-								migrated: migrationNeeded,
-							})
-
-							// // Update presence
-							// this.updatePresence(socket.user.uid)
-						},
-
 						// Handle disconnect
-						disconnect: function (this: AppService, socket: CustomSocket) {
-							this.broker.call('devices.unregister', {
-								deviceId: socket.deviceId,
-								userId: socket.user.uid,
+						disconnect: function (this: CustomSocket) {
+							console.log('Disconnected: deviceId', this.deviceId)
+							console.log('Disconnected: userId', this.user.uid)
+							const service = this.$service as AppService
+							service.broker.call('devices.unregister', {
+								deviceId: this.deviceId,
+								userId: this.user.uid,
 							})
 
-							// Update presence after disconnect
+							// TODO: Update presence after disconnect
 							// this.updatePresence(socket.user.uid)
 						},
-
 						// Handle time sync request
 						[SyncMessageTypes.TIME]: function (
-							socket: CustomSocket,
-							data: any,
+							this: CustomSocket,
 							respond: (data: BaseSyncAction) => void,
 						) {
 							respond({ timestamp: Date.now() })
 						},
 
 						// Handle environment list request
-						[SyncMessageTypes.ENV_LIST]: function (this: AppService, socket: CustomSocket) {
-							socket.emit(SyncMessageTypes.ENV_LIST, [])
+						[SyncMessageTypes.ENV_LIST]: function (this: CustomSocket) {
+							this.emit(SyncMessageTypes.ENV_LIST, [])
 							// this.broker
 							// 	.call('environments.list', { userId: socket.user.uid })
 							// 	.then((environments: any[]) => {
@@ -145,12 +66,11 @@ const SyncService: AppServiceSchema = {
 
 						// Handle sync actions
 						[SyncMessageTypes.SYNC]: function (
-							this: AppService,
-							socket: CustomSocket,
+							this: CustomSocket,
 							action: SyncActions,
 							respond: (data: any) => void,
 						) {
-							this.logger.info('Sync action received:', action)
+							this.$service.logger.info('Sync action received:', action)
 							// Process the sync action based on its type
 							// switch (action.type) {
 							// 	case 'GET_FULL_ENVIRONMENT':
@@ -171,8 +91,65 @@ const SyncService: AppServiceSchema = {
 			},
 		},
 	},
-
+	actions: {
+		afterConnected: {
+			params: {
+				deviceId: 'string',
+				userId: 'string',
+				version: 'string',
+				highestMigrationId: 'string|optional',
+			},
+			async handler(this: AppService, ctx: AuthContextMeta) {},
+		},
+	},
 	methods: {
+		// check only at namespace level
+		async socketAuthorize(this: AppService, socket, handler) {
+			const deviceId = socket.handshake.query.deviceId as string
+			const version = socket.handshake.query.version as string
+			const highestMigrationId = socket.handshake.query.highestMigrationId as string
+
+			// Store these on the socket for later use
+			socket.deviceId = deviceId
+			socket.appVersion = version
+			socket.highestMigrationId = highestMigrationId
+
+			// Check authentication token
+			const token = socket.handshake.auth.token as string
+
+			if (!token) {
+				throw new Error(SyncErrors.UNAUTHORIZED)
+			}
+			const user = (await this.broker.call('auth.validateToken', { token })) as User
+			if (!user) {
+				throw new Error(SyncErrors.UNAUTHORIZED)
+			}
+			socket.user = user
+
+			await this.broker.call('devices.register', {
+				deviceId: deviceId,
+				userId: user.uid,
+				version: version,
+			})
+
+			// Add socket to user's room for broadcasting
+			socket.join(`user:${user.uid}`)
+			if (user.teamId) {
+				// Add socket to user's team room for broadcasting
+				socket.join(`team:${user.teamId}`)
+			}
+
+			// Send connected message with migration status
+			const migrationNeeded = false
+
+			socket.emit(SyncMessageTypes.CONNECTED, {
+				migrated: migrationNeeded,
+			})
+
+			//TODO: Update presence
+			// this.updatePresence(socket.user.uid)
+			return user
+		},
 		// /**
 		//  * Update presence information for all connected clients
 		//  */
@@ -297,4 +274,4 @@ const SyncService: AppServiceSchema = {
 	},
 }
 
-export = SyncService
+export default SyncService

@@ -7,7 +7,6 @@ interface ComputeParams {
 
 const HashService: ServiceSchema = {
 	name: 'hash',
-
 	actions: {
 		/**
 		 * Compute hash for data
@@ -23,3 +22,5 @@ const HashService: ServiceSchema = {
 		},
 	},
 }
+
+export default HashService
