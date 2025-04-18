@@ -118,12 +118,59 @@ const SyncService: AppServiceSchema = {
 							this.$service.logger.info('Sync response received:', JSON.stringify(respond))
 							const { type, environmentUuid, timestamp } = action as any
 							//Process the sync action based on its type
+
 							switch (action.type) {
 								case SyncActionTypes.GET_FULL_ENVIRONMENT:
 									const { receive } = action as { receive: 'UPDATE' | 'CREATE' }
 									// find the environment by uuid
-									// const env =
-									this.emit('')
+									service.broker
+										.call<any, any>(
+											'environments.get',
+											{
+												id: environmentUuid,
+											},
+											{
+												//@ts-ignore
+												meta: service.socketGetMeta(this),
+											},
+										)
+										.then((doc) => {
+											if (!doc) {
+												return respond({ error: 'Environment Not Found' })
+											}
+											// Calculate hash of the environment
+											return service.broker
+												.call<string, any>(
+													'hash.compute',
+													{ data: doc.payload },
+													{
+														//@ts-ignore
+														meta: service.socketGetMeta(this),
+													},
+												)
+												.then((hash: string) => {
+													// Send the environment data to the client
+													this.emit(SyncMessageTypes.SYNC, {
+														type:
+															receive === 'UPDATE'
+																? SyncActionTypes.UPDATE_FULL_ENVIRONMENT
+																: SyncActionTypes.ADD_CLOUD_ENVIRONMENT,
+														timestamp: doc.timestamp,
+														hash: hash,
+														environment: doc.payload,
+														...(receive === 'UPDATE'
+															? { environmentUuid: doc.environmentUuid }
+															: {}),
+													})
+													// Acknowledge the action
+													respond({ hash })
+												})
+										})
+										.catch((err: Error) => {
+											service.logger.error('Error processing sync action', err)
+											respond({ error: 'Action processing failed with error:+' + err.message })
+										})
+									// this.emit('')
 									break
 								// Handle other sync action types
 								default:
