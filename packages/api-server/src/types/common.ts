@@ -110,6 +110,7 @@ export type AppServiceActionsSchema<S = AppServiceSettingSchema> = {
 export type AppServiceSchema<S = AppServiceSettingSchema> = ServiceSchema<
 	S & {
 		fields?: string[]
+		idField?: string
 	}
 > & {
 	adapter?: any

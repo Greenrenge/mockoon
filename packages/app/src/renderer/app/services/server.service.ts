@@ -79,7 +79,6 @@ export class ServerService {
         filter((instances) => instances.length > 0),
         delay(3000), // Delay to ensure all instances are up before listening
         tap((instances) => {
-          // TODO: GREEN what is sseConnections
           // Start or renew SSE for instances
           instances.forEach((instance) => {
             const existingConnection = this.activeSseConnections.get(
@@ -149,7 +148,7 @@ export class ServerService {
 
     this.httpClient
       .put(
-        `${this.buildRemoteInstanceUrl(instance)}/environment`,
+        `${this.buildRemoteInstanceUrl(instance)}/environment`, // TODO: GREEN admin API
         environments[0],
         {
           headers: { Authorization: `Bearer ${instance.apiKey}` }

@@ -330,7 +330,7 @@ export class SyncPayloadsService {
       this.mainApiService.invoke('APP_GET_HASH', deterministicStringify(obj))
     );
   }
-
+  // TODO: GREEN SYNC ACTION FROM SERVER SIDE !!
   /**
    * Apply a sync action to the store by dispatching the corresponding reducer action
    *

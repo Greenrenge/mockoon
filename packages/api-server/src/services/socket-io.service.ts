@@ -16,6 +16,7 @@ interface CustomSocket extends Socket {
 const SyncService: AppServiceSchema = {
 	name: 'socket-io',
 	mixins: [SocketIOService as any],
+	dependencies: ['devices', 'auth', 'environments'],
 	settings: {
 		//@ts-ignore
 		port: process.env.SOCKET_PORT || 4001,
@@ -27,8 +28,6 @@ const SyncService: AppServiceSchema = {
 					events: {
 						// Handle disconnect
 						disconnect: function (this: CustomSocket) {
-							console.log('Disconnected: deviceId', this.deviceId)
-							console.log('Disconnected: userId', this.user.uid)
 							const service = this.$service as AppService
 							service.broker.call('devices.unregister', {
 								deviceId: this.deviceId,
@@ -48,7 +47,19 @@ const SyncService: AppServiceSchema = {
 
 						// Handle environment list request
 						[SyncMessageTypes.ENV_LIST]: function (this: CustomSocket) {
-							this.emit(SyncMessageTypes.ENV_LIST, [])
+							const service = this.$service as AppService
+							service.broker
+								.call<{ rows: any[] }, any>('environments.list', {
+									page: 1,
+									pageSize: 100,
+								})
+								.then(({ rows: environments }: { rows: any[] }) => {
+									service.logger.debug('environments', environments)
+									this.emit(SyncMessageTypes.ENV_LIST, environments)
+								})
+								.catch((err: Error) => {
+									service.logger.error('Error fetching environments', err)
+								})
 							// this.broker
 							// 	.call('environments.list', { userId: socket.user.uid })
 							// 	.then((environments: any[]) => {
@@ -70,7 +81,8 @@ const SyncService: AppServiceSchema = {
 							action: SyncActions,
 							respond: (data: any) => void,
 						) {
-							this.$service.logger.info('Sync action received:', action)
+							this.$service.logger.info('Sync action received:', JSON.stringify(action))
+							this.$service.logger.info('Sync response received:', JSON.stringify(respond))
 							// Process the sync action based on its type
 							// switch (action.type) {
 							// 	case 'GET_FULL_ENVIRONMENT':

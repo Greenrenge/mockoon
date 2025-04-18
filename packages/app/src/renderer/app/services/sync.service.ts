@@ -79,7 +79,6 @@ export class SyncService {
   public init() {
     this.setDeviceId();
 
-    // TODO: GREEN socket io ??????
     return this.remoteConfig.get('cloudSyncUrl').pipe(
       filter((cloudSyncUrl) => !!cloudSyncUrl),
       tap((cloudSyncUrl) => {
@@ -597,6 +596,7 @@ export class SyncService {
         }
 
         // if we are not connected, we don't buffer actions, we will either push or pull depending on the environment list
+        // TODO: GREEN PUSH UPDATED TO SERVER ?
         if (!this.socket.disconnected) {
           this.socket.emit(
             SyncMessageTypes.SYNC,
@@ -683,6 +683,7 @@ export class SyncService {
     );
   }
 
+  // TODO: GREEN PULL FROM SERVER
   /**
    * Send a get full environment action to the server
    *
@@ -690,7 +691,7 @@ export class SyncService {
    */
   private sendGetFullEnvironment(
     environmentUuid: string,
-    receive: GetFullEnvironmentSyncAction['receive']
+    receive: GetFullEnvironmentSyncAction['receive'] // TODO: GREEN (CREATE | UPDATE)
   ) {
     const getFullEnvAction =
       this.syncPayloadsService.getFullEnvironmentActionBuilder(
@@ -706,6 +707,7 @@ export class SyncService {
     );
   }
 
+  // TODO: GREEN PUSH TO SERVER
   /**
    * Send an update full environment action to the server
    *

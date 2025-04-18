@@ -24,7 +24,8 @@ const DevicesService: AppServiceSchema = {
 	name: 'devices',
 	mixins: [DbService as any],
 	// adapter: new SequelizeAdapter('sqlite://:memory:'),
-	adapter: new SequelizeAdapter({ dialect: 'sqlite', storage: './devices.db' }),
+	// adapter: new SequelizeAdapter({ dialect: 'sqlite', storage: './devices.db' }),
+	adapter: new SequelizeAdapter('postgres://postgres:1234@localhost:5432/postgres'),
 	model: {
 		name: 'device',
 		define: {

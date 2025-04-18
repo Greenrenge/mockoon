@@ -1,6 +1,6 @@
-import crypto from 'crypto'
+import { deterministicStringify } from '@mockoon/commons'
+import { createHash } from 'crypto'
 import { ServiceSchema } from 'moleculer'
-
 interface ComputeParams {
 	data: any
 }
@@ -16,8 +16,8 @@ const HashService: ServiceSchema = {
 				data: { type: 'any' },
 			},
 			handler(ctx: { params: ComputeParams }): string {
-				const data = JSON.stringify(ctx.params.data)
-				return crypto.createHash('sha256').update(data).digest('hex')
+				const data = deterministicStringify(ctx.params.data)
+				return createHash('sha1').update(data, 'utf-8').digest('hex')
 			},
 		},
 	},

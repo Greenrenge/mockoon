@@ -107,7 +107,7 @@ export function transformSyncAction<T extends SyncActions>(
       !recentSyncAction ||
       newSyncAction.timestamp > recentSyncAction.timestamp
     ) {
-      return newSyncAction;
+      return newSyncAction; // TODO: GREEN Compare with the last action
     }
 
     // if action is older, check if it's an UPDATE or a REORDER
