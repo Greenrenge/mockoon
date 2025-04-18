@@ -18,7 +18,6 @@ const Service: AppServiceSchema = {
 				type: Sequelize.STRING,
 				primaryKey: true,
 			},
-			order: Sequelize.INTEGER,
 			payload: Sequelize.JSONB,
 			environmentUuid: Sequelize.STRING,
 			hash: Sequelize.STRING,
@@ -37,7 +36,7 @@ const Service: AppServiceSchema = {
 		this.logger.info('Database connected, syncing devices...')
 
 		//@ts-ignore
-		this.model!.sync({ alter: true })
+		// this.model!.sync({ alter: true })
 	},
 }
 

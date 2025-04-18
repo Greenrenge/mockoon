@@ -8,8 +8,11 @@ import {
 	User,
 } from '@mockoon/cloud'
 import SocketIOService from 'moleculer-io'
-import { Socket } from 'socket.io'
+import { Server, Socket } from 'socket.io'
+import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-database'
 import { AppService, AppServiceSchema, AuthContextMeta } from '../types/common'
+
+type SyncEnv = EnvironmentModelType & { hash: string }
 
 // Define custom socket interface with our properties
 interface CustomSocket extends Socket {
@@ -26,7 +29,7 @@ type ServerAcknowledgment = {
 const SyncService: AppServiceSchema = {
 	name: 'socket-io',
 	mixins: [SocketIOService as any],
-	dependencies: ['devices', 'auth', 'environments'],
+	dependencies: ['devices', 'auth', 'environments-store'],
 	settings: {
 		//@ts-ignore
 		logRequest: 'info',
@@ -84,20 +87,23 @@ const SyncService: AppServiceSchema = {
 						[SyncMessageTypes.ENV_LIST]: function (this: CustomSocket) {
 							const service = this.$service as AppService
 							service.broker
-								.call<{ rows: any[] }, any>(
-									'environments.list',
-									{
-										page: 1,
-										pageSize: 100,
-									},
+								.call<SyncEnv[], any>(
+									'environments-store.list',
+									{},
 									{
 										//@ts-ignore
 										meta: service.socketGetMeta(this),
 									},
 								)
-								.then(({ rows: environments }: { rows: any[] }) => {
-									service.logger.debug('environments', environments)
-									this.emit(SyncMessageTypes.ENV_LIST, environments)
+								.then((environments) => {
+									service.logger.info('environments', environments)
+									this.emit(
+										SyncMessageTypes.ENV_LIST,
+										environments.map((env) => ({
+											environmentUuid: env.environmentUuid,
+											hash: env.hash,
+										})),
+									)
 								})
 								.catch((err: Error) => {
 									service.logger.error('Error fetching environments', err)
@@ -111,70 +117,11 @@ const SyncService: AppServiceSchema = {
 							respond: (data: any) => void,
 						) {
 							const service = this.$service as AppService
-							//TODO: if environmentUuid is sent , we need to return hash in acknowledgment
-							// when CREATE is in receive --> ADD_ENVIRONMENT will be sent
-							// transformedAction must be called first to check timestamp, server must have RecentActionsStore,previousActionHash inside, then saveRecentUpdateSyncAction,applySyncAction for converting to action to reducer
-							this.$service.logger.info('Sync action received:', JSON.stringify(action))
-							this.$service.logger.info('Sync response received:', JSON.stringify(respond))
-							const { type, environmentUuid, timestamp } = action as any
-							//Process the sync action based on its type
-
-							switch (action.type) {
-								case SyncActionTypes.GET_FULL_ENVIRONMENT:
-									const { receive } = action as { receive: 'UPDATE' | 'CREATE' }
-									// find the environment by uuid
-									service.broker
-										.call<any, any>(
-											'environments.get',
-											{
-												id: environmentUuid,
-											},
-											{
-												//@ts-ignore
-												meta: service.socketGetMeta(this),
-											},
-										)
-										.then((doc) => {
-											if (!doc) {
-												return respond({ error: 'Environment Not Found' })
-											}
-											// Calculate hash of the environment
-											return service.broker
-												.call<string, any>(
-													'hash.compute',
-													{ data: doc.payload },
-													{
-														//@ts-ignore
-														meta: service.socketGetMeta(this),
-													},
-												)
-												.then((hash: string) => {
-													// Send the environment data to the client
-													this.emit(SyncMessageTypes.SYNC, {
-														type:
-															receive === 'UPDATE'
-																? SyncActionTypes.UPDATE_FULL_ENVIRONMENT
-																: SyncActionTypes.ADD_CLOUD_ENVIRONMENT,
-														timestamp: doc.timestamp,
-														hash: hash,
-														environment: doc.payload,
-														...(receive === 'UPDATE'
-															? { environmentUuid: doc.environmentUuid }
-															: {}),
-													})
-													// Acknowledge the action
-													respond({ hash })
-												})
-										})
-										.catch((err: Error) => {
-											service.logger.error('Error processing sync action', err)
-											respond({ error: 'Action processing failed with error:+' + err.message })
-										})
-									// this.emit('')
-									break
-								// Handle other sync action types
-								default:
-							}
+							service.logger.info('Sync action received:', JSON.stringify(action))
+							service
+								//@ts-ignore
+								.handleSyncAction(this, action, respond)
+								.then(respond)
 						},
 					},
 				},
@@ -194,7 +141,7 @@ const SyncService: AppServiceSchema = {
 	},
 	methods: {
 		// check only at namespace level
-		async socketAuthorize(this: AppService, socket, handler) {
+		async socketAuthorize(this: AppService & { io: Server }, socket, handler) {
 			const deviceId = socket.handshake.query.deviceId as string
 			const version = socket.handshake.query.version as string
 			const highestMigrationId = socket.handshake.query.highestMigrationId as string
@@ -213,6 +160,26 @@ const SyncService: AppServiceSchema = {
 			if (!user) {
 				throw new Error(SyncErrors.UNAUTHORIZED)
 			}
+			// //TODO: must have single socket per deviceId
+			// const sockets = await this.io.of('/').in(`user:${user.uid}`).fetchSockets()
+
+			// sockets.filter(
+			// 	(s) =>
+			// 		//@ts-ignore
+			// 		s.deviceId === deviceId && s.user.id === user.id,
+			// )
+			// if (sockets.length > 1) {
+			// 	this.logger.warn(
+			// 		`User ${user.uid} has multiple sockets connected with the same deviceId ${deviceId}. Disconnecting the previous socket.`,
+			// 	)
+			// 	// disconnect the previous socket
+			// 	sockets.forEach((s) => {
+			// 		if (s.id !== socket.id) {
+			// 			s.disconnect()
+			// 		}
+			// 	})
+			// }
+
 			socket.user = user
 			socket.accessToken = token
 
@@ -258,6 +225,100 @@ const SyncService: AppServiceSchema = {
 			}
 			this.logger.debug('getMeta', meta)
 			return meta
+		},
+		async handleSyncAction(
+			this: AppService & { io: Server },
+			socket: CustomSocket,
+			action: SyncActions,
+			respond?: (data: ServerAcknowledgment) => void,
+		): Promise<ServerAcknowledgment> {
+			//TODO: if environmentUuid is sent , we need to return hash in acknowledgment
+			// when CREATE is in receive --> ADD_ENVIRONMENT will be sent
+			// transformSyncAction must be called first to check timestamp, server must have RecentActionsStore,previousActionHash inside, then saveRecentUpdateSyncAction,applySyncAction for converting to action to reducer
+			//Process the sync action based on its type
+			try {
+				switch (action.type) {
+					case SyncActionTypes.GET_FULL_ENVIRONMENT: {
+						const { receive, environmentUuid } = action
+						// find the environment by uuid
+						const doc = await this.broker.call<SyncEnv, any>(
+							'environments-store.get',
+							{
+								uuid: environmentUuid,
+							},
+							{
+								//@ts-ignore
+								meta: this.socketGetMeta(socket),
+							},
+						)
+
+						if (!doc) {
+							return { error: 'Environment Not Found' }
+						}
+
+						// Send the environment data to the client
+						socket.emit(SyncMessageTypes.SYNC, {
+							type:
+								receive === 'UPDATE'
+									? SyncActionTypes.UPDATE_FULL_ENVIRONMENT
+									: SyncActionTypes.ADD_CLOUD_ENVIRONMENT,
+							timestamp: doc.timestamp,
+							hash: doc.hash,
+							environment: doc.environment,
+							...(receive === 'UPDATE' ? { environmentUuid: doc.environmentUuid } : {}),
+						})
+
+						// Acknowledge the action
+						return { hash: doc.hash }
+					}
+
+					default:
+						const doc = await this.broker.call<SyncEnv, any>(
+							'environments-store.dispatch',
+							{
+								action,
+							},
+							{
+								//@ts-ignore
+								meta: this.socketGetMeta(socket),
+							},
+						)
+						// Broadcast the action to all connected clients except the sender
+						this.io
+							.of('/')
+							.in(`team:${socket.user.teamId}`)
+							.fetchSockets()
+							.then((sockets) => {
+								sockets.forEach((s) => {
+									// @ts-ignore
+									if (s.id !== socket.id && s.deviceId !== socket.deviceId) {
+										s.emit(SyncMessageTypes.SYNC, action)
+									}
+								})
+							})
+						// socket.broadcast.to(`team:${socket.user.teamId}`).emit(SyncMessageTypes.SYNC, action)
+						// this.broker.call(
+						// 	'socket-io.broadcast',
+						// 	{
+						// 		event: SyncMessageTypes.SYNC,
+						// 		rooms: [`team:${socket.user.teamId}`],
+						// 		namespace: '/',
+						// 		args: [action],
+						// 	},
+						// 	{
+						// 		//@ts-ignore
+						// 		meta: this.socketGetMeta(socket),
+						// 	},
+						// )
+						if (doc) {
+							return { hash: doc.hash }
+						}
+						return { error: 'No handlers' }
+				}
+			} catch (err) {
+				this.logger.error('Error processing sync action', err)
+				return { error: 'Action processing failed with error:+' + err.message }
+			}
 		},
 
 		// /**

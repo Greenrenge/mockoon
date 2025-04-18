@@ -502,6 +502,7 @@ export class SyncService {
           .computeHash(syncAction)
           .pipe(map((hash) => ({ syncAction, hash })));
       }),
+
       tap(({ syncAction, hash }) => {
         const transformedAction = transformSyncAction(
           syncAction,

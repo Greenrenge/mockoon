@@ -24,6 +24,7 @@
     "@mockoon/commons-server": "9.2.0",
     "@moleculer/lab": "^0.6.4",
     "@supabase/supabase-js": "2.49.4",
+    "async-mutex": "0.5.0",
     "caller-path": "^3.0.1",
     "cookie-parser": "^1.4.7",
     "directory-import": "^2.3.1",
