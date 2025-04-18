@@ -349,6 +349,7 @@ export class SyncService {
                 }))
               );
           } else {
+            // TODO: GREEN NEW ENVIRONMENT FROM SERVER
             hashObservable$ = of({
               environmentUuid: updatedCloudEnvironment.environmentUuid,
               serverHash: updatedCloudEnvironment.hash,
@@ -465,6 +466,7 @@ export class SyncService {
                 return observable$.pipe(
                   tap(() => {
                     if (hashResult.lastServerHash !== hashResult.serverHash) {
+                      // TODO: GREEN NEW ENVIRONMENT FROM SERVER WILL SKIPPED BECAUSE BOTH OF THEM ARE NULL
                       this.store.update(
                         updateSettingsEnvironmentDescriptorAction({
                           uuid: hashResult.environmentUuid,

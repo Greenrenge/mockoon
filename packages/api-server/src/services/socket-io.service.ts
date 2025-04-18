@@ -1,5 +1,12 @@
 // sync.service.ts
-import { BaseSyncAction, SyncActions, SyncErrors, SyncMessageTypes, User } from '@mockoon/cloud'
+import {
+	BaseSyncAction,
+	SyncActions,
+	SyncActionTypes,
+	SyncErrors,
+	SyncMessageTypes,
+	User,
+} from '@mockoon/cloud'
 import SocketIOService from 'moleculer-io'
 import { Socket } from 'socket.io'
 import { AppService, AppServiceSchema, AuthContextMeta } from '../types/common'
@@ -12,12 +19,29 @@ interface CustomSocket extends Socket {
 	user: User
 	$service: AppService // Reference to the service instance
 }
-
+type ServerAcknowledgment = {
+	hash?: string
+	error?: string | SyncErrors
+}
 const SyncService: AppServiceSchema = {
 	name: 'socket-io',
 	mixins: [SocketIOService as any],
 	dependencies: ['devices', 'auth', 'environments'],
 	settings: {
+		//@ts-ignore
+		logRequest: 'info',
+		//@ts-ignore
+		logRequestParams: 'info',
+		//@ts-ignore
+		logResponse: 'info',
+		//@ts-ignore
+		log4XXResponses: 'info',
+		//@ts-ignore
+		logRouteRegistration: 'info',
+		//@ts-ignore
+		logClientConnection: 'info',
+		//@ts-ignore
+		logBroadcastRequest: 'info',
 		//@ts-ignore
 		port: process.env.SOCKET_PORT || 4001,
 		io: {
@@ -26,13 +50,24 @@ const SyncService: AppServiceSchema = {
 					authorization: true, // add authorization middleware (socketAuthorize method)
 					middlewares: [],
 					events: {
+						call: {
+							// disable call event for client to call socket.emit('call',...)
+							mappingPolicy: 'restrict',
+						},
 						// Handle disconnect
 						disconnect: function (this: CustomSocket) {
 							const service = this.$service as AppService
-							service.broker.call('devices.unregister', {
-								deviceId: this.deviceId,
-								userId: this.user.uid,
-							})
+							service.broker.call(
+								'devices.unregister',
+								{
+									deviceId: this.deviceId,
+									userId: this.user.uid,
+								},
+								{
+									//@ts-ignore
+									meta: service.socketGetMeta(this),
+								},
+							)
 
 							// TODO: Update presence after disconnect
 							// this.updatePresence(socket.user.uid)
@@ -49,10 +84,17 @@ const SyncService: AppServiceSchema = {
 						[SyncMessageTypes.ENV_LIST]: function (this: CustomSocket) {
 							const service = this.$service as AppService
 							service.broker
-								.call<{ rows: any[] }, any>('environments.list', {
-									page: 1,
-									pageSize: 100,
-								})
+								.call<{ rows: any[] }, any>(
+									'environments.list',
+									{
+										page: 1,
+										pageSize: 100,
+									},
+									{
+										//@ts-ignore
+										meta: service.socketGetMeta(this),
+									},
+								)
 								.then(({ rows: environments }: { rows: any[] }) => {
 									service.logger.debug('environments', environments)
 									this.emit(SyncMessageTypes.ENV_LIST, environments)
@@ -60,19 +102,6 @@ const SyncService: AppServiceSchema = {
 								.catch((err: Error) => {
 									service.logger.error('Error fetching environments', err)
 								})
-							// this.broker
-							// 	.call('environments.list', { userId: socket.user.uid })
-							// 	.then((environments: any[]) => {
-							// 		socket.emit(SyncMessageTypes.ENV_LIST, environments)
-							// 		//TODO: GREEN
-							// 		// type EnvironmentsListPayload = {
-							// 		// 	environmentUuid: string;
-							// 		// 	hash: string;
-							// 		//     }[];
-							// 	})
-							// 	.catch((err: Error) => {
-							// 		this.logger.error('Error fetching environments', err)
-							// 	})
 						},
 
 						// Handle sync actions
@@ -81,22 +110,24 @@ const SyncService: AppServiceSchema = {
 							action: SyncActions,
 							respond: (data: any) => void,
 						) {
+							const service = this.$service as AppService
+							//TODO: if environmentUuid is sent , we need to return hash in acknowledgment
+							// when CREATE is in receive --> ADD_ENVIRONMENT will be sent
+							// transformedAction must be called first to check timestamp, server must have RecentActionsStore,previousActionHash inside, then saveRecentUpdateSyncAction,applySyncAction for converting to action to reducer
 							this.$service.logger.info('Sync action received:', JSON.stringify(action))
 							this.$service.logger.info('Sync response received:', JSON.stringify(respond))
-							// Process the sync action based on its type
-							// switch (action.type) {
-							// 	case 'GET_FULL_ENVIRONMENT':
-							// 		this.handleGetFullEnvironment(socket, action, respond)
-							// 		break
-
-							// 	case 'UPDATE_FULL_ENVIRONMENT':
-							// 		this.handleUpdateFullEnvironment(socket, action, respond)
-							// 		break
-
-							// 	// Handle other sync action types
-							// 	default:
-							// 		this.handleGenericSyncAction(socket, action, respond)
-							// }
+							const { type, environmentUuid, timestamp } = action as any
+							//Process the sync action based on its type
+							switch (action.type) {
+								case SyncActionTypes.GET_FULL_ENVIRONMENT:
+									const { receive } = action as { receive: 'UPDATE' | 'CREATE' }
+									// find the environment by uuid
+									// const env =
+									this.emit('')
+									break
+								// Handle other sync action types
+								default:
+							}
 						},
 					},
 				},
@@ -128,7 +159,6 @@ const SyncService: AppServiceSchema = {
 
 			// Check authentication token
 			const token = socket.handshake.auth.token as string
-
 			if (!token) {
 				throw new Error(SyncErrors.UNAUTHORIZED)
 			}
@@ -137,12 +167,20 @@ const SyncService: AppServiceSchema = {
 				throw new Error(SyncErrors.UNAUTHORIZED)
 			}
 			socket.user = user
+			socket.accessToken = token
 
-			await this.broker.call('devices.register', {
-				deviceId: deviceId,
-				userId: user.uid,
-				version: version,
-			})
+			await this.broker.call(
+				'devices.register',
+				{
+					deviceId: deviceId,
+					userId: user.uid,
+					version: version,
+				},
+				{
+					//@ts-ignore
+					meta: this.socketGetMeta(socket),
+				},
+			)
 
 			// Add socket to user's room for broadcasting
 			socket.join(`user:${user.uid}`)
@@ -160,8 +198,21 @@ const SyncService: AppServiceSchema = {
 
 			//TODO: Update presence
 			// this.updatePresence(socket.user.uid)
-			return user
+			return user // will be saved to socket.client.user
 		},
+		socketGetMeta(this: AppService, socket) {
+			// make the context to be the same as API GATEWAY
+			const meta = {
+				$socketId: socket.id,
+				user: socket.user,
+				accountId: socket.user.uid || socket.user.id,
+				accessToken: socket.accessToken,
+				$rooms: Array.from(socket.rooms.keys()),
+			}
+			this.logger.debug('getMeta', meta)
+			return meta
+		},
+
 		// /**
 		//  * Update presence information for all connected clients
 		//  */

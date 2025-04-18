@@ -355,6 +355,7 @@ export class SyncPayloadsService {
           )
         );
       } else {
+        // TODO: GREEN NEW ENVIRONMENT WILL NOT IN THE stores.settings yet
         this.environmentsService
           .addCloudEnvironment(
             syncAction.environment,

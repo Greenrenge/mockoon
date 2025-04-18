@@ -2,11 +2,12 @@
 import DbService from 'moleculer-db'
 import SequelizeAdapter from 'moleculer-db-adapter-sequelize'
 import Sequelize from 'sequelize'
+import { mustLogin } from '../mixins/mustLogin'
 import { AppService, AppServiceSchema } from '../types/common'
 
 const Service: AppServiceSchema = {
 	name: 'environments',
-	mixins: [DbService as any],
+	mixins: [DbService as any, mustLogin()],
 	// adapter: new SequelizeAdapter('sqlite://:memory:'),
 	// adapter: new SequelizeAdapter({ dialect: 'sqlite', storage: './environments.db' }),
 	adapter: new SequelizeAdapter('postgres://postgres:1234@localhost:5432/postgres'),

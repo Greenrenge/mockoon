@@ -3,6 +3,7 @@ import { Context } from 'moleculer'
 import DbService from 'moleculer-db'
 import SequelizeAdapter from 'moleculer-db-adapter-sequelize'
 import Sequelize from 'sequelize'
+import { mustLogin } from '../mixins/mustLogin'
 import { AppService, AppServiceSchema } from '../types/common'
 
 interface RegisterParams {
@@ -22,7 +23,7 @@ interface CountParams {
 
 const DevicesService: AppServiceSchema = {
 	name: 'devices',
-	mixins: [DbService as any],
+	mixins: [DbService as any, mustLogin()],
 	// adapter: new SequelizeAdapter('sqlite://:memory:'),
 	// adapter: new SequelizeAdapter({ dialect: 'sqlite', storage: './devices.db' }),
 	adapter: new SequelizeAdapter('postgres://postgres:1234@localhost:5432/postgres'),
@@ -115,6 +116,9 @@ const DevicesService: AppServiceSchema = {
 	afterConnected(this: AppService) {
 		// Sync the database
 		this.logger.info('Database connected, syncing devices...')
+
+		//@ts-ignore
+		this.model!.sync({ alter: true })
 	},
 }
 

@@ -82,6 +82,7 @@ function isReorderSyncAction(
   return reorderSyncActionsList.includes(syncAction.type);
 }
 
+// TODO: GREEN Decide which actions to perform
 /**
  * Let pass some actions and transform others:
  * - Updates: UPDATE_ENVIRONMENT, UPDATE_ROUTE, UPDATE_FOLDER, UPDATE_ROUTE_RESPONSE, UPDATE_DATABUCKET, UPDATE_CALLBACK
@@ -107,7 +108,7 @@ export function transformSyncAction<T extends SyncActions>(
       !recentSyncAction ||
       newSyncAction.timestamp > recentSyncAction.timestamp
     ) {
-      return newSyncAction; // TODO: GREEN Compare with the last action
+      return newSyncAction;
     }
 
     // if action is older, check if it's an UPDATE or a REORDER

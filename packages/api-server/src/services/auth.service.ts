@@ -24,6 +24,7 @@ const AuthService: AppServiceSchema = {
 
 					// Get user from database
 					return {
+						id: res.data.user.id,
 						uid: res.data.user.id,
 						email: res.data.user.email,
 						plan: 'ENTERPRISE',
