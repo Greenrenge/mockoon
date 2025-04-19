@@ -1,4 +1,8 @@
-import { DeployInstanceStatus, DeployInstanceVisibility } from '@mockoon/cloud'
+import {
+	AddCloudEnvironmentSyncAction,
+	DeployInstanceStatus,
+	DeployInstanceVisibility,
+} from '@mockoon/cloud'
 import { Environment } from '@mockoon/commons'
 import { MockoonServer } from '@mockoon/commons-server'
 import { Context, Service } from 'moleculer'
@@ -7,13 +11,13 @@ import SequelizeDbAdapter from 'moleculer-db-adapter-sequelize'
 import Sequelize from 'sequelize'
 import config from '../config'
 import { mustLogin } from '../mixins/mustLogin'
-import { AppService, AppServiceSchema } from '../types/common'
+import { AppService, AppServiceSchema, SyncEnv } from '../types/common'
 interface ServerInstanceInfo {
 	environment: Environment
 	server: MockoonServer
 	port: number
 }
-//TODO: deployUrl 
+//TODO: deployUrl
 interface StartServerParams {
 	environment: Environment
 	port: number
@@ -129,10 +133,7 @@ const MockoonServerService: AppServiceSchema = {
 				this: AppService,
 				ctx: Context<StartServerParams>,
 			): Promise<{ success: boolean; port: number }> {
-				// create or update for the deployment in db
-				// if created (broadcast to the user)
-				// spawn a new server instance for the port
-				// change status in db
+				// TODO: we cannot use api key for authentication in admin-api exposed
 				const { environment, port, options = {}, subdomain, version, visibility } = ctx.params
 
 				// Check if port is already in use
@@ -148,6 +149,49 @@ const MockoonServerService: AppServiceSchema = {
 				if (this.metadata.instances.has(environment.uuid)) {
 					throw new Error(`Environment ${environment.uuid} is already running`)
 				}
+				// save to db
+				const existing = (await this.adapter.findOne({
+					where: {
+						id: environment.uuid,
+					},
+				})) as any
+
+				if (existing) {
+					await this.adapter.updateById(existing.id, {
+						environmentUuid: environment.uuid,
+						port: port,
+						visibility: visibility || DeployInstanceVisibility.PUBLIC,
+						subdomain: subdomain,
+						version: version,
+						// status: DeployInstanceStatus.RUNNING,
+					})
+				} else {
+					await this.adapter.insert({
+						environmentUuid: environment.uuid,
+						port: port,
+						visibility: visibility || DeployInstanceVisibility.PUBLIC,
+						subdomain: subdomain,
+						version: version,
+						status: DeployInstanceStatus.STOPPED,
+					})
+					// check whether env is existing
+					const doc = await ctx.call<SyncEnv, any>('environments-store.get', {
+						uuid: environment.uuid,
+					})
+					if (!doc) {
+						//create in store and db
+						const action = await ctx.call<AddCloudEnvironmentSyncAction, any>(
+							'environments-store.create',
+							{
+								environment: environment,
+							},
+						)
+						// broadcast to the socket clients
+						await ctx.call('socket-io.broadcastToClients', {
+							action,
+						})
+					}
+				}
 
 				const server = new MockoonServer(
 					{
@@ -156,6 +200,7 @@ const MockoonServerService: AppServiceSchema = {
 					},
 					{
 						...options,
+						enableAdminApi: true,
 					},
 				)
 
@@ -191,6 +236,11 @@ const MockoonServerService: AppServiceSchema = {
 
 				// Start the server
 				await server.start()
+
+				// update status in db
+				await this.adapter.updateById(environment.uuid, {
+					status: DeployInstanceStatus.RUNNING,
+				})
 
 				// Store the instance
 				this.metadata.instances.set(environment.uuid, {
@@ -249,8 +299,6 @@ const MockoonServerService: AppServiceSchema = {
 				}))
 			},
 		},
-		
-		
 
 		/**
 		 * Update environment configuration for a running server
@@ -276,7 +324,7 @@ const MockoonServerService: AppServiceSchema = {
 		getAllInstances: {
 			async handler(this: AppService) {
 				//TODO: get from db
-			}
+			},
 		},
 		permanentlyDelete: {
 			params: {
@@ -296,7 +344,8 @@ const MockoonServerService: AppServiceSchema = {
 				//TODO: delete in db
 
 				return { success: true }
-			}
+			},
+		},
 	},
 
 	/**

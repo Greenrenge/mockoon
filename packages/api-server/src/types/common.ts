@@ -12,6 +12,8 @@ import type {
 } from 'moleculer'
 import { IResolvers, ServiceResolverSchema } from 'moleculer-apollo-server'
 import SequelizeDbAdapter, { CountOptions, QueryOptions } from 'moleculer-db-adapter-sequelize'
+import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-database'
+export type SyncEnv = EnvironmentModelType & { hash: string }
 
 export type AppMoleculerService<TExtend = any> = Service<AppServiceSettingSchema & TExtend> & {
 	adapter: SequelizeDbAdapter & {

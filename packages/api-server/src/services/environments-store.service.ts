@@ -1,4 +1,4 @@
-import { SyncActionTypes } from '@mockoon/cloud'
+import { SyncActionTypes, UpSyncActions } from '@mockoon/cloud'
 import { Service } from 'moleculer'
 import config from '../config'
 import { DatabaseStore } from '../libs/db-environment-store'
@@ -79,14 +79,16 @@ export default class EnvironmentService extends Service<EnvironmentServiceSettin
 					},
 					handler: async (ctx) => {
 						const { environment } = ctx.params
-						await this.store.dispatch({
+						const action = {
 							type: SyncActionTypes.ADD_CLOUD_ENVIRONMENT,
 							environment,
 							timestamp: Date.now(),
 							hash: calcHash(environment),
-						})
+						} as UpSyncActions
 
-						return environment
+						await this.store.dispatch(action)
+
+						return action
 					},
 				},
 

@@ -1,6 +1,5 @@
 // sync.service.ts
 import {
-	AddCloudEnvironmentSyncAction,
 	BaseSyncAction,
 	SyncActions,
 	SyncActionTypes,
@@ -11,10 +10,8 @@ import {
 import SocketIOService from 'moleculer-io'
 import { Server, Socket } from 'socket.io'
 import config from '../config'
-import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-database'
-import { AppService, AppServiceSchema } from '../types/common'
+import { AppService, AppServiceSchema, SyncEnv } from '../types/common'
 
-type SyncEnv = EnvironmentModelType & { hash: string }
 type SyncUserPresence = {
 	uid?: string
 	email?: string
@@ -154,36 +151,18 @@ const SyncService: AppServiceSchema = {
 		},
 	},
 	actions: {
-		broadcastEnvironmentAdded: {
+		broadcastToClients: {
 			params: {
-				environmentUuid: { type: 'string' },
-				teamId: { type: 'string', optional: true, default: 'F1' },
+				action: 'object',
 			},
 			async handler(this: AppService, ctx) {
 				this.logger.info('Broadcasting environment added event:', ctx.params)
-				const env = await ctx.call<SyncEnv, any>('environments-store.get', {
-					uuid: ctx.params.environmentUuid,
+				ctx.call('socket-io.broadcast', {
+					event: SyncMessageTypes.SYNC,
+					rooms: [`team:${ctx.params.teamId}`],
+					namespace: '/',
+					args: [ctx.params.action],
 				})
-				this.broker.call(
-					'socket-io.broadcast',
-					{
-						event: SyncMessageTypes.SYNC,
-						rooms: [`team:${ctx.params.teamId}`],
-						namespace: '/',
-						args: [
-							{
-								type: SyncActionTypes.ADD_CLOUD_ENVIRONMENT,
-								environment: env.environment,
-								timestamp: new Date().getTime(),
-								hash: env.hash,
-							} as AddCloudEnvironmentSyncAction,
-						],
-					},
-					{
-						//@ts-ignore
-						meta: this.socketGetMeta(ctx.meta.$socket),
-					},
-				)
 			},
 		},
 	},
