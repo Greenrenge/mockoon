@@ -1,3 +1,4 @@
+import config from '../config'
 import { mustLogin } from '../mixins/mustLogin'
 import { AuthContextMeta } from '../types/common'
 
@@ -19,11 +20,14 @@ export default {
 			rest: 'POST /remoteconfig',
 			visibility: 'published',
 			handler() {
+				const baseUrl = config.configuration.baseUrl
+				const wsPort = config.configuration.wsPort
+				const apiPort = config.configuration.apiPort
 				return {
 					enableTelemetry: false,
 					geoipEndpoint: 'http://ip-api.com/json/',
-					cloudSyncUrl: 'ws://localhost:4001',
-					deployUrl: 'http://localhost:6000', // TODO: GREEN
+					cloudSyncUrl: `ws://${baseUrl.replace(/^https?:\/\//, '')}:${wsPort}`,
+					deployUrl: `${baseUrl}:${apiPort}`,
 				}
 			},
 		},

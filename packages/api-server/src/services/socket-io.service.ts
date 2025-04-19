@@ -1,5 +1,6 @@
 // sync.service.ts
 import {
+	AddCloudEnvironmentSyncAction,
 	BaseSyncAction,
 	SyncActions,
 	SyncActionTypes,
@@ -9,8 +10,9 @@ import {
 } from '@mockoon/cloud'
 import SocketIOService from 'moleculer-io'
 import { Server, Socket } from 'socket.io'
+import config from '../config'
 import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-database'
-import { AppService, AppServiceSchema, AuthContextMeta } from '../types/common'
+import { AppService, AppServiceSchema } from '../types/common'
 
 type SyncEnv = EnvironmentModelType & { hash: string }
 type SyncUserPresence = {
@@ -56,7 +58,7 @@ const SyncService: AppServiceSchema = {
 		//@ts-ignore
 		logBroadcastRequest: 'info',
 		//@ts-ignore
-		port: process.env.SOCKET_PORT || 4001,
+		port: config.configuration.wsPort,
 		io: {
 			namespaces: {
 				'/': {
@@ -152,14 +154,37 @@ const SyncService: AppServiceSchema = {
 		},
 	},
 	actions: {
-		afterConnected: {
+		broadcastEnvironmentAdded: {
 			params: {
-				deviceId: 'string',
-				userId: 'string',
-				version: 'string',
-				highestMigrationId: 'string|optional',
+				environmentUuid: { type: 'string' },
+				teamId: { type: 'string', optional: true, default: 'F1' },
 			},
-			async handler(this: AppService, ctx: AuthContextMeta) {},
+			async handler(this: AppService, ctx) {
+				this.logger.info('Broadcasting environment added event:', ctx.params)
+				const env = await ctx.call<SyncEnv, any>('environments-store.get', {
+					uuid: ctx.params.environmentUuid,
+				})
+				this.broker.call(
+					'socket-io.broadcast',
+					{
+						event: SyncMessageTypes.SYNC,
+						rooms: [`team:${ctx.params.teamId}`],
+						namespace: '/',
+						args: [
+							{
+								type: SyncActionTypes.ADD_CLOUD_ENVIRONMENT,
+								environment: env.environment,
+								timestamp: new Date().getTime(),
+								hash: env.hash,
+							} as AddCloudEnvironmentSyncAction,
+						],
+					},
+					{
+						//@ts-ignore
+						meta: this.socketGetMeta(ctx.meta.$socket),
+					},
+				)
+			},
 		},
 	},
 	methods: {

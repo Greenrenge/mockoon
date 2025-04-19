@@ -17,4 +17,9 @@ export default {
 	environment: {
 		syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '30000', 10),
 	},
+	configuration: {
+		baseUrl: process.env.BASE_URL || 'http://localhost',
+		apiPort: parseInt(process.env.API_PORT || '5003', 10),
+		wsPort: parseInt(process.env.WS_PORT || '4001', 10),
+	},
 }

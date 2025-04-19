@@ -11,6 +11,7 @@ import ApiGateway, {
 	IncomingRequest,
 	Route,
 } from 'moleculer-web'
+import config from '../config'
 import { AuthContextMeta } from '../types/common'
 
 export default {
@@ -35,7 +36,7 @@ export default {
 				},
 			),
 		],
-		port: 5003,
+		port: config.configuration.apiPort,
 		routes: [
 			{
 				path: '/api',
