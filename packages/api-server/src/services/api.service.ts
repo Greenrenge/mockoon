@@ -45,7 +45,7 @@ export default {
 					urlencoded: { extended: true },
 				},
 				mappingPolicy: 'restrict',
-				whitelist: ['api.listAliases', 'mockoon.*'],
+				whitelist: ['api.listAliases', 'mockoon.*', 'deployments.*'],
 				aliases: {
 					'GET /_info': 'api.info',
 					'GET /_aliases': 'api.listAliases',

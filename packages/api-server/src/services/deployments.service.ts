@@ -17,7 +17,21 @@ interface ServerInstanceInfo {
 	server: MockoonServer
 	port: number
 }
-//TODO: deployUrl
+
+interface InstanceModelType {
+	id: string
+	environmentUuid: string
+	environment: Environment
+	port?: number
+	visibility?: DeployInstanceVisibility
+	status?: DeployInstanceStatus
+	subdomain?: string
+	url?: string
+	name?: string
+	apiKey?: string
+	version?: string
+}
+
 interface StartServerParams {
 	environment: Environment
 	port: number
@@ -35,7 +49,7 @@ interface StartServerParams {
 }
 
 const MockoonServerService: AppServiceSchema = {
-	name: 'mockoon-server',
+	name: 'deployments',
 	mixins: [DbService as any, mustLogin()],
 	adapter: new SequelizeDbAdapter({
 		dialect: 'postgres',
@@ -46,6 +60,9 @@ const MockoonServerService: AppServiceSchema = {
 		password: config.postgres.password,
 		ssl: config.postgres.ssl,
 	}),
+	settings: {
+		rest: ['/'],
+	},
 	metadata: {
 		instances: new Map<string, ServerInstanceInfo>(),
 	},
@@ -116,6 +133,7 @@ const MockoonServerService: AppServiceSchema = {
 		//TODO: RESTFUL to post
 		//TODO: if add via API, should always add to the environment db?
 		start: {
+			rest: 'POST /deployments',
 			params: {
 				subdomain: 'string|optional',
 				visibility: {
@@ -163,8 +181,11 @@ const MockoonServerService: AppServiceSchema = {
 						visibility: visibility || DeployInstanceVisibility.PUBLIC,
 						subdomain: subdomain,
 						version: version,
+						name: environment.name,
+						url: `${config.configuration.baseUrl}:${port}`,
+						// apiKey: environment.apiKey,
 						// status: DeployInstanceStatus.RUNNING,
-					})
+					} as InstanceModelType)
 				} else {
 					await this.adapter.insert({
 						environmentUuid: environment.uuid,
@@ -173,7 +194,10 @@ const MockoonServerService: AppServiceSchema = {
 						subdomain: subdomain,
 						version: version,
 						status: DeployInstanceStatus.STOPPED,
-					})
+						name: environment.name,
+						url: `${config.configuration.baseUrl}:${port}`,
+						// apiKey: environment.apiKey,
+					} as InstanceModelType)
 					// check whether env is existing
 					const doc = await ctx.call<SyncEnv, any>('environments-store.get', {
 						uuid: environment.uuid,
@@ -193,60 +217,16 @@ const MockoonServerService: AppServiceSchema = {
 					}
 				}
 
-				const server = new MockoonServer(
-					{
-						...environment,
-						port: port,
-					},
-					{
-						...options,
-						enableAdminApi: true,
-					},
-				)
-
-				// Handle server events
-				server.once('started', () => {
-					this.logger.info(
-						`Mockoon server started for environment ${environment.uuid} on port ${port}`,
-					)
-					this.broker.broadcast('mockoon-server.started', {
-						environmentUuid: environment.uuid,
-						port,
-					})
+				// @ts-ignore
+				await this.startServer({
+					environment,
+					port,
+					options,
 				})
-
-				server.once('stopped', () => {
-					this.metadata.instances.delete(environment.uuid)
-					this.logger.info(`Mockoon server stopped for environment ${environment.uuid}`)
-					this.broker.broadcast('mockoon-server.stopped', { environmentUuid: environment.uuid })
-				})
-
-				server.on('error', (errorCode: any, originalError: any) => {
-					this.logger.error('Server error:', {
-						environmentUuid: environment.uuid,
-						errorCode,
-						originalError,
-					})
-					this.broker.broadcast('mockoon-server.error', {
-						environmentUuid: environment.uuid,
-						errorCode,
-						originalError,
-					})
-				})
-
-				// Start the server
-				await server.start()
 
 				// update status in db
 				await this.adapter.updateById(environment.uuid, {
 					status: DeployInstanceStatus.RUNNING,
-				})
-
-				// Store the instance
-				this.metadata.instances.set(environment.uuid, {
-					environment,
-					server,
-					port,
 				})
 
 				return { success: true, port }
@@ -258,6 +238,7 @@ const MockoonServerService: AppServiceSchema = {
 		 */
 		//TODO: restful to delete
 		stop: {
+			rest: 'DELETE /deployments/:environmentUuid',
 			params: {
 				environmentUuid: 'string',
 			},
@@ -277,6 +258,7 @@ const MockoonServerService: AppServiceSchema = {
 		 * Stop all running server instances
 		 */
 		stopAll: {
+			rest: 'DELETE /deployments',
 			async handler(this: AppService) {
 				const promises = Array.from(
 					this.metadata.instances.values() as Iterable<ServerInstanceInfo>,
@@ -290,13 +272,28 @@ const MockoonServerService: AppServiceSchema = {
 		 * Get all running server instances
 		 */
 		getRunningInstances: {
-			async handler(this: AppService) {
-				return Array.from(
-					this.metadata.instances.entries() as Iterable<[string, ServerInstanceInfo]>,
-				).map(([uuid, info]) => ({
-					environmentUuid: uuid,
-					port: info.port,
-				}))
+			rest: 'GET /deployments',
+			async handler(this: AppService): Promise<InstanceModelType[]> {
+				const instances = (await this.adapter.find({
+					query: {
+						status: DeployInstanceStatus.RUNNING,
+					},
+				})) as InstanceModelType[]
+
+				for (const instance of instances) {
+					const { environmentUuid, port, visibility, subdomain, version, environment } = instance
+					//make sure the instance is running since in the db marked as started
+					const server = this.metadata.instances.get(environmentUuid)?.server
+					if (!server) {
+						//@ts-ignore
+						await this.startServer({
+							environment,
+							port,
+							options: {},
+						})
+					}
+				}
+				return instances
 			},
 		},
 
@@ -304,6 +301,7 @@ const MockoonServerService: AppServiceSchema = {
 		 * Update environment configuration for a running server
 		 */
 		updateEnvironment: {
+			rest: 'PUT /deployments/:environmentUuid',
 			params: {
 				environmentUuid: 'string',
 				environment: 'object',
@@ -322,11 +320,14 @@ const MockoonServerService: AppServiceSchema = {
 			},
 		},
 		getAllInstances: {
-			async handler(this: AppService) {
-				//TODO: get from db
+			rest: 'GET /deployments/all',
+			async handler(this: AppService): Promise<InstanceModelType[]> {
+				const instances = await this.adapter.find({})
+				return instances as InstanceModelType[]
 			},
 		},
 		permanentlyDelete: {
+			rest: 'DELETE /deployments/:environmentUuid/permanently',
 			params: {
 				environmentUuid: 'string',
 			},
@@ -335,16 +336,66 @@ const MockoonServerService: AppServiceSchema = {
 				ctx: Context<{ environmentUuid: string }>,
 			): Promise<{ success: boolean }> {
 				const instance = this.metadata.instances.get(ctx.params.environmentUuid)
-				if (!instance) {
-					throw new Error(`No server instance found for environment ${ctx.params.environmentUuid}`)
+				if (instance) {
+					await instance.server.stop()
 				}
-
-				await instance.server.stop()
 				this.metadata.instances.delete(ctx.params.environmentUuid)
-				//TODO: delete in db
-
+				await this.adapter.removeById(ctx.params.environmentUuid)
 				return { success: true }
 			},
+		},
+	},
+	methods: {
+		async startServer({ environment, port, options = {} }) {
+			const server = new MockoonServer(
+				{
+					...environment,
+					port: port,
+				},
+				{
+					...options,
+					enableAdminApi: true,
+				},
+			)
+
+			// Handle server events
+			server.once('started', () => {
+				this.logger.info(
+					`Mockoon server started for environment ${environment.uuid} on port ${port}`,
+				)
+				this.broker.broadcast('mockoon-server.started', {
+					environmentUuid: environment.uuid,
+					port,
+				})
+			})
+
+			server.once('stopped', () => {
+				this.metadata.instances.delete(environment.uuid)
+				this.logger.info(`Mockoon server stopped for environment ${environment.uuid}`)
+				this.broker.broadcast('mockoon-server.stopped', { environmentUuid: environment.uuid })
+			})
+
+			server.on('error', (errorCode: any, originalError: any) => {
+				this.logger.error('Server error:', {
+					environmentUuid: environment.uuid,
+					errorCode,
+					originalError,
+				})
+				this.broker.broadcast('mockoon-server.error', {
+					environmentUuid: environment.uuid,
+					errorCode,
+					originalError,
+				})
+			})
+
+			// Start the server
+			await server.start()
+			// Store the instance
+			this.metadata.instances.set(environment.uuid, {
+				environment,
+				server,
+				port,
+			})
 		},
 	},
 
