@@ -13,7 +13,17 @@ import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-da
 import { AppService, AppServiceSchema, AuthContextMeta } from '../types/common'
 
 type SyncEnv = EnvironmentModelType & { hash: string }
-
+type SyncUserPresence = {
+	uid?: string
+	email?: string
+	displayName?: string
+	environmentUuid?: string
+	cssColor?: string
+}
+type SyncPresence = {
+	devices?: number
+	users?: SyncUserPresence[]
+}
 // Define custom socket interface with our properties
 interface CustomSocket extends Socket {
 	deviceId: string
@@ -29,7 +39,7 @@ type ServerAcknowledgment = {
 const SyncService: AppServiceSchema = {
 	name: 'socket-io',
 	mixins: [SocketIOService as any],
-	dependencies: ['devices', 'auth', 'environments-store'],
+	dependencies: ['devices', 'auth', 'environments-store', 'presence'],
 	settings: {
 		//@ts-ignore
 		logRequest: 'info',
@@ -72,8 +82,21 @@ const SyncService: AppServiceSchema = {
 								},
 							)
 
-							// TODO: Update presence after disconnect
-							// this.updatePresence(socket.user.uid)
+							// Update presence after disconnect
+							service.broker
+								.call('presence.removeUserDevice', {
+									userId: this.user.uid,
+									deviceId: this.deviceId,
+								})
+								.then((presence) => {
+									// Broadcast presence update to team members
+									if (this.user.teamId) {
+										//@ts-ignore
+										service.io
+											.to(`team:${this.user.teamId}`)
+											.emit(SyncMessageTypes.PRESENCE, presence)
+									}
+								})
 						},
 						// Handle time sync request
 						[SyncMessageTypes.TIME]: function (
@@ -203,6 +226,38 @@ const SyncService: AppServiceSchema = {
 				socket.join(`team:${user.teamId}`)
 			}
 
+			// Initialize user presence
+			this.broker
+				.call('presence.addUserDevice', {
+					userId: user.uid,
+					deviceId: deviceId,
+					presenceData: {
+						uid: user.uid,
+						email: user.email,
+						displayName: user.displayName,
+						//@ts-ignore
+						cssColor: this.generateUserColor(user.uid),
+					},
+				})
+				.then((presence) => {
+					// Broadcast initial presence to team members
+					if (user.teamId) {
+						this.broker.call(
+							'socket-io.broadcast',
+							{
+								event: SyncMessageTypes.PRESENCE,
+								rooms: [`team:${socket.user.teamId}`],
+								namespace: '/',
+								args: [presence],
+							},
+							{
+								//@ts-ignore
+								meta: this.socketGetMeta(socket),
+							},
+						)
+					}
+				})
+
 			// Send connected message with migration status
 			const migrationNeeded = false
 
@@ -210,8 +265,11 @@ const SyncService: AppServiceSchema = {
 				migrated: migrationNeeded,
 			})
 
-			//TODO: Update presence
-			// this.updatePresence(socket.user.uid)
+			// init presence for the user
+			this.broker.call<SyncPresence>('presence.getPresence').then((presence: SyncPresence) => {
+				socket.emit(SyncMessageTypes.PRESENCE, presence)
+			})
+
 			return user // will be saved to socket.client.user
 		},
 		socketGetMeta(this: AppService, socket) {
@@ -237,6 +295,39 @@ const SyncService: AppServiceSchema = {
 			// transformSyncAction must be called first to check timestamp, server must have RecentActionsStore,previousActionHash inside, then saveRecentUpdateSyncAction,applySyncAction for converting to action to reducer
 			//Process the sync action based on its type
 			try {
+				if ('environmentUuid' in action) {
+					this.broker
+						.call('presence.updateUserPresence', {
+							userId: socket.user.uid,
+							presenceData: {
+								environmentUuid: action.environmentUuid,
+							},
+						})
+						.then(() =>
+							this.broker.call('presence.getUserPresence', {
+								userId: socket.user.uid,
+							}),
+						)
+						.then((userPresence) => {
+							// Broadcast presence update to all connected clients
+							if (socket.user.teamId) {
+								this.broker.call(
+									'socket-io.broadcast',
+									{
+										event: SyncMessageTypes.USER_PRESENCE,
+										rooms: [`team:${socket.user.teamId}`],
+										namespace: '/',
+										args: [userPresence],
+									},
+									{
+										//@ts-ignore
+										meta: this.socketGetMeta(socket),
+									},
+								)
+							}
+						})
+				}
+
 				switch (action.type) {
 					case SyncActionTypes.GET_FULL_ENVIRONMENT: {
 						const { receive, environmentUuid } = action
@@ -296,20 +387,7 @@ const SyncService: AppServiceSchema = {
 									}
 								})
 							})
-						// socket.broadcast.to(`team:${socket.user.teamId}`).emit(SyncMessageTypes.SYNC, action)
-						// this.broker.call(
-						// 	'socket-io.broadcast',
-						// 	{
-						// 		event: SyncMessageTypes.SYNC,
-						// 		rooms: [`team:${socket.user.teamId}`],
-						// 		namespace: '/',
-						// 		args: [action],
-						// 	},
-						// 	{
-						// 		//@ts-ignore
-						// 		meta: this.socketGetMeta(socket),
-						// 	},
-						// )
+
 						if (doc) {
 							return { hash: doc.hash }
 						}
@@ -321,127 +399,23 @@ const SyncService: AppServiceSchema = {
 			}
 		},
 
-		// /**
-		//  * Update presence information for all connected clients
-		//  */
-		// updatePresence(userId: string): void {
-		// 	this.broker.call('users.getPresence', { userId }).then((presenceData: any) => {
-		// 		// Broadcast presence update to all connected clients for this user
-		// 		this.io.to(`user:${userId}`).emit(SyncMessageTypes.PRESENCE, presenceData)
-		// 		// TODO: GREEN
-		// 		// {
-		// 		// 	devices:1,
-		// 		// 	users: [{
-		// 		// 		uid?: string;
-		// 		// 		email?: string;
-		// 		// 		displayName?: string;
-		// 		// 		environmentUuid?: string;
-		// 		// 		cssColor?: string;
-		// 		// 	}]
-		// 		// }
-		// 	})
-		// },
-		// /**
-		//  * Handle GET_FULL_ENVIRONMENT action
-		//  */
-		// handleGetFullEnvironment(
-		// 	socket: CustomSocket,
-		// 	action: any,
-		// 	respond: (data: any) => void,
-		// ): void {
-		// 	this.broker
-		// 		.call('environments.get', {
-		// 			environmentUuid: action.environmentUuid,
-		// 			userId: socket.user.uid,
-		// 		})
-		// 		.then((environment: any) => {
-		// 			// Calculate hash of the environment
-		// 			return this.broker.call('hash.compute', { data: environment }).then((hash: string) => {
-		// 				// Send the environment data to the client
-		// 				socket.emit(SyncMessageTypes.SYNC, {
-		// 					type: 'FULL_ENVIRONMENT',
-		// 					timestamp: Date.now(),
-		// 					environmentUuid: action.environmentUuid,
-		// 					environment: environment,
-		// 					receive: action.receive,
-		// 				})
-		// 				// Acknowledge the action
-		// 				respond({ hash })
-		// 			})
-		// 		})
-		// 		.catch((err: Error) => {
-		// 			this.logger.error('Error fetching environment', err)
-		// 			respond({ error: 'ENVIRONMENT_NOT_FOUND' })
-		// 		})
-		// },
-		// /**
-		//  * Handle UPDATE_FULL_ENVIRONMENT action
-		//  */
-		// handleUpdateFullEnvironment(
-		// 	socket: CustomSocket,
-		// 	action: any,
-		// 	respond: (data: any) => void,
-		// ): void {
-		// 	// Check if environment size exceeds quota
-		// 	const environmentSize = JSON.stringify(action.environment).length
-		// 	if (environmentSize > socket.user.cloudSyncSizeQuota) {
-		// 		return respond({ error: SyncErrors.ENVIRONMENT_TOO_LARGE })
-		// 	}
-		// 	// Check if total environments would exceed quota
-		// 	this.broker
-		// 		.call('environments.count', { userId: socket.user.uid })
-		// 		.then((count: number) => {
-		// 			if (count >= socket.user.cloudSyncItemsQuota) {
-		// 				return respond({ error: SyncErrors.QUOTA_EXCEEDED })
-		// 			}
-		// 			// Update the environment
-		// 			return this.broker
-		// 				.call('environments.update', {
-		// 					userId: socket.user.uid,
-		// 					environmentUuid: action.environmentUuid,
-		// 					environment: action.environment,
-		// 				})
-		// 				.then(() => {
-		// 					// Calculate hash of the environment
-		// 					return this.broker.call('hash.compute', { data: action.environment })
-		// 				})
-		// 				.then((hash: string) => {
-		// 					// Broadcast the update to all connected clients except the sender
-		// 					socket.to(`user:${socket.user.uid}`).emit(SyncMessageTypes.SYNC, action)
-		// 					// Acknowledge the action
-		// 					respond({ hash })
-		// 				})
-		// 		})
-		// 		.catch((err: Error) => {
-		// 			this.logger.error('Error updating environment', err)
-		// 			respond({ error: 'UPDATE_FAILED' })
-		// 		})
-		// },
-		// /**
-		//  * Handle generic sync actions
-		//  */
-		// handleGenericSyncAction(
-		// 	socket: CustomSocket,
-		// 	action: SyncActions,
-		// 	respond: (data: any) => void,
-		// ): void {
-		// 	// Process the action
-		// 	this.broker
-		// 		.call('sync.processAction', {
-		// 			userId: socket.user.uid,
-		// 			action,
-		// 		})
-		// 		.then(() => {
-		// 			// Broadcast the action to all connected clients except the sender
-		// 			socket.to(`user:${socket.user.uid}`).emit(SyncMessageTypes.SYNC, action)
-		// 			// Acknowledge the action
-		// 			respond({ success: true })
-		// 		})
-		// 		.catch((err: Error) => {
-		// 			this.logger.error('Error processing sync action', err)
-		// 			respond({ error: 'ACTION_PROCESSING_FAILED' })
-		// 		})
-		// },
+		generateUserColor(userId: string): string {
+			// Generate a consistent color based on user ID
+			const colors = [
+				'#FF6B6B',
+				'#4ECDC4',
+				'#45B7D1',
+				'#96CEB4',
+				'#FFEEAD',
+				'#D4A5A5',
+				'#9B97B2',
+				'#91A8D0',
+			]
+			const hash = userId.split('').reduce((acc, char) => {
+				return char.charCodeAt(0) + ((acc << 5) - acc)
+			}, 0)
+			return colors[Math.abs(hash) % colors.length]
+		},
 	},
 }
 

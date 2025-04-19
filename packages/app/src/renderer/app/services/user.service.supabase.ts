@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import {
   createClient,
-  Provider,
+  SignInWithOAuthCredentials,
   SupabaseClient,
   User as SupabaseUser
 } from '@supabase/supabase-js';
@@ -225,8 +225,8 @@ export class UserServiceSupabase {
    * Sign in with OAuth provider
    * @param provider
    **/
-  public signInWithOAuth(provider: Provider) {
-    return from(this.supabase.auth.signInWithOAuth({ provider })).pipe(
+  public signInWithOAuth(option: SignInWithOAuthCredentials) {
+    return from(this.supabase.auth.signInWithOAuth(option)).pipe(
       tap(() => {
         this.store.update(updateUserAction(null));
       }),

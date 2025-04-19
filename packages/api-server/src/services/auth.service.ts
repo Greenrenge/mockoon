@@ -12,6 +12,7 @@ const AuthService: AppServiceSchema = {
 				token: { type: 'string', optional: true },
 			},
 			cache: {
+				keys: ['token'],
 				ttl: 5 * 60,
 			},
 			async handler(ctx: AuthContextMeta) {

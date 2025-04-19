@@ -114,5 +114,7 @@ export class SvgComponent {
     | 'broadcast'
     | 'events'
     | 'public'
+    | 'github'
+    | 'keycloak'
     | string;
 }

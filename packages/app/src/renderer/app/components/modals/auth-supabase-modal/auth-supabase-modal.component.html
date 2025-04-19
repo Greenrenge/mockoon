@@ -1,28 +1,55 @@
-<div class="row flex-center flex">
-  <div class="col-6 form-widget" aria-live="polite">
-    <h1 class="header">Login With Supabase</h1>
-    <div>
-      <button (click)="onSubmit()" type="submit" class="button block">
-        Login with Github
+<div class="auth-modal">
+  <div class="auth-container">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        Login With Supabase
+        <br />
+        <small class="text-muted h6"
+          >Choose your authentication provider:</small
+        >
+      </h3>
+    </div>
+
+    <div class="modal-body">
+      <div class="mb-3">
+        <div class="input-group align-items-center">
+          <button
+            (click)="onSubmit('github')"
+            [disabled]="isLoading$ | async"
+            class="btn btn-primary me-2"
+          >
+            <app-svg icon="github"></app-svg>
+            Login with Github
+          </button>
+
+          <button
+            (click)="onSubmit('keycloak')"
+            [disabled]="isLoading$ | async"
+            class="btn btn-secondary me-2"
+          >
+            <app-svg icon="keycloak"></app-svg>
+            Login with Keycloak
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading$ | async" class="d-inline-block me-2">
+        <app-spinner></app-spinner>
+      </div>
+
+      <div *ngIf="errorMessage$ | async as error" class="alert alert-danger">
+        {{ error }}
+      </div>
+    </div>
+
+    <div class="modal-footer justify-content-end">
+      <button
+        type="button"
+        class="btn btn-secondary modal-close"
+        (click)="close()"
+      >
+        Cancel
       </button>
     </div>
-    <!-- <p class="description">Sign in via magic link with your email below</p>
-    <form [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="form-widget">
-      <div>
-        <label for="email">Email</label>
-        <input
-          id="email"
-          formControlName="email"
-          class="inputField"
-          type="email"
-          placeholder="Your email"
-        />
-      </div>
-      <div>
-        <button type="submit" class="button block" [disabled]="loading">
-          {{ loading ? 'Loading' : 'Send magic link' }}
-        </button>
-      </div>
-    </form> -->
   </div>
 </div>

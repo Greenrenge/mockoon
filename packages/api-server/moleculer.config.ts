@@ -1,4 +1,4 @@
-import { BrokerOptions, Cachers, Errors, MetricRegistry, ServiceBroker } from 'moleculer'
+import { BrokerOptions, Errors, MetricRegistry, ServiceBroker } from 'moleculer'
 
 /**
  * Moleculer ServiceBroker configuration file
@@ -64,7 +64,12 @@ const brokerConfig: BrokerOptions = {
 	// Define a cacher.
 	// More info: https://moleculer.services/docs/0.14/caching.html
 	//   cacher,
-	cacher: Cachers.Memory as any,
+	cacher: {
+		type: 'Memory',
+		options: {
+			maxParamsLength: 100,
+		},
+	},
 
 	// Define a serializer.
 	// Available values: "JSON", "Avro", "ProtoBuf", "MsgPack", "Notepack", "Thrift".
