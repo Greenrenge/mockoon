@@ -3,7 +3,7 @@ import { AppService, AppServiceSchema } from '../types/common'
 
 interface UserPresenceData extends SyncUserPresence {
 	lastSeen: number
-	devices: Set<string> // set of deviceIds
+	devices: Map<string, Set<string>> // Map of deviceId to set of socketIds
 }
 
 class PresenceStore {
@@ -19,20 +19,31 @@ class PresenceStore {
 		return PresenceStore.instance
 	}
 
-	public addUserDevice(userId: string, deviceId: string, presenceData: Partial<SyncUserPresence>) {
+	public addUserDevice(
+		userId: string,
+		deviceId: string,
+		socketId: string,
+		presenceData: Partial<SyncUserPresence>,
+	) {
 		let userData = this.userPresences.get(userId)
 
 		if (!userData) {
 			userData = {
 				uid: userId,
-				devices: new Set(),
+				devices: new Map(),
 				lastSeen: Date.now(),
 				...presenceData,
 			}
 			this.userPresences.set(userId, userData)
 		}
 
-		userData.devices.add(deviceId)
+		let deviceSockets = userData.devices.get(deviceId)
+		if (!deviceSockets) {
+			deviceSockets = new Set()
+			userData.devices.set(deviceId, deviceSockets)
+		}
+		deviceSockets.add(socketId)
+
 		// Update presence data
 		Object.assign(userData, {
 			...presenceData,
@@ -40,16 +51,24 @@ class PresenceStore {
 		})
 	}
 
-	public removeUserDevice(userId: string, deviceId: string) {
+	public removeUserSocket(userId: string, deviceId: string, socketId: string) {
 		const userData = this.userPresences.get(userId)
 		if (userData) {
-			userData.devices.delete(deviceId)
-			userData.lastSeen = Date.now()
+			const deviceSockets = userData.devices.get(deviceId)
+			if (deviceSockets) {
+				deviceSockets.delete(socketId)
 
-			// If no more devices, remove the user presence
-			if (userData.devices.size === 0) {
-				this.userPresences.delete(userId)
+				// If no more sockets for this device, remove the device
+				if (deviceSockets.size === 0) {
+					userData.devices.delete(deviceId)
+				}
+
+				// If no more devices, remove the user presence
+				if (userData.devices.size === 0) {
+					this.userPresences.delete(userId)
+				}
 			}
+			userData.lastSeen = Date.now()
 		}
 	}
 
@@ -68,7 +87,13 @@ class PresenceStore {
 		const users: SyncUserPresence[] = []
 
 		this.userPresences.forEach((userData) => {
-			totalDevices += userData.devices.size
+			let deviceCount = 0
+			userData.devices.forEach((sockets) => {
+				if (sockets.size > 0) {
+					deviceCount++
+				}
+			})
+			totalDevices += deviceCount
 			const { devices, lastSeen, ...userPresence } = userData
 			users.push(userPresence)
 		})
@@ -97,11 +122,12 @@ const PresenceService: AppServiceSchema = {
 			params: {
 				userId: 'string',
 				deviceId: 'string',
+				socketId: 'string',
 				presenceData: 'object|optional',
 			},
 			handler(this: AppService, ctx) {
-				const { userId, deviceId, presenceData = {} } = ctx.params
-				PresenceStore.getInstance().addUserDevice(userId, deviceId, presenceData)
+				const { userId, deviceId, socketId, presenceData = {} } = ctx.params
+				PresenceStore.getInstance().addUserDevice(userId, deviceId, socketId, presenceData)
 				return PresenceStore.getInstance().getPresence()
 			},
 		},
@@ -110,10 +136,11 @@ const PresenceService: AppServiceSchema = {
 			params: {
 				userId: 'string',
 				deviceId: 'string',
+				socketId: 'string',
 			},
 			handler(this: AppService, ctx) {
-				const { userId, deviceId } = ctx.params
-				PresenceStore.getInstance().removeUserDevice(userId, deviceId)
+				const { userId, deviceId, socketId } = ctx.params
+				PresenceStore.getInstance().removeUserSocket(userId, deviceId, socketId)
 				return PresenceStore.getInstance().getPresence()
 			},
 		},

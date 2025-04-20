@@ -81,11 +81,12 @@ const SyncService: AppServiceSchema = {
 								},
 							)
 
-							// Update presence after disconnect
+							// Update presence after disconnect with socket ID
 							service.broker
 								.call('presence.removeUserDevice', {
 									userId: this.user.uid,
 									deviceId: this.deviceId,
+									socketId: this.id,
 								})
 								.then((presence) => {
 									// Broadcast presence update to team members
@@ -230,11 +231,12 @@ const SyncService: AppServiceSchema = {
 				socket.join(`team:${user.teamId}`)
 			}
 
-			// Initialize user presence
+			// Initialize user presence with socket ID
 			this.broker
 				.call('presence.addUserDevice', {
 					userId: user.uid,
 					deviceId: deviceId,
+					socketId: socket.id,
 					presenceData: {
 						uid: user.uid,
 						email: user.email,
@@ -386,7 +388,7 @@ const SyncService: AppServiceSchema = {
 							.then((sockets) => {
 								sockets.forEach((s) => {
 									// @ts-ignore
-									if (s.id !== socket.id && s.deviceId !== socket.deviceId) {
+									if (s.id !== socket.id) {
 										s.emit(SyncMessageTypes.SYNC, action)
 									}
 								})
