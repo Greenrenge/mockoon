@@ -4,6 +4,40 @@ import { AppServiceSchema, AuthContextMeta } from '../types/common'
 const AuthService: AppServiceSchema = {
 	name: 'auth',
 	actions: {
+		getServiceRoleUser: {
+			visibility: 'public',
+			handler(ctx: AuthContextMeta) {
+				return {
+					id: 'service-role',
+					uid: 'service-role',
+					email: 'service-role',
+					plan: 'ENTERPRISE',
+					teamId: 'F1',
+					teamRole: 'owner',
+					deployInstancesQuota: 10,
+					deployInstancesQuotaUsed: 0,
+					cloudSyncItemsQuota: 999,
+					cloudSyncItemsQuotaUsed: 0,
+					cloudSyncSizeQuota: 100000000, // 100MB
+					cloudSyncHighestMajorVersion: 1,
+					templatesQuota: 999,
+					templatesQuotaUsed: 0,
+					nextQuotaResetOn: 1,
+					subscription: {
+						trial: false,
+						provider: 'manual',
+						frequency: 'YEARLY',
+						createdOn: 1744777380227,
+						renewOn: 4079996600352,
+						portalEnabled: true,
+						cancellationScheduled: false,
+						pastDue: false,
+						subscriptionId: 'F1',
+					},
+					displayName: 'Admin Service Role',
+				}
+			},
+		},
 		/**
 		 * Validate token
 		 */
@@ -31,11 +65,11 @@ const AuthService: AppServiceSchema = {
 						plan: 'ENTERPRISE',
 						teamId: 'F1',
 						teamRole: 'owner',
-						deployInstancesQuota: 3,
+						deployInstancesQuota: 10,
 						deployInstancesQuotaUsed: 0,
 						cloudSyncItemsQuota: 999,
 						cloudSyncItemsQuotaUsed: 0,
-						cloudSyncSizeQuota: 15000000, // 15MB
+						cloudSyncSizeQuota: 100000000, // 100MB
 						cloudSyncHighestMajorVersion: 1,
 						templatesQuota: 999,
 						templatesQuotaUsed: 0,

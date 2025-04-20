@@ -200,6 +200,12 @@ export default {
 				req.headers.authorization.slice(7)
 
 			if (token) {
+				if (token === config.supabase.serviceRoleKey) {
+					ctx.meta.accountId = 'service-role'
+					ctx.meta.accessToken = token
+					return ctx.call<User>('auth.getServiceRoleUser')
+				}
+
 				try {
 					// Verify the token by getting the user session
 					const user = await ctx.call<User, any>('auth.validateToken', {
