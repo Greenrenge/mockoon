@@ -66,6 +66,7 @@ interface StartServerParams {
 const MockoonServerService: AppServiceSchema = {
 	name: 'deployments',
 	mixins: [DbService as any, mustLogin()],
+	dependencies: ['environments-store', 'socket-io'],
 	adapter: new SequelizeDbAdapter({
 		dialect: 'postgres',
 		host: config.postgres.host,
@@ -429,6 +430,13 @@ const MockoonServerService: AppServiceSchema = {
 				return instances as InstanceModelType[]
 			},
 		},
+		restartAllInstance: {
+			rest: 'POST /deployments/all/restart',
+			async handler(this: AppService): Promise<void> {
+				// @ts-ignore
+				await this.resync()
+			},
+		},
 		permanentlyDelete: {
 			rest: 'DELETE /deployments/:environmentUuid/permanently',
 			params: {
@@ -510,17 +518,19 @@ const MockoonServerService: AppServiceSchema = {
 				const { environmentUuid, port, environment: oldEnvironment, status } = doc
 
 				const { environment } =
-					(await this.broker.call<SyncEnv, any>(
-						'environments-store.get',
-						{
-							uuid: environmentUuid,
-						},
-						{
-							meta: {
-								$serviceInterchange: true,
+					(await this.broker
+						.call<SyncEnv, any>(
+							'environments-store.get',
+							{
+								uuid: environmentUuid,
 							},
-						},
-					)) ?? {}
+							{
+								meta: {
+									$serviceInterchange: true,
+								},
+							},
+						)
+						.catch(() => undefined)) ?? {}
 				if (!environment) {
 					this.logger.error(`Environment ${environmentUuid} not found in store`)
 					// delete in db
