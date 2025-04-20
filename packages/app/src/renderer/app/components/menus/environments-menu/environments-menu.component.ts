@@ -161,20 +161,18 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
         this.uiService.openModal('deploy', environmentUuid);
       }
     },
-    ...(this.isWeb
-      ? []
-      : [
-          {
-            label: 'Copy configuration to clipboard (JSON)',
-            icon: 'assignment',
-            twoSteps: false,
-            action: ({ environmentUuid }: dropdownMenuPayload) => {
-              this.environmentsService.copyEnvironmentToClipboard(
-                environmentUuid
-              );
-            }
-          }
-        ])
+    // ...(this.isWeb
+    //   ? []
+    //   : [
+    {
+      label: 'Copy configuration to clipboard (JSON)',
+      icon: 'assignment',
+      twoSteps: false,
+      action: ({ environmentUuid }: dropdownMenuPayload) => {
+        this.environmentsService.copyEnvironmentToClipboard(environmentUuid);
+      }
+    }
+    // ])
   ];
   public localEnvironmentDropdownMenuItems: DropdownMenuItem[] = [
     ...this.commonDropdownMenuItems,

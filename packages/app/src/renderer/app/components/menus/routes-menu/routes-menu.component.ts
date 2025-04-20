@@ -158,18 +158,18 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
         );
       }
     },
-    ...(this.isWeb
-      ? []
-      : [
-          {
-            label: 'Copy configuration to clipboard (JSON)',
-            icon: 'assignment',
-            twoSteps: false,
-            action: ({ routeUuid }: routeDropdownMenuPayload) => {
-              this.environmentsService.copyRouteToClipboard(routeUuid);
-            }
-          }
-        ]),
+    // ...(this.isWeb
+    //   ? []
+    //   : [
+    {
+      label: 'Copy configuration to clipboard (JSON)',
+      icon: 'assignment',
+      twoSteps: false,
+      action: ({ routeUuid }: routeDropdownMenuPayload) => {
+        this.environmentsService.copyRouteToClipboard(routeUuid);
+      }
+    },
+    // ]),
     {
       label: 'Copy full path to clipboard',
       icon: 'assignment',
