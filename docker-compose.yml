@@ -1,0 +1,71 @@
+# docker compose -p backend up --build
+# docker compose -f ./docker-compose-env.yml up -d --force-recreate --no-deps --build backend-service
+services:
+  mockoon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - API_URL=${API_URL}
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    depends_on:
+      - postgres
+    restart: always
+    ports:
+      - 3000:3000
+      - 3001:3001
+      - 3002:3002
+      - 3003:3003
+      - 3004:3004
+      - 3005:3005
+      - 3006:3006
+      - 3007:3007
+      - 3008:3008
+      - 3009:3009
+      - 3010:3010
+      - 4000:4000
+      - 4001:4001
+      - 4002:4002
+      - 4003:4003
+      - 4004:4004
+      - 4005:4005
+      - 4006:4006
+      - 4007:4007
+      - 4008:4008
+      - 4009:4009
+      - 4010:4010
+    deploy:
+      replicas: 1
+    env_file:
+      - ./.env
+    environment:
+      # - SUPABASE_URL=
+      # - SUPABASE_ANON_KEY=
+      # - SUPABASE_SERVICE_ROLE_KEY=
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max_old_space_size=4096
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=mockoon
+      - POSTGRES_USER=mockoon
+      - POSTGRES_PASSWORD=mockoon
+
+    networks:
+      - db
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: mockoon
+      POSTGRES_PASSWORD: mockoon
+      POSTGRES_DB: mockoon
+    networks:
+      - db
+
+networks:
+  db:
+    name: db

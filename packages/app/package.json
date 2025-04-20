@@ -37,6 +37,7 @@
     "build:ci:renderer": "ng build --configuration=ci",
     "build:prod:renderer": "ng build --configuration=production",
     "build:prod:web": "pnpm run clean-dist && ng build --configuration=production-web",
+    "build:prod:web:docker": "pnpm run clean-dist && ng build --configuration=production-web-docker",
     "build:watch:all": "pnpm run clean-dist && concurrently \"pnpm run build:watch:renderer\" \"pnpm run build:watch:main\"",
     "build:dev:all": "pnpm run clean-dist && pnpm run build:dev:renderer && pnpm run build:dev:main",
     "build:ci:all": "pnpm run clean-dist && pnpm run build:ci:renderer && pnpm run build:ci:main",

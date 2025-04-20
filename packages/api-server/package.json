@@ -9,16 +9,17 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json && cp -r ./src/public ./dist/src ",
+    "build:prod": "tsc --project ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cp -r ./src/public ./dist/src ",
     "dev": "ts-node -P ./tsconfig-transpile-only.json  -r module-alias/register ./node_modules/moleculer/bin/moleculer-runner.js -i 1 --config ./moleculer.config.ts --hot --mask **/*.service.* src/services src/*api* ",
     "dev:repl": "ts-node -P ./tsconfig-transpile-only.json -r module-alias/register ./node_modules/moleculer/bin/moleculer-runner.js --config ./moleculer.config.ts --repl --hot  --mask **/*.service.* src/services src/*api* ",
-    "start": "cd dist/ && moleculer-runner --config ./moleculer.config.js -i 2  ./src/services ./src/*api*",
+    "start": "cd dist/ && moleculer-runner --config ./moleculer.config.js -i 1 ./**/*.service.*  ./src/services ./src/*api*",
     "start-dev": "pnpm run dev"
   },
   "keywords": [],
   "author": "GreenRenge",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "16.4.7",
     "@mockoon/cloud": "^9.2.0",
     "@mockoon/commons": "9.2.0",
     "@mockoon/commons-server": "9.2.0",

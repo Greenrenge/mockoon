@@ -125,7 +125,7 @@ export default {
 					]),
 		],
 		assets: {
-			folder: '../app/dist/renderer',
+			folder: process.env.NODE_ENV === 'production' ? './src/public' : '../app/dist/renderer',
 			options: {},
 		},
 		onError(req: ClientRequest, res: ServerResponse, err: Error) {
