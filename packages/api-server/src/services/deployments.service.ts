@@ -3,7 +3,7 @@ import {
 	DeployInstanceStatus,
 	DeployInstanceVisibility,
 } from '@mockoon/cloud'
-import { Environment } from '@mockoon/commons'
+import { Environment, ServerErrorCodes } from '@mockoon/commons'
 import { MockoonServer } from '@mockoon/commons-server'
 import { Context, Service } from 'moleculer'
 import DbService from 'moleculer-db'
@@ -28,7 +28,7 @@ function StopInstance(serverInstance: MockoonServer) {
 		// })
 		setTimeout(() => {
 			reject(new Error('Timeout'))
-		}, 5000)
+		}, 10000)
 		serverInstance.stop()
 	})
 }
@@ -203,7 +203,7 @@ const MockoonServerService: AppServiceSchema = {
 			},
 			async handler(
 				this: AppService,
-				ctx: Context<StartServerParams>,
+				ctx: AuthContextMeta<StartServerParams>,
 			): Promise<InstanceModelType | undefined> {
 				// TODO: we cannot use api key for authentication in admin-api exposed
 				const { environment, port, options = {}, subdomain, version, visibility } = ctx.params
@@ -222,16 +222,10 @@ const MockoonServerService: AppServiceSchema = {
 
 				// Check if environment is already running --> restart
 				if (this.metadata.instances.has(environment.uuid)) {
-					const server = this.metadata.instances.get(environment.uuid)?.server
-					if (server) await StopInstance(server)
+					const instance = this.metadata.instances.get(environment.uuid)
+					if (instance) await StopInstance(instance.server)
 					this.metadata.instances.delete(environment.uuid)
-					this.logger.info(`Environment ${environment.uuid} is already running`)
-					// @ts-ignore
-					await this.startServer({
-						environment,
-						port,
-						options,
-					})
+					this.logger.info(`Environment ${environment.uuid} is already running, remove it`)
 				}
 				// save to db
 				const existing = (await this.adapter.findOne({
@@ -287,7 +281,6 @@ const MockoonServerService: AppServiceSchema = {
 						})
 					}
 				}
-
 				// @ts-ignore
 				await this.startServer({
 					environment,
@@ -457,56 +450,77 @@ const MockoonServerService: AppServiceSchema = {
 		},
 	},
 	methods: {
-		async startServer({ environment, port, options = {} }) {
-			const server = new MockoonServer(
-				{
-					...environment,
-					port: port,
-				},
-				{
-					...options,
-					enableAdminApi: true,
-				},
-			)
-
-			// Handle server events
-			server.once('started', () => {
-				this.logger.info(
-					`Mockoon server started for environment ${environment.uuid} on port ${port}`,
+		startServer({ environment, port, options = {} }) {
+			return new Promise((resolve, reject) => {
+				const server = new MockoonServer(
+					{
+						...environment,
+						port: port,
+					},
+					{
+						...options,
+						enableAdminApi: true,
+					},
 				)
-				this.broker.broadcast('mockoon-server.started', {
-					environmentUuid: environment.uuid,
-					port,
-				})
-			})
 
-			server.once('stopped', () => {
-				this.metadata.instances.delete(environment.uuid)
-				this.logger.info(`Mockoon server stopped for environment ${environment.uuid}`)
-				this.broker.broadcast('mockoon-server.stopped', { environmentUuid: environment.uuid })
-			})
-
-			server.on('error', (errorCode: any, originalError: any) => {
-				this.logger.error('Server error:', {
-					environmentUuid: environment.uuid,
-					errorCode,
-					originalError,
+				// Handle server events
+				server.once('started', () => {
+					this.logger.info(
+						`Mockoon server started for environment ${environment.uuid} on port ${port}`,
+					)
+					this.broker.broadcast('mockoon-server.started', {
+						environmentUuid: environment.uuid,
+						port,
+					})
+					resolve(server)
 				})
-				this.broker.broadcast('mockoon-server.error', {
-					environmentUuid: environment.uuid,
-					errorCode,
-					originalError,
-				})
-			})
 
-			// Start the server
-			await server.start()
-			// Store the instance
-			this.metadata.instances.set(environment.uuid, {
-				environment,
-				server,
-				port,
+				server.once('stopped', () => {
+					this.metadata.instances.delete(environment.uuid)
+					this.logger.info(`Mockoon server stopped for environment ${environment.uuid}`)
+					this.broker.broadcast('mockoon-server.stopped', { environmentUuid: environment.uuid })
+				})
+
+				server.on('error', (errorCode, originalError) => {
+					this.logger.error('Server error:', {
+						environmentUuid: environment.uuid,
+						errorCode,
+						originalError,
+					})
+					this.broker.broadcast('mockoon-server.error', {
+						environmentUuid: environment.uuid,
+						errorCode,
+						originalError,
+					})
+					const exitErrors = [
+						ServerErrorCodes.PORT_ALREADY_USED,
+						ServerErrorCodes.PORT_INVALID,
+						ServerErrorCodes.HOSTNAME_UNAVAILABLE,
+						ServerErrorCodes.HOSTNAME_UNKNOWN,
+						ServerErrorCodes.CERT_FILE_NOT_FOUND,
+						ServerErrorCodes.UNKNOWN_SERVER_ERROR,
+					]
+					// Cannot use this.error() as Oclif does not catch it (it seems to be lost due to the async nature of Node.js http server.listen errors).
+					if (exitErrors.includes(errorCode)) {
+						reject(originalError)
+					}
+				})
+
+				// Start the server
+				server.start()
 			})
+				.then((server) => {
+					// Store the instance
+					this.metadata.instances.set(environment.uuid, {
+						environment,
+						server,
+						port,
+					})
+				})
+				.catch((error) => {
+					this.logger.error(`Failed to start server for environment ${environment.uuid}:`, error)
+					return Promise.reject(error)
+				})
 		},
 		async resync(this: AppService) {
 			// Sync the database and respawn all instances
@@ -594,6 +608,9 @@ const MockoonServerService: AppServiceSchema = {
 	 */
 	created(this: Service) {
 		this.metadata.instances = new Map<string, ServerInstanceInfo>()
+		process.on('SIGINT', () => {
+			this.actions.stopAll()
+		})
 	},
 
 	/**

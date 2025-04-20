@@ -72,7 +72,11 @@ export default {
 				],
 				onError(req: IncomingRequest, res: GatewayResponse, err: any) {
 					res.setHeader('Content-Type', 'application/json')
-					res.writeHead(err.code || 500)
+					if ('code' in err && typeof err.code === 'number') {
+						res.writeHead(err.code)
+					} else {
+						res.writeHead(500)
+					}
 					res.end(JSON.stringify({ error: { message: err.message } }))
 				},
 			},
