@@ -8,14 +8,29 @@ import { MockoonServer } from '@mockoon/commons-server'
 import { Context, Service } from 'moleculer'
 import DbService from 'moleculer-db'
 import SequelizeDbAdapter from 'moleculer-db-adapter-sequelize'
-import Sequelize from 'sequelize'
+import Sequelize, { ModelStatic } from 'sequelize'
 import config from '../config'
 import { mustLogin } from '../mixins/mustLogin'
-import { AppService, AppServiceSchema, SyncEnv } from '../types/common'
+import { AppService, AppServiceSchema, AuthContextMeta, SyncEnv } from '../types/common'
 interface ServerInstanceInfo {
 	environment: Environment
 	server: MockoonServer
 	port: number
+}
+
+function StopInstance(serverInstance: MockoonServer) {
+	return new Promise((resolve, reject) => {
+		serverInstance.on('stopped', () => {
+			resolve(true)
+		})
+		// serverInstance.on('error', (errorCode: any, originalError: any) => {
+		// 	reject(originalError)
+		// })
+		setTimeout(() => {
+			reject(new Error('Timeout'))
+		}, 5000)
+		serverInstance.stop()
+	})
 }
 
 interface InstanceModelType {
@@ -77,14 +92,20 @@ const MockoonServerService: AppServiceSchema = {
 				type: Sequelize.STRING,
 				primaryKey: true,
 			},
+			environment: {
+				type: Sequelize.JSONB,
+				allowNull: false,
+			},
 			port: {
 				type: Sequelize.INTEGER,
+				allowNull: false,
 			},
 			visibility: {
 				type: Sequelize.ENUM(DeployInstanceVisibility.PUBLIC, DeployInstanceVisibility.PRIVATE),
 			},
 			status: {
 				type: Sequelize.ENUM(DeployInstanceStatus.RUNNING, DeployInstanceStatus.STOPPED),
+				allowNull: false,
 			},
 			subdomain: {
 				type: Sequelize.STRING,
@@ -109,21 +130,53 @@ const MockoonServerService: AppServiceSchema = {
 	actions: {
 		//    `${deployUrl}/deployments/subdomain`, POST
 		subdomainAvailability: {
+			rest: 'POST /deployments/subdomain',
 			params: {
 				subdomain: 'string',
-				environmentUuid: 'string',
+				environmentUuid: 'string|optional',
 			},
 			async handler(
 				this: AppService,
-				ctx: Context<{ subdomain: string }>,
+				ctx: AuthContextMeta<{ subdomain: string; environmentUuid?: string }>,
 			): Promise<{ available: boolean }> {
 				// Check if the subdomain is already in use
+				if (!ctx.params.subdomain) {
+					return { available: true }
+				}
+
 				const instance = await this.adapter.findOne({
-					query: {
+					where: {
 						subdomain: ctx.params.subdomain,
 					},
 				})
+				if (instance) ctx.meta.$statusCode = 409
+				return { available: !instance }
+			},
+		},
+		portAvailability: {
+			rest: 'POST /deployments/port',
+			params: {
+				port: 'number',
+				environmentUuid: 'string|optional',
+			},
+			async handler(
+				this: AppService,
+				ctx: AuthContextMeta<{ port: number; environmentUuid?: string }>,
+			): Promise<{ available: boolean }> {
+				// Check if the port is already in use
+				const instance = await this.adapter.findOne({
+					where: {
+						port: ctx.params.port,
+						...(ctx.params.environmentUuid && {
+							environmentUuid: {
+								[Sequelize.Op.ne]: ctx.params.environmentUuid,
+							},
+						}),
+						status: DeployInstanceStatus.RUNNING,
+					},
+				})
 
+				if (instance) ctx.meta.$statusCode = 409
 				return { available: !instance }
 			},
 		},
@@ -150,22 +203,34 @@ const MockoonServerService: AppServiceSchema = {
 			async handler(
 				this: AppService,
 				ctx: Context<StartServerParams>,
-			): Promise<{ success: boolean; port: number }> {
+			): Promise<InstanceModelType | undefined> {
 				// TODO: we cannot use api key for authentication in admin-api exposed
 				const { environment, port, options = {}, subdomain, version, visibility } = ctx.params
 
 				// Check if port is already in use
-				const isPortTaken = Array.from(
-					this.metadata.instances.values() as Iterable<ServerInstanceInfo>,
-				).some((instance) => instance.port === port)
+				const isPortTaken =
+					Array.from(this.metadata.instances.values() as Iterable<ServerInstanceInfo>).some(
+						(instance) => instance.port === port && instance.environment.uuid !== environment.uuid,
+					) ||
+					port === config.configuration.apiPort ||
+					port === config.configuration.wsPort
 
 				if (isPortTaken) {
 					throw new Error(`Port ${port} is already in use`)
 				}
 
-				// Check if environment is already running
+				// Check if environment is already running --> restart
 				if (this.metadata.instances.has(environment.uuid)) {
-					throw new Error(`Environment ${environment.uuid} is already running`)
+					const server = this.metadata.instances.get(environment.uuid)?.server
+					if (server) await StopInstance(server)
+					this.metadata.instances.delete(environment.uuid)
+					this.logger.info(`Environment ${environment.uuid} is already running`)
+					// @ts-ignore
+					await this.startServer({
+						environment,
+						port,
+						options,
+					})
 				}
 				// save to db
 				const existing = (await this.adapter.findOne({
@@ -176,19 +241,24 @@ const MockoonServerService: AppServiceSchema = {
 
 				if (existing) {
 					await this.adapter.updateById(existing.id, {
-						environmentUuid: environment.uuid,
-						port: port,
-						visibility: visibility || DeployInstanceVisibility.PUBLIC,
-						subdomain: subdomain,
-						version: version,
-						name: environment.name,
-						url: `${config.configuration.baseUrl}:${port}`,
-						// apiKey: environment.apiKey,
-						// status: DeployInstanceStatus.RUNNING,
-					} as InstanceModelType)
+						$set: {
+							environmentUuid: environment.uuid,
+							port: port,
+							environment: environment,
+							visibility: visibility || DeployInstanceVisibility.PUBLIC,
+							subdomain: subdomain,
+							version: version,
+							name: environment.name,
+							url: `${config.configuration.baseUrl}:${port}`,
+							// apiKey: environment.apiKey,
+							// status: DeployInstanceStatus.RUNNING,
+						},
+					})
 				} else {
 					await this.adapter.insert({
+						id: environment.uuid,
 						environmentUuid: environment.uuid,
+						environment: environment,
 						port: port,
 						visibility: visibility || DeployInstanceVisibility.PUBLIC,
 						subdomain: subdomain,
@@ -226,17 +296,24 @@ const MockoonServerService: AppServiceSchema = {
 
 				// update status in db
 				await this.adapter.updateById(environment.uuid, {
-					status: DeployInstanceStatus.RUNNING,
+					$set: { status: DeployInstanceStatus.RUNNING },
 				})
+				const doc = (await this.adapter.findOne({
+					where: {
+						id: environment.uuid,
+					},
+				})) as any
 
-				return { success: true, port }
+				if (!doc) {
+					throw new Error(`Environment ${environment.uuid} not found`)
+				}
+				return doc
 			},
 		},
 
 		/**
 		 * Stop a running server instance
 		 */
-		//TODO: restful to delete
 		stop: {
 			rest: 'DELETE /deployments/:environmentUuid',
 			params: {
@@ -248,8 +325,11 @@ const MockoonServerService: AppServiceSchema = {
 				if (!instance) {
 					throw new Error(`No server instance found for environment ${ctx.params.environmentUuid}`)
 				}
-
-				await instance.server.stop()
+				await StopInstance(instance.server)
+				// db
+				await this.adapter.updateById(ctx.params.environmentUuid, {
+					$set: { status: DeployInstanceStatus.STOPPED },
+				})
 				return { success: true }
 			},
 		},
@@ -262,7 +342,9 @@ const MockoonServerService: AppServiceSchema = {
 			async handler(this: AppService) {
 				const promises = Array.from(
 					this.metadata.instances.values() as Iterable<ServerInstanceInfo>,
-				).map((instance) => instance.server.stop())
+				).map((instance) => {
+					return StopInstance(instance.server)
+				})
 				await Promise.all(promises)
 				return { success: true }
 			},
@@ -280,19 +362,19 @@ const MockoonServerService: AppServiceSchema = {
 					},
 				})) as InstanceModelType[]
 
-				for (const instance of instances) {
-					const { environmentUuid, port, visibility, subdomain, version, environment } = instance
-					//make sure the instance is running since in the db marked as started
-					const server = this.metadata.instances.get(environmentUuid)?.server
-					if (!server) {
-						//@ts-ignore
-						await this.startServer({
-							environment,
-							port,
-							options: {},
-						})
-					}
-				}
+				// for (const instance of instances) {
+				// 	const { environmentUuid, port, visibility, subdomain, version, environment } = instance
+				// 	//make sure the instance is running since in the db marked as started
+				// 	const server = this.metadata.instances.get(environmentUuid)?.server
+				// 	if (!server) {
+				// 		//@ts-ignore
+				// 		await this.startServer({
+				// 			environment,
+				// 			port,
+				// 			options: {},
+				// 		})
+				// 	}
+				// }
 				return instances
 			},
 		},
@@ -310,12 +392,33 @@ const MockoonServerService: AppServiceSchema = {
 				this: AppService,
 				ctx: Context<{ environmentUuid: string; environment: Environment }>,
 			) {
-				const instance = this.metadata.instances.get(ctx.params.environmentUuid)
-				if (!instance) {
-					throw new Error(`No server instance found for environment ${ctx.params.environmentUuid}`)
+				await this.adapter.updateById(ctx.params.environmentUuid, {
+					$set: { environment: ctx.params.environment },
+				})
+				const doc = (await this.adapter.findOne({
+					where: {
+						id: ctx.params.environmentUuid,
+					},
+				})) as InstanceModelType
+
+				// reflect the changes in the server instance
+				if (doc.status !== DeployInstanceStatus.RUNNING) {
+					this.metadata.instances.delete(ctx.params.environmentUuid)
+				} else {
+					const instance = this.metadata.instances.get(ctx.params.environmentUuid)
+					if (instance) {
+						instance.server.updateEnvironment(ctx.params.environment)
+					} else {
+						// create a new instance
+						// @ts-ignore
+						await this.startServer({
+							environment: ctx.params.environment,
+							port: doc.port,
+							options: {},
+						})
+					}
 				}
 
-				instance.server.updateEnvironment(ctx.params.environment)
 				return { success: true }
 			},
 		},
@@ -337,7 +440,7 @@ const MockoonServerService: AppServiceSchema = {
 			): Promise<{ success: boolean }> {
 				const instance = this.metadata.instances.get(ctx.params.environmentUuid)
 				if (instance) {
-					await instance.server.stop()
+					await StopInstance(instance.server)
 				}
 				this.metadata.instances.delete(ctx.params.environmentUuid)
 				await this.adapter.removeById(ctx.params.environmentUuid)
@@ -397,8 +500,85 @@ const MockoonServerService: AppServiceSchema = {
 				port,
 			})
 		},
+		async resync(this: AppService) {
+			// Sync the database and respawn all instances
+			//@ts-ignore
+			const InstanceModel = this.model! as ModelStatic<any>
+			const docs = (await InstanceModel.findAll({})) as InstanceModelType[]
+
+			for (const doc of docs) {
+				const { environmentUuid, port, environment: oldEnvironment, status } = doc
+
+				const { environment } =
+					(await this.broker.call<SyncEnv, any>(
+						'environments-store.get',
+						{
+							uuid: environmentUuid,
+						},
+						{
+							meta: {
+								$serviceInterchange: true,
+							},
+						},
+					)) ?? {}
+				if (!environment) {
+					this.logger.error(`Environment ${environmentUuid} not found in store`)
+					// delete in db
+					await this.adapter.removeById(environmentUuid)
+					this.metadata.instances.delete(environmentUuid)
+					this.logger.info(`Environment ${environmentUuid} removed from db`)
+					continue
+				}
+				// update to db
+				await this.adapter.updateById(environmentUuid, {
+					$set: { environment: environment },
+				})
+				this.logger.info(`Environment ${environmentUuid} updated in db`)
+
+				if (status === DeployInstanceStatus.RUNNING) {
+					if (this.metadata.instances.has(environmentUuid)) {
+						this.logger.info(`Environment ${environmentUuid} is already running, restarting...`)
+						// restart the server
+						const server = this.metadata.instances.get(environmentUuid)?.server
+						if (server) {
+							await StopInstance(server)
+						}
+					}
+					this.logger.info(`Starting environment ${environmentUuid} on port ${port}`)
+					// @ts-ignore
+					await this.startServer({
+						environment,
+						port,
+						options: {},
+					})
+				}
+			}
+			this.logger.info('Connected successfully')
+		},
 	},
 
+	async afterConnected(this: AppService) {
+		//@ts-ignore
+		// const InstanceModel = this.model! as ModelStatic<any>
+		// await InstanceModel.sync({ alter: true })
+		// @ts-ignore
+		await this.resync()
+		this.logger.info('Connected successfully')
+	},
+
+	// @ts-ignore
+	entityCreated(this: AppService, ctx: AuthContextMeta) {
+		this.logger.info('New entity created!')
+	},
+
+	entityUpdated(this: AppService, json: any, ctx: AuthContextMeta) {
+		// You can also access to Context
+		this.logger.info(`Entity updated by '${ctx.meta?.user?.uid}`)
+	},
+
+	entityRemoved(this: AppService, json: any, ctx: AuthContextMeta) {
+		this.logger.info('Entity removed', json)
+	},
 	/**
 	 * Service created lifecycle event handler
 	 */

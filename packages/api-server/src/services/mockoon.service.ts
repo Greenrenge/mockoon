@@ -27,7 +27,7 @@ export default {
 					enableTelemetry: false,
 					geoipEndpoint: 'http://ip-api.com/json/',
 					cloudSyncUrl: `ws://${baseUrl.replace(/^https?:\/\//, '')}:${wsPort}`,
-					deployUrl: `${baseUrl}:${apiPort}`,
+					deployUrl: `${baseUrl}:${apiPort}/api`,
 				}
 			},
 		},

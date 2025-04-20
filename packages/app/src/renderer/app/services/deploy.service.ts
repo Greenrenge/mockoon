@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { DeployInstance, Plans } from '@mockoon/cloud';
+import { Plans } from '@mockoon/cloud';
 import {
   EMPTY,
   Observable,
@@ -13,6 +13,7 @@ import {
   switchMap,
   tap
 } from 'rxjs';
+import { DeployInstanceWithPort } from 'src/renderer/app/models/store.model';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
 import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import {
@@ -57,7 +58,7 @@ export class DeployService {
       switchMap(([user, token]) => {
         // TODO: GREEN
         if (user?.plan !== Plans.FREE) {
-          return this.httpClient.get<DeployInstance[]>(
+          return this.httpClient.get<DeployInstanceWithPort[]>(
             `${Config.apiURL}deployments`,
             {
               headers: {
@@ -69,7 +70,7 @@ export class DeployService {
 
         return of([]);
       }),
-      tap((instances: DeployInstance[]) => {
+      tap((instances: DeployInstanceWithPort[]) => {
         this.store.update(updateDeployInstancesAction(instances));
       }),
       catchError(() => EMPTY)
@@ -113,7 +114,42 @@ export class DeployService {
       )
     );
   }
-  // TODO: GREEN DEPLOY
+
+  /**
+   * Check if a port is available
+   *
+   * @returns
+   */
+  public checkPortAvailability(port: number, environmentUuid?: string) {
+    return forkJoin([
+      this.userService.getIdToken(),
+      this.remoteConfig.get('deployUrl').pipe(
+        filter((deployUrl) => !!deployUrl),
+        first()
+      )
+    ]).pipe(
+      switchMap(([token, deployUrl]) =>
+        this.httpClient
+          .post(
+            `${deployUrl}/deployments/port`,
+            {
+              port,
+              environmentUuid
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          )
+          .pipe(
+            map(() => true),
+            catchError(() => of(false))
+          )
+      )
+    );
+  }
+
   /**
    * Deploy an environment to the cloud
    *
@@ -121,7 +157,7 @@ export class DeployService {
    */
   public deploy(
     environmentUuid: string,
-    options: Pick<DeployInstance, 'visibility' | 'subdomain'>,
+    options: Pick<DeployInstanceWithPort, 'visibility' | 'subdomain' | 'port'>,
     redeploy = false
   ) {
     const environment = this.store.getEnvironmentByUUID(environmentUuid);
@@ -146,7 +182,7 @@ export class DeployService {
               (instance) => instance.environmentUuid === environmentUuid
             ))
         ) {
-          return this.httpClient.post<DeployInstance>(
+          return this.httpClient.post<DeployInstanceWithPort>(
             `${deployUrl}/deployments`,
             {
               environment,
@@ -188,7 +224,9 @@ export class DeployService {
    * @param environmentUuid
    * @returns
    */
-  public quickRedeploy(environmentUuid: string): Observable<DeployInstance> {
+  public quickRedeploy(
+    environmentUuid: string
+  ): Observable<DeployInstanceWithPort> {
     this.store.update(
       updateEnvironmentStatusAction({ redeploying: true }, environmentUuid)
     );
@@ -205,6 +243,7 @@ export class DeployService {
       environmentUuid,
       {
         subdomain: existingInstance.subdomain,
+        port: existingInstance.port,
         visibility: existingInstance.visibility
       },
       true
@@ -225,7 +264,7 @@ export class DeployService {
       )
     ]).pipe(
       switchMap(([token, deployUrl]) => {
-        return this.httpClient.delete<DeployInstance>(
+        return this.httpClient.delete<DeployInstanceWithPort>(
           `${deployUrl}/deployments/${environmentUuid}`,
           {
             headers: {

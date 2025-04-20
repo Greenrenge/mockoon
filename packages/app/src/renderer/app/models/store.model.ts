@@ -64,7 +64,7 @@ export type DuplicateEntityToAnotherEnvironment = {
   subjectUUID?: string;
   targetEnvironmentUUID?: string;
 };
-
+export type DeployInstanceWithPort = DeployInstance & { port: number };
 export type StoreType = {
   activeTab: TabsNameType;
   activeView: ViewsNameType;
@@ -103,7 +103,7 @@ export type StoreType = {
     offlineReason: string | null;
     alert: string | null;
   };
-  deployInstances: DeployInstance[];
+  deployInstances: DeployInstanceWithPort[];
   /**
    * Processed databuckets data per environment, indexed by databucket UUID
    */

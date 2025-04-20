@@ -27,6 +27,7 @@ export type AuthContextMeta<Params = any> = Context<
 		accountId: string
 		accessToken?: string
 		user?: User
+		$serviceInterchange?: boolean
 		/**
 		 * API
 		 * ctx.meta.$statusCode - set res.statusCode.

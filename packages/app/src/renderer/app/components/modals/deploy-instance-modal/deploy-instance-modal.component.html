@@ -19,7 +19,7 @@
   <div class="modal-body">
     <div [formGroup]="optionsForm">
       <div class="mb-3">
-        <div class="input-group align-items-center">
+        <!-- <div class="input-group align-items-center">
           <label class="col-form-label pe-2" for="subdomain">Subdomain</label>
           <div class="col-4">
             <input
@@ -51,6 +51,45 @@
               } @else if (
                 optionsForm.get('subdomain').value &&
                 !optionsForm.get('subdomain').errors &&
+                !data.taskInProgress
+              ) {
+                <app-svg icon="check" size="12" class="text-success"></app-svg>
+              }
+            </small>
+          </div>
+        </div> -->
+
+        <div class="input-group align-items-center">
+          <label class="col-form-label pe-2" for="port">Port</label>
+          <div class="col-4">
+            <input
+              type="number"
+              id="port"
+              class="form-control"
+              formControlName="port"
+              placeholder="Target Port"
+              [maxLength]="50"
+              [minLength]="5"
+            />
+          </div>
+          <div class="input-group-text">
+            <app-svg
+              icon="info"
+              ngbTooltip="Customize the port of your instance"
+            ></app-svg>
+          </div>
+          <div class="input-group-text text-warning">
+            <small>
+              @if (optionsForm.get('port').errors?.portTaken) {
+                This port is not available
+              } @else if (
+                optionsForm.get('port').errors?.min ||
+                optionsForm.get('port').errors?.max
+              ) {
+                Port must be between 3000 and 65535
+              } @else if (
+                optionsForm.get('port').value &&
+                !optionsForm.get('port').errors &&
                 !data.taskInProgress
               ) {
                 <app-svg icon="check" size="12" class="text-success"></app-svg>

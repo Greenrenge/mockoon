@@ -1,4 +1,4 @@
-import { DeployInstance, User } from '@mockoon/cloud';
+import { User } from '@mockoon/cloud';
 import {
   Callback,
   DataBucket,
@@ -17,6 +17,7 @@ import {
 import { DataSubject } from 'src/renderer/app/models/data.model';
 import { EnvironmentLog } from 'src/renderer/app/models/environment-logs.model';
 import {
+  DeployInstanceWithPort,
   EnvironmentLogsTabsNameType,
   EnvironmentStatus,
   StoreType,
@@ -135,7 +136,9 @@ export const updateSyncAction = (properties: Partial<StoreType['sync']>) =>
  *
  * @param properties - cloud sync status properties to update
  */
-export const updateDeployInstancesAction = (instances: DeployInstance[]) =>
+export const updateDeployInstancesAction = (
+  instances: DeployInstanceWithPort[]
+) =>
   ({
     type: ActionTypes.UPDATE_DEPLOY_INSTANCES,
     instances
@@ -148,7 +151,7 @@ export const updateDeployInstancesAction = (instances: DeployInstance[]) =>
  * @param instance
  * @returns
  */
-export const addDeployInstanceAction = (instance: DeployInstance) =>
+export const addDeployInstanceAction = (instance: DeployInstanceWithPort) =>
   ({
     type: ActionTypes.ADD_DEPLOY_INSTANCE,
     instance
@@ -174,7 +177,7 @@ export const removeDeployInstanceAction = (environmentUuid: string) =>
  */
 export const updateDeployInstanceAction = (
   environmentUuid: string,
-  properties: Partial<DeployInstance>
+  properties: Partial<DeployInstanceWithPort>
 ) =>
   ({
     type: ActionTypes.UPDATE_DEPLOY_INSTANCE,

@@ -13,7 +13,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { DeployInstance, DeployInstanceVisibility, User } from '@mockoon/cloud';
+import { DeployInstanceVisibility, User } from '@mockoon/cloud';
 import { Environment } from '@mockoon/commons';
 import { NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import {
@@ -32,6 +32,7 @@ import { SpinnerComponent } from 'src/renderer/app/components/spinner.component'
 import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
 import { ToggleComponent } from 'src/renderer/app/components/toggle/toggle.component';
 import { ToggleItems } from 'src/renderer/app/models/common.model';
+import { DeployInstanceWithPort } from 'src/renderer/app/models/store.model';
 import { DeployService } from 'src/renderer/app/services/deploy.service';
 import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
@@ -58,7 +59,7 @@ import { Config } from 'src/renderer/config';
 })
 export class DeployInstanceModalComponent implements OnInit {
   public taskInProgress$ = new BehaviorSubject<boolean>(false);
-  public existingInstance$: Observable<DeployInstance>;
+  public existingInstance$: Observable<DeployInstanceWithPort>;
   public instanceExists$: Observable<boolean>;
   public user$: Observable<User>;
   public accountUrl = Config.accountUrl;
@@ -70,8 +71,11 @@ export class DeployInstanceModalComponent implements OnInit {
         Validators.pattern(/^(?!-)[a-z0-9-]*(?<!-)$/)
       ]
     }),
+    port: this.formBuilder.control<number>(null, {
+      validators: [Validators.min(3000), Validators.max(65535)]
+    }),
     visibility: this.formBuilder.control<DeployInstanceVisibility>(
-      DeployInstanceVisibility.PRIVATE,
+      DeployInstanceVisibility.PUBLIC,
       Validators.required
     )
   });
@@ -120,6 +124,7 @@ export class DeployInstanceModalComponent implements OnInit {
         if (existingInstance) {
           this.optionsForm.patchValue({
             subdomain: existingInstance.subdomain,
+            port: existingInstance.port,
             visibility: existingInstance.visibility
           });
         }
@@ -168,6 +173,42 @@ export class DeployInstanceModalComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
+
+    this.optionsForm
+      .get('port')
+      .valueChanges.pipe(
+        combineLatestWith(this.existingInstance$),
+        filter(
+          ([port, existingInstance]) =>
+            port &&
+            this.optionsForm.get('port').valid &&
+            (!existingInstance || existingInstance.port !== port)
+        ),
+        tap(() => {
+          this.optionsForm.get('port').setErrors(null);
+          this.taskInProgress$.next(true);
+        }),
+        debounceTime(1000),
+        switchMap(([port, existingInstance]) =>
+          this.deployService
+            .checkPortAvailability(
+              port,
+              existingInstance?.environmentUuid ?? null
+            )
+            .pipe(
+              tap(() => {
+                this.taskInProgress$.next(false);
+              }),
+              map((isAvailable) => {
+                if (!isAvailable) {
+                  this.optionsForm.get('port').setErrors({ portTaken: true });
+                }
+              })
+            )
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   public close() {
@@ -197,7 +238,7 @@ export class DeployInstanceModalComponent implements OnInit {
     }
 
     this.taskInProgress$.next(true);
-    // TODO: GREEN DEPLOY INSTANCE
+
     this.deployService
       .deploy(
         environmentUuid,

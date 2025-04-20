@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { DeployInstance } from '@mockoon/cloud';
 import {
   Callback,
   DataBucket,
@@ -27,6 +26,7 @@ import {
 } from 'src/renderer/app/models/callback.model';
 import { EnvironmentLog } from 'src/renderer/app/models/environment-logs.model';
 import {
+  DeployInstanceWithPort,
   EnvironmentStatus,
   StoreType
 } from 'src/renderer/app/models/store.model';
@@ -165,7 +165,7 @@ export class Store {
   /**
    * Select active environment cloud instance
    */
-  public selectActiveEnvironmentInstance(): Observable<DeployInstance> {
+  public selectActiveEnvironmentInstance(): Observable<DeployInstanceWithPort> {
     return this.store$.asObservable().pipe(
       map(
         (store: StoreType) =>
