@@ -132,6 +132,15 @@
               >
                 <app-svg icon="cloud_add"></app-svg>
               </button>
+              <button
+                type="button"
+                class="btn btn-link btn-icon btn-sm"
+                ngbTooltip="Add cloud environment from JSON"
+                (click)="addCloudEnvironmentFromJSON()"
+                [disabled]="!sync?.status"
+              >
+                <app-svg icon="add_box"></app-svg>
+              </button>
             } @else {
               <app-dropdown-menu
                 idPrefix="cloud-environments-add"

@@ -14,6 +14,7 @@ import { ConfirmModalComponent } from 'src/renderer/app/components/modals/confir
 import { DeployInstanceModalComponent } from 'src/renderer/app/components/modals/deploy-instance-modal/deploy-instance-modal.component';
 import { DuplicateModalComponent } from 'src/renderer/app/components/modals/duplicate-modal/duplicate-modal.component';
 import { EditorModalComponent } from 'src/renderer/app/components/modals/editor-modal/editor-modal.component';
+import { JsonConfigModalComponent } from 'src/renderer/app/components/modals/json-config-modal/json-config-modal.component';
 import { ManageInstancesModalComponent } from 'src/renderer/app/components/modals/manage-instances-modal/manage-instances-modal.component';
 import { SettingsModalComponent } from 'src/renderer/app/components/modals/settings-modal/settings-modal.component';
 import { TemplatesModalComponent } from 'src/renderer/app/components/modals/templates-modal/templates-modal.component';
@@ -57,7 +58,9 @@ type ModalNames =
   | 'confirm'
   | 'deploy'
   | 'editor'
-  | 'manageInstances';
+  | 'manageInstances'
+  | 'jsonConfig';
+
 type ModalWithPayload = Extract<
   ModalNames,
   'deploy' | 'editor' | 'manageInstances' | 'confirm'
@@ -73,7 +76,8 @@ export class UIService {
     deploy: new BehaviorSubject<string>(null),
     editor: new BehaviorSubject<EditorModalPayload>(null),
     manageInstances: new BehaviorSubject<ManageInstancesModalPayload>(null),
-    confirm: new BehaviorSubject<ConfirmModalPayload>(null)
+    confirm: new BehaviorSubject<ConfirmModalPayload>(null),
+    jsonConfig: new BehaviorSubject<any>(null)
   };
   private modals: Record<
     ModalNames,
@@ -148,6 +152,10 @@ export class UIService {
     manageInstances: {
       component: ManageInstancesModalComponent,
       options: commonConfigs.large
+    },
+    jsonConfig: {
+      component: JsonConfigModalComponent,
+      options: commonConfigs.large
     }
   };
   private modalsInstances: Record<ModalNames, NgbModalRef> = {
@@ -163,7 +171,8 @@ export class UIService {
     confirm: null,
     deploy: null,
     editor: null,
-    manageInstances: null
+    manageInstances: null,
+    jsonConfig: null
   };
 
   constructor(

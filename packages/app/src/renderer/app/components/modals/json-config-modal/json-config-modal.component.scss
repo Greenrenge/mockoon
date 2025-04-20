@@ -1,0 +1,13 @@
+@import 'src/renderer/styles/bootstrap-variables.scss';
+
+:host {
+  display: block;
+
+  .modal-body {
+    min-height: 400px;
+  }
+
+  app-editor {
+    min-height: 300px;
+  }
+}

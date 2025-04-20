@@ -817,6 +817,14 @@ export class EnvironmentsService {
       );
   }
 
+  public importToCloud(environment: Environment) {
+    const clonedEnvironment = this.dataService.deduplicateUUIDs(
+      CloneObject(environment),
+      true
+    );
+
+    return this.addCloudEnvironment(clonedEnvironment, true);
+  }
   /**
    * Duplicate an environment and save it to the cloud
    */
