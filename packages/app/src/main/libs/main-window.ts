@@ -98,6 +98,7 @@ export const initMainWindow = (showSplash = true) => {
     }, 500);
   });
 
+  // TODO: GREEN APP START RENDERER
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/renderer/index.html`);
 

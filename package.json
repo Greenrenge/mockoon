@@ -68,7 +68,8 @@
     "documentation:desktop": "lerna run --stream --scope @mockoon/app documentation",
     "start-dev": "lerna run --stream --scope @mockoon/app --scope api-server start-dev",
     "build:api-server": "lerna run --stream --scope api-server build:prod",
-    "build:web": "lerna run --stream --scope @mockoon/app build:prod:web:docker"
+    "build:web": "lerna run --stream --scope @mockoon/app build:prod:web:docker",
+    "build:desktop:prod:custom": "lerna run --stream --scope @mockoon/app build:prod:all:custom"
   },
   "devDependencies": {
     "@eslint/js": "9.22.0",

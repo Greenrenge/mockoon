@@ -80,6 +80,109 @@ export default {
 					res.end(JSON.stringify({ error: { message: err.message } }))
 				},
 			},
+			{
+				path: '/api/upload',
+
+				// You should disable body parsers
+				bodyParsers: {
+					json: false,
+					urlencoded: false,
+				},
+
+				aliases: {
+					// 'GET /:file': 'file.get',
+
+					// File upload from HTML form
+					// 'POST /': 'multipart:file.save',
+
+					// File upload from AJAX or cURL
+					'PUT /import-open-api': 'stream:import-export.convertOpenAPI',
+
+					// // File upload from AJAX or cURL with params
+					// 'PUT /:id': 'stream:file.save',
+
+					// // File upload from HTML form and overwrite busboy config
+					// 'POST /single/:id': {
+					// 	type: 'multipart',
+					// 	// Action level busboy config
+					// 	busboyConfig: {
+					// 		//empty: true,
+					// 		limits: {
+					// 			files: 1,
+					// 		},
+					// 		onPartsLimit(busboy, alias, svc) {
+					// 			this.logger.info('Busboy parts limit!', busboy)
+					// 		},
+					// 		onFilesLimit(busboy, alias, svc) {
+					// 			this.logger.info('Busboy file limit!', busboy)
+					// 		},
+					// 		onFieldsLimit(busboy, alias, svc) {
+					// 			this.logger.info('Busboy fields limit!', busboy)
+					// 		},
+					// 	},
+					// 	action: 'file.save',
+					// },
+
+					// // File upload from HTML form and overwrite busboy config
+					// 'POST /multi': {
+					// 	type: 'multipart',
+					// 	// Action level busboy config
+					// 	busboyConfig: {
+					// 		limits: {
+					// 			files: 3,
+					// 			fileSize: 1 * 1024 * 1024,
+					// 		},
+					// 		onPartsLimit(busboy, alias, svc) {
+					// 			this.logger.info('Busboy parts limit!', busboy)
+					// 		},
+					// 		onFilesLimit(busboy, alias, svc) {
+					// 			this.logger.info('Busboy file limit!', busboy)
+					// 		},
+					// 		onFieldsLimit(busboy, alias, svc) {
+					// 			this.logger.info('Busboy fields limit!', busboy)
+					// 		},
+					// 	},
+					// 	action: 'file.save',
+					// },
+				},
+
+				// https://github.com/mscdex/busboy#busboy-methods
+				busboyConfig: {
+					limits: {
+						files: 1,
+					},
+				},
+
+				callOptions: {
+					// meta: {
+					// 	a: 5,
+					// },
+				},
+
+				mappingPolicy: 'restrict',
+				authentication: true,
+				use: [
+					function errorHandler(
+						this: ServiceBroker & ApiSettingsSchema,
+						err: any,
+						req: IncomingRequest,
+						res: GatewayResponse,
+						next: (err?: any) => void,
+					) {
+						this.logger.error('Error is occurred in middlewares!')
+						this.sendError(req, res, err)
+					},
+				],
+				onError(req: IncomingRequest, res: GatewayResponse, err: any) {
+					res.setHeader('Content-Type', 'application/json')
+					if ('code' in err && typeof err.code === 'number') {
+						res.writeHead(err.code)
+					} else {
+						res.writeHead(500)
+					}
+					res.end(JSON.stringify({ error: { message: err.message } }))
+				},
+			},
 			...(process.env.NODE_ENV === 'production'
 				? []
 				: [

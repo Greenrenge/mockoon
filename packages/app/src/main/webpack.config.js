@@ -2,6 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
 
+//pack the electron main process and preload script
+
 module.exports = (env, argv) => {
   const config = {
     entry: {
@@ -43,12 +45,12 @@ module.exports = (env, argv) => {
         WEBSITE_URL: JSON.stringify(
           argv.mode === 'development'
             ? 'http://localhost:3000/api'
-            : 'https://mockoon.com/'
+            : 'https://mockoon.com/' //TODO: GREEN APP
         ),
         API_URL: JSON.stringify(
           argv.mode === 'development'
             ? 'http://localhost:5003/api'
-            : 'https://api.mockoon.com/'
+            : 'https://api.mockoon.com/' //TODO: GREEN APP: should init the form for the api on startup and injects to the renderer
         )
       })
     ]

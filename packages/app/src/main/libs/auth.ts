@@ -7,6 +7,7 @@ import { parse as urlParse } from 'url';
 
 let server: Server = null;
 
+// TODO: GREEN APP
 /**
  * Start a server to listen for the auth callback from the website
  * and send the token to the renderer process
@@ -46,7 +47,7 @@ export const startAuthCallbackServer = async () => {
     );
   });
 };
-
+// TODO: GREEN APP
 /**
  * Stop the auth callback server
  */

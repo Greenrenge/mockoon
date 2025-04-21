@@ -21,7 +21,7 @@ export type AppMoleculerService<TExtend = any> = Service<AppServiceSettingSchema
 	}
 }
 export type AppBroker = ServiceBroker & {} & {}
-export type AuthContextMeta<Params = any> = Context<
+export type AuthContextMeta<Params = any, AdditionalFields extends object = any> = Context<
 	Params,
 	{
 		accountId: string
@@ -47,7 +47,7 @@ export type AuthContextMeta<Params = any> = Context<
 		$leave: string | string[]
 		$socketId: string
 		$rooms: string[]
-	}
+	} & AdditionalFields
 > & {
 	broker: AppBroker
 }

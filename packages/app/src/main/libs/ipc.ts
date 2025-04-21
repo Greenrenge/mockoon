@@ -272,10 +272,11 @@ export const initIPCListeners = (mainWindow: BrowserWindow) => {
     async (event, filePath: string, port?: number) => {
       const openApiConverter = new OpenAPIConverter();
 
+      // TODO: GREEN OPENAPI
       return await openApiConverter.convertFromOpenAPI(filePath, port);
     }
   );
-
+  // TODO: GREEN OPENAPI
   ipcMain.handle('APP_OPENAPI_CONVERT_TO', async (event, data: Environment) => {
     const openApiConverter = new OpenAPIConverter();
 

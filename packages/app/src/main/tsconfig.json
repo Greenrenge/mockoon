@@ -1,12 +1,38 @@
 {
   "extends": "../../tsconfig.json",
-  "files": ["app.ts", "preload.ts"],
+  "files": [
+    "app.ts",
+    "preload.ts"
+  ],
   "compilerOptions": {
+    "paths": {
+      "@mockoon/cloud": [
+        "../../packages/cloud/src"
+      ],
+      "@mockoon/cloud/*": [
+        "../../packages/cloud/src/*"
+      ],
+      "@mockoon/commons": [
+        "../../packages/commons/src"
+      ],
+      "@mockoon/commons": [
+        "../../packages/commons/src/*"
+      ],
+      "@mockoon/commons-server": [
+        "../../packages/commons-server/src"
+      ],
+      "@mockoon/commons-server": [
+        "../../packages/commons-server/src/*"
+      ]
+    },
     "outDir": "../../dist",
     "esModuleInterop": false,
     "module": "CommonJS",
     "target": "es2018",
     "strict": true,
-    "lib": ["es2020", "dom"]
+    "lib": [
+      "es2020",
+      "dom"
+    ]
   }
 }

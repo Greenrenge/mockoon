@@ -93,7 +93,7 @@ if (!appLock) {
       app.quit();
     }
   });
-
+  // TODO: GREEN APP
   app.on('open-url', (event, url) => {
     event.preventDefault();
 

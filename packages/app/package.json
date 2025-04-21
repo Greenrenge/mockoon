@@ -55,13 +55,14 @@
     "package:test:linux": "pnpm run clean-packages && electron-builder --publish never --config ./build-configs/test/electron-builder.linux.js --dir",
     "package:test:mac": "pnpm run clean-packages && electron-builder --publish never --config ./build-configs/test/electron-builder.mac.js --dir",
     "deploy:web": "firebase deploy --only hosting",
-    "start-dev": "ng build --configuration=development-web --watch --output-hashing=all"
+    "start-dev": "ng build --configuration=development-web --watch --output-hashing=all",
+    "build:prod:all:custom": "pnpm run clean-dist && pnpm run ng build --configuration=production-custom && pnpm run build:prod:main"
   },
   "dependencies": {
     "@microsoft/fetch-event-source": "2.0.1",
-    "@mockoon/cloud": "9.2.0",
-    "@mockoon/commons": "9.2.0",
-    "@mockoon/commons-server": "9.2.0",
+    "@mockoon/cloud": "workspace:*",
+    "@mockoon/commons": "workspace:*",
+    "@mockoon/commons-server": "workspace:*",
     "@supabase/supabase-js": "2.49.4",
     "chokidar": "3.6.0",
     "electron-json-storage": "4.6.0",

@@ -105,7 +105,7 @@ export const checkForUpdate = async (mainWindow: BrowserWindow) => {
     logInfo('[MAIN][UPDATE] Application is up to date');
   }
 };
-
+// TODO: GREEN APP
 export const applyUpdate = () => {
   const userDataPath = app.getPath('userData');
 
