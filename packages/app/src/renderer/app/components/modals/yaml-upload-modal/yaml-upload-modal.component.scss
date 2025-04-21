@@ -1,0 +1,16 @@
+@import 'src/renderer/styles/bootstrap-variables.scss';
+
+:host {
+  display: block;
+
+  .yaml-upload-modal {
+    .modal-body {
+      min-height: 200px;
+    }
+
+    .form-text {
+      font-size: 0.875rem;
+      color: $gray-600;
+    }
+  }
+}

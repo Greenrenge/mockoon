@@ -20,6 +20,7 @@ import { ManageInstancesModalComponent } from 'src/renderer/app/components/modal
 import { SettingsModalComponent } from 'src/renderer/app/components/modals/settings-modal/settings-modal.component';
 import { TemplatesModalComponent } from 'src/renderer/app/components/modals/templates-modal/templates-modal.component';
 import { WelcomeModalComponent } from 'src/renderer/app/components/modals/welcome-modal/welcome-modal.component';
+import { YamlUploadModalComponent } from 'src/renderer/app/components/modals/yaml-upload-modal/yaml-upload-modal.component';
 import { FocusableInputs } from 'src/renderer/app/enums/ui.enum';
 import { UIState } from 'src/renderer/app/models/store.model';
 import {
@@ -64,7 +65,8 @@ type ModalNames =
   | 'deploy'
   | 'editor'
   | 'manageInstances'
-  | 'jsonConfig';
+  | 'jsonConfig'
+  | 'yamlUpload';
 
 type ModalWithPayload = Extract<
   ModalNames,
@@ -82,7 +84,8 @@ export class UIService {
     editor: new BehaviorSubject<EditorModalPayload>(null),
     manageInstances: new BehaviorSubject<ManageInstancesModalPayload>(null),
     confirm: new BehaviorSubject<ConfirmModalPayload>(null),
-    jsonConfig: new BehaviorSubject<any>(null)
+    jsonConfig: new BehaviorSubject<any>(null),
+    yamlUpload: new BehaviorSubject<any>(null)
   };
   private modals: Record<
     ModalNames,
@@ -165,6 +168,10 @@ export class UIService {
     jsonConfig: {
       component: JsonConfigModalComponent,
       options: commonConfigs.large
+    },
+    yamlUpload: {
+      component: YamlUploadModalComponent,
+      options: commonConfigs.medium
     }
   };
   private modalsInstances: Record<ModalNames, NgbModalRef> = {
@@ -182,7 +189,8 @@ export class UIService {
     deploy: null,
     editor: null,
     manageInstances: null,
-    jsonConfig: null
+    jsonConfig: null,
+    yamlUpload: null
   };
 
   constructor(

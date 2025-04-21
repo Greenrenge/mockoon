@@ -1,0 +1,57 @@
+<div class="yaml-upload-modal">
+  <div class="modal-header">
+    <h3 class="modal-title">Upload YAML Configuration</h3>
+  </div>
+
+  <div class="modal-body">
+    <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+      <div class="mb-3">
+        <label class="form-label">YAML File</label>
+        <div class="input-group">
+          <input
+            type="file"
+            class="form-control"
+            accept=".yml,.yaml"
+            (change)="onFileSelected($event)"
+            #fileInput
+          />
+          <button
+            *ngIf="selectedFileName$ | async"
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="fileInput.value = ''; selectedFileName$.next(null)"
+          >
+            Clear
+          </button>
+        </div>
+        <div
+          class="form-text text-muted"
+          *ngIf="selectedFileName$ | async as fileName"
+        >
+          Selected file: {{ fileName }}
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage$ | async as error" class="alert alert-danger">
+        {{ error }}
+      </div>
+
+      <div *ngIf="isLoading$ | async" class="text-center mb-3">
+        <app-spinner></app-spinner>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!uploadForm.valid || (isLoading$ | async)"
+        >
+          Upload
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
