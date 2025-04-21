@@ -188,25 +188,6 @@ const SyncService: AppServiceSchema = {
 			if (!user) {
 				throw new Error(SyncErrors.UNAUTHORIZED)
 			}
-			// //TODO: must have single socket per deviceId
-			// const sockets = await this.io.of('/').in(`user:${user.uid}`).fetchSockets()
-
-			// sockets.filter(
-			// 	(s) =>
-			// 		//@ts-ignore
-			// 		s.deviceId === deviceId && s.user.id === user.id,
-			// )
-			// if (sockets.length > 1) {
-			// 	this.logger.warn(
-			// 		`User ${user.uid} has multiple sockets connected with the same deviceId ${deviceId}. Disconnecting the previous socket.`,
-			// 	)
-			// 	// disconnect the previous socket
-			// 	sockets.forEach((s) => {
-			// 		if (s.id !== socket.id) {
-			// 			s.disconnect()
-			// 		}
-			// 	})
-			// }
 
 			socket.user = user
 			socket.accessToken = token
@@ -296,10 +277,10 @@ const SyncService: AppServiceSchema = {
 			action: SyncActions,
 			respond?: (data: ServerAcknowledgment) => void,
 		): Promise<ServerAcknowledgment> {
-			//TODO: if environmentUuid is sent , we need to return hash in acknowledgment
+			// if environmentUuid is sent, we need to return hash in acknowledgment
 			// when CREATE is in receive --> ADD_ENVIRONMENT will be sent
 			// transformSyncAction must be called first to check timestamp, server must have RecentActionsStore,previousActionHash inside, then saveRecentUpdateSyncAction,applySyncAction for converting to action to reducer
-			//Process the sync action based on its type
+			// Process the sync action based on its type
 			try {
 				if ('environmentUuid' in action) {
 					this.broker

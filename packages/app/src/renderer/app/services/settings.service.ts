@@ -84,7 +84,6 @@ export class SettingsService {
         }
 
         if (!settings.welcomeShown) {
-          // TODO: GREEN
           this.uiService.openModal('welcome');
         }
       })

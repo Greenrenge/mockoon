@@ -22,14 +22,6 @@ export class RemoteConfigService {
     private userService: UserServiceSupabase
   ) {}
 
-  // TODO: GREEN
-  // {
-  //   "enableTelemetry": true,
-  //   "geoipEndpoint": "http://ip-api.com/json/",
-  //   "cloudSyncUrl": "wss://sync.mockoon.com",
-  //   "deployUrl": "https://api.mockoon.com"
-  // }
-
   /**
    * Get a remote config specific property
    *

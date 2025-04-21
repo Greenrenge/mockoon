@@ -27,7 +27,6 @@ export class WelcomeModalComponent {
     this.settingsService.updateSettings({ welcomeShown: true });
 
     if (this.isWeb) {
-      // TODO: GREEN START AUTH FLOW
       this.userService.webAuthHandler().subscribe();
     }
 

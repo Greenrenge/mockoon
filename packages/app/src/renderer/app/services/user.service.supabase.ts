@@ -30,15 +30,6 @@ import {
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 
-// export interface SupabaseProfile {
-//   id?: string;
-//   username: string;
-//   website: string;
-//   avatar_url: string;
-// }
-
-// TODO: green https://gist.github.com/kylerummens/c2ec82e65d137f3220748ff0dee76c3f
-
 @Injectable({ providedIn: 'root' })
 export class UserServiceSupabase {
   private isWeb = Config.isWeb;
@@ -157,7 +148,6 @@ export class UserServiceSupabase {
   public startLoginFlow() {
     if (Config.isWeb) {
       //       this.uiService.openModal('authIframe');
-      // TODO: GREEN
       this.uiService.openModal('authSupabase');
     } else {
       this.uiService.openModal('auth');

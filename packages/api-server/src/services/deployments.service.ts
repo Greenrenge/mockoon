@@ -184,8 +184,6 @@ const MockoonServerService: AppServiceSchema = {
 		/**
 		 * Start a new Mockoon server instance
 		 */
-		//TODO: RESTFUL to post
-		//TODO: if add via API, should always add to the environment db?
 		start: {
 			rest: 'POST /deployments',
 			params: {

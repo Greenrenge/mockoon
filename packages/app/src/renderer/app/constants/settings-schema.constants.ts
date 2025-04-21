@@ -8,7 +8,6 @@ import {
   Settings
 } from 'src/shared/models/settings.model';
 
-// TODO: GREEN SETTING SCHEMA
 export const SettingsDefault: Settings = {
   welcomeShown: false,
   maxLogsPerEnvironment: Config.defaultMaxLogsPerEnvironment,

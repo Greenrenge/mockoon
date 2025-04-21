@@ -82,7 +82,6 @@ function isReorderSyncAction(
   return reorderSyncActionsList.includes(syncAction.type);
 }
 
-// TODO: GREEN Decide which actions to perform
 /**
  * Let pass some actions and transform others:
  * - Updates: UPDATE_ENVIRONMENT, UPDATE_ROUTE, UPDATE_FOLDER, UPDATE_ROUTE_RESPONSE, UPDATE_DATABUCKET, UPDATE_CALLBACK

@@ -157,7 +157,6 @@ export class SyncService {
    * Reconnect the socket
    */
   public reconnect() {
-    // TODO: GREEN  REMOVE MIGRATION
     const user = this.store.get('user');
     if (user) {
       of(true).subscribe((confirmed) => {
@@ -287,7 +286,6 @@ export class SyncService {
     );
   }
 
-  // TODO: GREEN Start sync
   /**
    * Listen to env list messages and compare the local and remote hashes to decide if we need to pull or push the environment.
    * We do nothing if there are actions in the send buffer.
@@ -349,7 +347,6 @@ export class SyncService {
                 }))
               );
           } else {
-            // TODO: GREEN NEW ENVIRONMENT FROM SERVER
             hashObservable$ = of({
               environmentUuid: updatedCloudEnvironment.environmentUuid,
               serverHash: updatedCloudEnvironment.hash,
@@ -466,7 +463,6 @@ export class SyncService {
                 return observable$.pipe(
                   tap(() => {
                     if (hashResult.lastServerHash !== hashResult.serverHash) {
-                      // TODO: GREEN NEW ENVIRONMENT FROM SERVER WILL SKIPPED BECAUSE BOTH OF THEM ARE NULL
                       this.store.update(
                         updateSettingsEnvironmentDescriptorAction({
                           uuid: hashResult.environmentUuid,
@@ -599,7 +595,6 @@ export class SyncService {
         }
 
         // if we are not connected, we don't buffer actions, we will either push or pull depending on the environment list
-        // TODO: GREEN PUSH UPDATED TO SERVER ?
         if (!this.socket.disconnected) {
           this.socket.emit(
             SyncMessageTypes.SYNC,
@@ -686,7 +681,6 @@ export class SyncService {
     );
   }
 
-  // TODO: GREEN PULL FROM SERVER
   /**
    * Send a get full environment action to the server
    *
@@ -694,7 +688,7 @@ export class SyncService {
    */
   private sendGetFullEnvironment(
     environmentUuid: string,
-    receive: GetFullEnvironmentSyncAction['receive'] // TODO: GREEN (CREATE | UPDATE)
+    receive: GetFullEnvironmentSyncAction['receive']
   ) {
     const getFullEnvAction =
       this.syncPayloadsService.getFullEnvironmentActionBuilder(
@@ -710,7 +704,6 @@ export class SyncService {
     );
   }
 
-  // TODO: GREEN PUSH TO SERVER
   /**
    * Send an update full environment action to the server
    *

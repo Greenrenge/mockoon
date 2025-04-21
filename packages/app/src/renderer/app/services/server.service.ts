@@ -148,7 +148,7 @@ export class ServerService {
 
     this.httpClient
       .put(
-        `${this.buildRemoteInstanceUrl(instance)}/environment`, // TODO: GREEN admin API
+        `${this.buildRemoteInstanceUrl(instance)}/environment`,
         environments[0],
         {
           headers: { Authorization: `Bearer ${instance.apiKey}` }

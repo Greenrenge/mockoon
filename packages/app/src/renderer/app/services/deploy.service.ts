@@ -56,7 +56,6 @@ export class DeployService {
       this.userService.getIdToken()
     ]).pipe(
       switchMap(([user, token]) => {
-        // TODO: GREEN
         if (user?.plan !== Plans.FREE) {
           return this.httpClient.get<DeployInstanceWithPort[]>(
             `${Config.apiURL}deployments`,
