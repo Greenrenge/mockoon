@@ -63,14 +63,14 @@ importers:
   packages/api-server:
     dependencies:
       '@mockoon/cloud':
-        specifier: ^9.2.0
-        version: 9.2.0
+        specifier: workspace:*
+        version: link:../cloud
       '@mockoon/commons':
-        specifier: 9.2.0
-        version: 9.2.0
+        specifier: workspace:*
+        version: link:../commons
       '@mockoon/commons-server':
-        specifier: 9.2.0
-        version: 9.2.0(openapi-types@12.1.3)
+        specifier: workspace:*
+        version: link:../commons-server
       '@moleculer/lab':
         specifier: ^0.6.4
         version: 0.6.4

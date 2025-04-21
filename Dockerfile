@@ -12,6 +12,7 @@ ARG WEB_URL
 # Install dependencies
 FROM base AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build:libs
 RUN pnpm deploy --filter=api-server --prod /prod/api-server --legacy
 
 # Build stage
@@ -30,10 +31,13 @@ RUN pnpm run build:api-server
 # Final image
 FROM base
 WORKDIR /app
+# RUNNING DEPENDENCIES
 COPY --from=prod-deps /prod/api-server /app
+
 COPY --from=build /app/packages/api-server/dist /app/dist
 
 EXPOSE 3000-3010 4000-4010
 
 # Start server
 CMD ["pnpm", "run", "start"]
+# CMD ["tail", "-f", "/dev/null"]
