@@ -14,6 +14,7 @@ import { ConfirmModalComponent } from 'src/renderer/app/components/modals/confir
 import { DeployInstanceModalComponent } from 'src/renderer/app/components/modals/deploy-instance-modal/deploy-instance-modal.component';
 import { DuplicateModalComponent } from 'src/renderer/app/components/modals/duplicate-modal/duplicate-modal.component';
 import { EditorModalComponent } from 'src/renderer/app/components/modals/editor-modal/editor-modal.component';
+import { FeedbackModalComponent } from 'src/renderer/app/components/modals/feedback-modal/feedback-modal.component';
 import { JsonConfigModalComponent } from 'src/renderer/app/components/modals/json-config-modal/json-config-modal.component';
 import { ManageInstancesModalComponent } from 'src/renderer/app/components/modals/manage-instances-modal/manage-instances-modal.component';
 import { SettingsModalComponent } from 'src/renderer/app/components/modals/settings-modal/settings-modal.component';
@@ -30,7 +31,10 @@ import { EventsService } from 'src/renderer/app/services/events.service';
 import { updateUIStateAction } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 
-const commonConfigs: Record<string, NgbModalOptions> = {
+const commonConfigs: Record<
+  'small' | 'medium' | 'large' | 'extraLarge',
+  NgbModalOptions
+> = {
   small: {
     size: 'sm'
   },
@@ -48,6 +52,7 @@ const commonConfigs: Record<string, NgbModalOptions> = {
 type ModalNames =
   | 'commandPalette'
   | 'settings'
+  | 'feedback'
   | 'changelog'
   | 'templates'
   | 'duplicate_to_environment'
@@ -100,6 +105,10 @@ export class UIService {
     settings: {
       component: SettingsModalComponent,
       options: commonConfigs.large
+    },
+    feedback: {
+      component: FeedbackModalComponent,
+      options: commonConfigs.medium
     },
     changelog: {
       component: ChangelogModalComponent,
@@ -161,6 +170,7 @@ export class UIService {
   private modalsInstances: Record<ModalNames, NgbModalRef> = {
     commandPalette: null,
     settings: null,
+    feedback: null,
     changelog: null,
     templates: null,
     duplicate_to_environment: null,
