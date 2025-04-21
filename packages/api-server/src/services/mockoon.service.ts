@@ -20,14 +20,11 @@ export default {
 			rest: 'POST /remoteconfig',
 			visibility: 'published',
 			handler() {
-				const baseUrl = config.configuration.baseUrl
-				const wsPort = config.configuration.wsPort
-				const apiPort = config.configuration.apiPort
 				return {
 					enableTelemetry: false,
 					geoipEndpoint: 'http://ip-api.com/json/',
-					cloudSyncUrl: `ws://${baseUrl.replace(/^https?:\/\//, '')}:${wsPort}`,
-					deployUrl: `${baseUrl}:${apiPort}/api`,
+					cloudSyncUrl: config.configuration.wsFullUrl,
+					deployUrl: config.configuration.deployUrl,
 				}
 			},
 		},

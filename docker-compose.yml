@@ -43,9 +43,19 @@ services:
     env_file:
       - ./.env
     environment:
+      ### BUILDTIME
+      # - API_URL=http://localhost:3000/api/
+      # - WEB_URL=http://localhost:3000/
+      ### RUNTIME
       # - SUPABASE_URL=
       # - SUPABASE_ANON_KEY=
       # - SUPABASE_SERVICE_ROLE_KEY=
+      # - BASE_URL=http://localhost
+      # - API_PORT=3000
+      # - WS_PORT=4000
+      # - WS_FULL_URL=ws://localhost:4000
+      # - DEPLOY_URL=http://localhost:3000/api
+      # - MOCK_INSTANCE_PATTERN="http://localhost:{{PORT}}"
       - NODE_ENV=production
       - NODE_OPTIONS=--max_old_space_size=4096
       - POSTGRES_HOST=postgres

@@ -23,5 +23,13 @@ export default {
 		baseUrl: process.env.BASE_URL || 'http://localhost',
 		apiPort: parseInt(process.env.API_PORT || '5003', 10),
 		wsPort: parseInt(process.env.WS_PORT || '4001', 10),
+		wsFullUrl: process.env.WS_FULL_URL || 'ws://localhost:4001',
+		deployUrl: process.env.DEPLOY_URL || 'http://localhost:5003/api',
+		instanceUrlPattern: process.env.INSTANCE_URL_PATTERN || 'http://localhost:{{PORT}}',
 	},
+}
+
+export function buildRemoteInstanceUrl(instanceUrlPattern: string, port: number): string {
+	// Replace {{PORT}} with the actual port number
+	return instanceUrlPattern.replace(/{{PORT}}/g, port.toString())
 }

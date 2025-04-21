@@ -9,7 +9,7 @@ import { Context, Service } from 'moleculer'
 import DbService from 'moleculer-db'
 import SequelizeDbAdapter from 'moleculer-db-adapter-sequelize'
 import Sequelize, { ModelStatic } from 'sequelize'
-import config from '../config'
+import config, { buildRemoteInstanceUrl } from '../config'
 import { mustLogin } from '../mixins/mustLogin'
 import { AppService, AppServiceSchema, AuthContextMeta, SyncEnv } from '../types/common'
 interface ServerInstanceInfo {
@@ -242,7 +242,7 @@ const MockoonServerService: AppServiceSchema = {
 							subdomain: subdomain,
 							version: version,
 							name: environment.name,
-							url: `${config.configuration.baseUrl}:${port}`,
+							url: buildRemoteInstanceUrl(config.configuration.instanceUrlPattern, port),
 							// apiKey: environment.apiKey,
 							// status: DeployInstanceStatus.RUNNING,
 						},
@@ -258,7 +258,7 @@ const MockoonServerService: AppServiceSchema = {
 						version: version,
 						status: DeployInstanceStatus.STOPPED,
 						name: environment.name,
-						url: `${config.configuration.baseUrl}:${port}`,
+						url: buildRemoteInstanceUrl(config.configuration.instanceUrlPattern, port),
 						// apiKey: environment.apiKey,
 					} as InstanceModelType)
 					// check whether env is existing
