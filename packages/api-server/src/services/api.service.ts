@@ -96,7 +96,7 @@ export default {
 					// 'POST /': 'multipart:file.save',
 
 					// File upload from AJAX or cURL
-					'PUT /import-open-api': 'stream:import-export.convertOpenAPI',
+					'PUT /import-open-api': 'multipart:import-export.convertOpenAPI',
 
 					// // File upload from AJAX or cURL with params
 					// 'PUT /:id': 'stream:file.save',

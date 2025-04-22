@@ -141,6 +141,15 @@
               >
                 <app-svg icon="add_box"></app-svg>
               </button>
+              <button
+                type="button"
+                class="btn btn-link btn-icon btn-sm"
+                ngbTooltip="Import OpenAPI yaml"
+                (click)="addCloudEnvironmentFromOpenAPI()"
+                [disabled]="!sync?.status"
+              >
+                <app-svg icon="insert_drive_file"></app-svg>
+              </button>
             } @else {
               <app-dropdown-menu
                 idPrefix="cloud-environments-add"

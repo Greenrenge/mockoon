@@ -7,11 +7,20 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { BehaviorSubject, Subject, finalize, takeUntil } from 'rxjs';
+import {
+  BehaviorSubject,
+  Subject,
+  filter,
+  finalize,
+  map,
+  takeUntil
+} from 'rxjs';
 import { SpinnerComponent } from 'src/renderer/app/components/spinner.component';
 import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
 import { UIService } from 'src/renderer/app/services/ui.service';
+import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
+import { Config } from 'src/renderer/config';
 
 @Component({
   selector: 'app-yaml-upload-modal',
@@ -31,6 +40,7 @@ export class YamlUploadModalComponent implements OnDestroy {
 
   constructor(
     private uiService: UIService,
+    private userService: UserServiceSupabase,
     private formBuilder: FormBuilder,
     private http: HttpClient,
     private store: Store
@@ -67,21 +77,32 @@ export class YamlUploadModalComponent implements OnDestroy {
 
       this.isLoading$.next(true);
       this.errorMessage$.next(null);
-
-      this.http
-        .put(serverUrl, formData)
+      this.userService
+        .getIdToken()
         .pipe(
-          finalize(() => this.isLoading$.next(false)),
-          takeUntil(this.destroy$)
+          filter((token) => !!token),
+          map((token) =>
+            this.http
+              .put(`${serverUrl}/import-open-api`, formData, {
+                headers: { Authorization: `Bearer ${token}` }
+              })
+              .pipe(
+                finalize(() => this.isLoading$.next(false)),
+                takeUntil(this.destroy$)
+              )
+              .subscribe({
+                next: () => {
+                  this.close();
+                },
+                error: (error) => {
+                  this.errorMessage$.next(
+                    error.message || 'Failed to upload file'
+                  );
+                }
+              })
+          )
         )
-        .subscribe({
-          next: () => {
-            this.close();
-          },
-          error: (error) => {
-            this.errorMessage$.next(error.message || 'Failed to upload file');
-          }
-        });
+        .subscribe();
     }
   }
 
@@ -102,6 +123,6 @@ export class YamlUploadModalComponent implements OnDestroy {
 
   private getServerUrl(): string {
     // You will implement this method to get the URL from environment
-    return '';
+    return `${Config.apiURL}upload`;
   }
 }

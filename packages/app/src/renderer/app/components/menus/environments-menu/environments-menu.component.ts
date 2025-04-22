@@ -565,12 +565,10 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
   }
 
   public addCloudEnvironmentFromJSON() {
-    // this.uiService.openModal('editor', {
-    //   title: 'Import environment from JSON',
-    //   text: ''
-    // });
     this.uiService.openModal('jsonConfig');
-    // this.environmentsService.addCloudEnvironment(null, true).subscribe();
+  }
+  public addCloudEnvironmentFromOpenAPI() {
+    this.uiService.openModal('yamlUpload');
   }
 
   /**
