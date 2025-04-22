@@ -53,11 +53,6 @@ export default {
 				},
 				autoAliases: true, // allow api.* to be called directly with rest: config
 				authentication: true, // allow request authorization header to ctx.meta.accessToken/accountId
-				// authorization: true, // the authorization check should be done in the nested-api/micro service level
-				/**
-				 * 	all - enable to request all routes with or without aliases (default)
-				 *	restrict - enable to request only the routes with aliases.
-				 */
 				use: [
 					function errorHandler(
 						this: ServiceBroker & ApiSettingsSchema,
@@ -81,7 +76,7 @@ export default {
 				},
 			},
 			{
-				path: '/api/upload',
+				path: '/api/files',
 
 				// You should disable body parsers
 				bodyParsers: {
@@ -90,60 +85,8 @@ export default {
 				},
 
 				aliases: {
-					// 'GET /:file': 'file.get',
-
-					// File upload from HTML form
-					// 'POST /': 'multipart:file.save',
-
-					// File upload from AJAX or cURL
 					'PUT /import-open-api': 'multipart:import-export.convertOpenAPI',
-
-					// // File upload from AJAX or cURL with params
-					// 'PUT /:id': 'stream:file.save',
-
-					// // File upload from HTML form and overwrite busboy config
-					// 'POST /single/:id': {
-					// 	type: 'multipart',
-					// 	// Action level busboy config
-					// 	busboyConfig: {
-					// 		//empty: true,
-					// 		limits: {
-					// 			files: 1,
-					// 		},
-					// 		onPartsLimit(busboy, alias, svc) {
-					// 			this.logger.info('Busboy parts limit!', busboy)
-					// 		},
-					// 		onFilesLimit(busboy, alias, svc) {
-					// 			this.logger.info('Busboy file limit!', busboy)
-					// 		},
-					// 		onFieldsLimit(busboy, alias, svc) {
-					// 			this.logger.info('Busboy fields limit!', busboy)
-					// 		},
-					// 	},
-					// 	action: 'file.save',
-					// },
-
-					// // File upload from HTML form and overwrite busboy config
-					// 'POST /multi': {
-					// 	type: 'multipart',
-					// 	// Action level busboy config
-					// 	busboyConfig: {
-					// 		limits: {
-					// 			files: 3,
-					// 			fileSize: 1 * 1024 * 1024,
-					// 		},
-					// 		onPartsLimit(busboy, alias, svc) {
-					// 			this.logger.info('Busboy parts limit!', busboy)
-					// 		},
-					// 		onFilesLimit(busboy, alias, svc) {
-					// 			this.logger.info('Busboy file limit!', busboy)
-					// 		},
-					// 		onFieldsLimit(busboy, alias, svc) {
-					// 			this.logger.info('Busboy fields limit!', busboy)
-					// 		},
-					// 	},
-					// 	action: 'file.save',
-					// },
+					'GET /export-open-api/:environmentUuid': 'multipart:import-export.exportOpenAPI',
 				},
 
 				// https://github.com/mscdex/busboy#busboy-methods
@@ -153,12 +96,7 @@ export default {
 					},
 				},
 
-				callOptions: {
-					// meta: {
-					// 	a: 5,
-					// },
-				},
-
+				callOptions: {},
 				mappingPolicy: 'restrict',
 				authentication: true,
 				use: [

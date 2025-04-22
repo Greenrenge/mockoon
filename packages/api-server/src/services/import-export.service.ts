@@ -7,6 +7,7 @@ import { ServiceSchema } from 'moleculer'
 import os from 'os'
 import path from 'path'
 import { Environment } from '../../../commons/dist/cjs'
+import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-database'
 import { mustLogin } from '../mixins/mustLogin'
 import { AuthContextMeta } from '../types/common'
 function uniqueId() {
@@ -17,6 +18,66 @@ const ImportExportService: ServiceSchema = {
 	name: 'import-export',
 	mixins: [mustLogin()],
 	actions: {
+		exportOpenAPI: {
+			params: {
+				environmentUuid: { type: 'string' },
+			},
+			async handler(ctx: AuthContextMeta<any, any>) {
+				this.logger.info('Received export params:', ctx.params)
+				const { environmentUuid } = ctx.params
+
+				if (!environmentUuid) {
+					this.logger.error('No environment UUID provided')
+					ctx.meta.$statusCode = 400
+					return
+				}
+
+				try {
+					const environment = await ctx.call<EnvironmentModelType, any>('environments-store.get', {
+						uuid: environmentUuid,
+					})
+
+					const openAPIConverter = new OpenAPIConverter()
+
+					const openAPIFileContentJSONString = await openAPIConverter.convertToOpenAPIV3(
+						environment.environment,
+						true,
+					)
+
+					if (!openAPIFileContentJSONString) {
+						this.logger.error('Failed to export OpenAPI file')
+						ctx.meta.$statusCode = 500
+						return
+					}
+
+					// Create a new ZIP file
+					const zip = new AdmZip()
+
+					// Add JSON version
+					const jsonContent = JSON.stringify(JSON.parse(openAPIFileContentJSONString), null, 2)
+					zip.addFile(`openapi.json`, Buffer.from(jsonContent, 'utf8'))
+
+					// Add YAML version
+					const yamlContent = yaml.dump(JSON.parse(openAPIFileContentJSONString))
+					zip.addFile(`openapi.yaml`, Buffer.from(yamlContent, 'utf8'))
+
+					// Generate the ZIP buffer
+					const zipBuffer = zip.toBuffer()
+
+					// Set response headers for ZIP download
+					ctx.meta.$responseType = 'application/zip'
+					ctx.meta.$responseHeaders = {
+						'Content-Disposition': `attachment; filename="export_${environmentUuid}.zip"`,
+					}
+
+					ctx.meta.$statusCode = 200
+					return zipBuffer
+				} catch (err) {
+					this.logger.error('Failed to export OpenAPI file', err)
+					ctx.meta.$statusCode = 500
+				}
+			},
+		},
 		convertOpenAPI: {
 			async handler(ctx: AuthContextMeta<any, any>) {
 				this.logger.info('Received upload params:', ctx.params)

@@ -123,6 +123,6 @@ export class YamlUploadModalComponent implements OnDestroy {
 
   private getServerUrl(): string {
     // You will implement this method to get the URL from environment
-    return `${Config.apiURL}upload`;
+    return `${Config.apiURL}files`;
   }
 }
