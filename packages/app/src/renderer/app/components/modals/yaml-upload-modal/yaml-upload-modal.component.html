@@ -6,12 +6,12 @@
   <div class="modal-body">
     <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
       <div class="mb-3">
-        <label class="form-label">YAML File</label>
+        <label class="form-label">YAML File or Zip File</label>
         <div class="input-group">
           <input
             type="file"
             class="form-control"
-            accept=".yml,.yaml"
+            accept=".yml,.yaml,.zip"
             (change)="onFileSelected($event)"
             #fileInput
           />

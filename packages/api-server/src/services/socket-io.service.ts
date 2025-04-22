@@ -160,7 +160,7 @@ const SyncService: AppServiceSchema = {
 				this.logger.info('Broadcasting environment added event:', ctx.params)
 				ctx.call('socket-io.broadcast', {
 					event: SyncMessageTypes.SYNC,
-					rooms: [`team:${ctx.params.teamId}`],
+					rooms: [`team:${ctx.meta.user?.teamId}`],
 					namespace: '/',
 					args: [ctx.params.action],
 				})

@@ -36,7 +36,7 @@ export class YamlUploadModalComponent implements OnDestroy {
   public errorMessage$ = new BehaviorSubject<string | null>(null);
   public selectedFileName$ = new BehaviorSubject<string | null>(null);
   private destroy$ = new Subject<void>();
-  private allowedFileTypes = ['.yml', '.yaml'];
+  private allowedFileTypes = ['.yml', '.yaml', '.zip'];
 
   constructor(
     private uiService: UIService,

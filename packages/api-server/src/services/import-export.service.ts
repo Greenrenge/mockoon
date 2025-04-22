@@ -1,27 +1,30 @@
 import { AddCloudEnvironmentSyncAction } from '@mockoon/cloud'
 import { OpenAPIConverter } from '@mockoon/commons-server'
+import AdmZip from 'adm-zip'
 import fs from 'fs'
-import { uniqueId } from 'lodash'
+import yaml from 'js-yaml'
 import { ServiceSchema } from 'moleculer'
 import os from 'os'
 import path from 'path'
 import { Environment } from '../../../commons/dist/cjs'
 import { mustLogin } from '../mixins/mustLogin'
 import { AuthContextMeta } from '../types/common'
+function uniqueId() {
+	return Math.random().toString(36).substring(2, 15)
+}
 
-const HashService: ServiceSchema = {
+const ImportExportService: ServiceSchema = {
 	name: 'import-export',
 	mixins: [mustLogin()],
 	actions: {
 		convertOpenAPI: {
-			//https://github.com/moleculerjs/moleculer-web/blob/next/examples/file.service.js
 			async handler(ctx: AuthContextMeta<any, any>) {
 				this.logger.info('Received upload params:', ctx.params)
 				const { filePath, params } = ((await new this.Promise((resolve, reject) => {
 					const filePath = path.join(
 						os.tmpdir(),
 						//@ts-ignore
-						ctx.params.$filename || this.randomName(),
+						`${Date.now()}${ctx.params.$filename || this.randomName()}`,
 					)
 					const f = fs.createWriteStream(filePath)
 					f.on('close', () => {
@@ -52,10 +55,51 @@ const HashService: ServiceSchema = {
 
 				this.logger.info('File received', { filePath, params })
 
-				const openAPIConverter = new OpenAPIConverter()
 				try {
+					let openAPIFilePath = filePath
+					const isZip = filePath.endsWith('.zip')
+
+					if (isZip) {
+						const zip = new AdmZip(filePath)
+						const zipEntries = zip.getEntries()
+						const tempDir = path.join(os.tmpdir(), uniqueId())
+						fs.mkdirSync(tempDir)
+
+						// Extract all files to temp directory
+						zip.extractAllTo(tempDir, true)
+
+						// Find yaml/json files in root level
+						const rootFiles = fs
+							.readdirSync(tempDir)
+							.filter(
+								(file) => file.endsWith('.yaml') || file.endsWith('.yml') || file.endsWith('.json'),
+							)
+
+						// Find first file containing openapi property
+						for (const file of rootFiles) {
+							const fullPath = path.join(tempDir, file)
+							try {
+								const content = fs.readFileSync(fullPath, 'utf8')
+								const parsed = file.endsWith('.json') ? JSON.parse(content) : yaml.load(content)
+
+								if (parsed && (parsed.swagger || parsed.openapi)) {
+									openAPIFilePath = fullPath
+									break
+								}
+							} catch (err) {
+								this.logger.warn(`Failed to parse file ${file}:`, err)
+								continue
+							}
+						}
+
+						if (openAPIFilePath === filePath) {
+							throw new Error('No valid OpenAPI file found in zip archive')
+						}
+					}
+
+					const openAPIConverter = new OpenAPIConverter()
 					const environment = (await openAPIConverter.convertFromOpenAPI(
-						filePath,
+						openAPIFilePath,
 						ctx.params?.port,
 					)) as Environment | null
 
@@ -77,21 +121,19 @@ const HashService: ServiceSchema = {
 							action,
 						})
 					}
-					// delete the file
-					await new this.Promise((resolve, reject) => {
-						fs.unlink(filePath, (err) => {
-							if (err) {
-								this.logger.error('Failed to delete file', err)
-								reject(err)
-							} else {
-								this.logger.info('File deleted successfully')
-								resolve({})
-							}
-						})
-					})
+
+					// Clean up temp files
+					if (isZip) {
+						fs.rmSync(path.dirname(openAPIFilePath), { recursive: true, force: true })
+					}
+					fs.unlinkSync(filePath)
 				} catch (err) {
 					this.logger.error('Failed to convert OpenAPI file', err)
 					ctx.meta.$statusCode = 500
+					// Ensure cleanup on error
+					if (fs.existsSync(filePath)) {
+						fs.unlinkSync(filePath)
+					}
 				}
 			},
 		},
@@ -103,4 +145,4 @@ const HashService: ServiceSchema = {
 	},
 }
 
-export default HashService
+export default ImportExportService
