@@ -85,8 +85,8 @@ export default {
 				},
 
 				aliases: {
-					'PUT /import-open-api': 'multipart:import-export.convertOpenAPI',
-					'GET /export-open-api/:environmentUuid': 'multipart:import-export.exportOpenAPI',
+					'PUT /import-open-api': 'multipart:import-export.importOpenAPI',
+					'GET /export-open-api/:environmentUuid': 'import-export.exportOpenAPI',
 				},
 
 				// https://github.com/mscdex/busboy#busboy-methods

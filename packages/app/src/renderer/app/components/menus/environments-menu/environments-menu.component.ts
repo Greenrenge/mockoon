@@ -51,6 +51,7 @@ import { buildApiUrl } from 'src/renderer/app/libs/utils.lib';
 import { EnvironmentsStatuses } from 'src/renderer/app/models/store.model';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
 import { EventsService } from 'src/renderer/app/services/events.service';
+import { ImportExportOpenAPIService } from 'src/renderer/app/services/import-export-openapi.service';
 import { SettingsService } from 'src/renderer/app/services/settings.service';
 import { SyncService } from 'src/renderer/app/services/sync.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
@@ -170,6 +171,27 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
       twoSteps: false,
       action: ({ environmentUuid }: dropdownMenuPayload) => {
         this.environmentsService.copyEnvironmentToClipboard(environmentUuid);
+      }
+    },
+    {
+      label: 'Export configuration to OpenAPI',
+      icon: 'assignment',
+      twoSteps: false,
+      action: ({ environmentUuid }: dropdownMenuPayload) => {
+        this.importExportOpenAPIService
+          .downloadOpenAPIFile(environmentUuid)
+          .pipe(
+            filter((response) => !!response),
+            tap((response: Blob) => {
+              const url = window.URL.createObjectURL(response);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `export_${environmentUuid}.zip`;
+              link.click();
+              window.URL.revokeObjectURL(url);
+            })
+          )
+          .subscribe();
       }
     }
     // ])
@@ -321,6 +343,7 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     private syncsService: SyncService,
     private uiService: UIService,
+    private importExportOpenAPIService: ImportExportOpenAPIService,
     private userService: UserServiceSupabase
   ) {}
 

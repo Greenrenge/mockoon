@@ -31,6 +31,7 @@ import { Toast } from 'src/renderer/app/models/toasts.model';
 import { AppQuitService } from 'src/renderer/app/services/app-quit.services';
 import { DeployService } from 'src/renderer/app/services/deploy.service';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
+import { ImportExportOpenAPIService } from 'src/renderer/app/services/import-export-openapi.service';
 import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { MainApiListenerService } from 'src/renderer/app/services/main-api-listener.service';
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
@@ -94,7 +95,8 @@ export class AppComponent implements OnInit {
     private deployService: DeployService,
     private serverService: ServerService,
     private mainApiService: MainApiService,
-    private loggerService: LoggerService
+    private loggerService: LoggerService,
+    private importExportOpenAPIService: ImportExportOpenAPIService
   ) {
     this.settingsService.monitorSettings().subscribe();
     this.settingsService.loadSettings().subscribe();
@@ -109,6 +111,7 @@ export class AppComponent implements OnInit {
     this.deployService.init().subscribe();
     this.mainApiListenerService.init();
     this.serverService.init().subscribe();
+    this.importExportOpenAPIService.init();
 
     if (environment.web) {
       this.userService.webAuthHandler().subscribe();

@@ -78,7 +78,7 @@ const ImportExportService: ServiceSchema = {
 				}
 			},
 		},
-		convertOpenAPI: {
+		importOpenAPI: {
 			async handler(ctx: AuthContextMeta<any, any>) {
 				this.logger.info('Received upload params:', ctx.params)
 				const { filePath, params } = ((await new this.Promise((resolve, reject) => {
@@ -188,6 +188,7 @@ const ImportExportService: ServiceSchema = {
 						fs.rmSync(path.dirname(openAPIFilePath), { recursive: true, force: true })
 					}
 					fs.unlinkSync(filePath)
+					ctx.meta.$statusCode = 204
 				} catch (err) {
 					this.logger.error('Failed to convert OpenAPI file', err)
 					ctx.meta.$statusCode = 500

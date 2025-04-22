@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
 import {
   FormBuilder,
@@ -7,20 +6,11 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import {
-  BehaviorSubject,
-  Subject,
-  filter,
-  finalize,
-  map,
-  takeUntil
-} from 'rxjs';
+import { BehaviorSubject, Subject, finalize, takeUntil } from 'rxjs';
 import { SpinnerComponent } from 'src/renderer/app/components/spinner.component';
 import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
+import { ImportExportOpenAPIService } from 'src/renderer/app/services/import-export-openapi.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
-import { Store } from 'src/renderer/app/stores/store';
-import { Config } from 'src/renderer/config';
 
 @Component({
   selector: 'app-yaml-upload-modal',
@@ -40,10 +30,8 @@ export class YamlUploadModalComponent implements OnDestroy {
 
   constructor(
     private uiService: UIService,
-    private userService: UserServiceSupabase,
     private formBuilder: FormBuilder,
-    private http: HttpClient,
-    private store: Store
+    private importExportOpenAPIService: ImportExportOpenAPIService
   ) {
     this.initForm();
   }
@@ -70,39 +58,30 @@ export class YamlUploadModalComponent implements OnDestroy {
   public onSubmit() {
     if (this.uploadForm.valid) {
       const file = this.uploadForm.get('file').value;
-      const serverUrl = this.getServerUrl();
-
       const formData = new FormData();
       formData.append('file', file);
 
       this.isLoading$.next(true);
       this.errorMessage$.next(null);
-      this.userService
-        .getIdToken()
+
+      this.importExportOpenAPIService
+        .uploadOpenAPIFile(formData)
         .pipe(
-          filter((token) => !!token),
-          map((token) =>
-            this.http
-              .put(`${serverUrl}/import-open-api`, formData, {
-                headers: { Authorization: `Bearer ${token}` }
-              })
-              .pipe(
-                finalize(() => this.isLoading$.next(false)),
-                takeUntil(this.destroy$)
-              )
-              .subscribe({
-                next: () => {
-                  this.close();
-                },
-                error: (error) => {
-                  this.errorMessage$.next(
-                    error.message || 'Failed to upload file'
-                  );
-                }
-              })
-          )
+          takeUntil(this.destroy$),
+          finalize(() => {
+            this.isLoading$.next(false);
+          })
         )
-        .subscribe();
+        .subscribe({
+          next: () => {
+            this.close();
+          },
+          error: (error) => {
+            this.errorMessage$.next(
+              error?.error?.message || error?.message || 'Failed to upload file'
+            );
+          }
+        });
     }
   }
 
@@ -119,10 +98,5 @@ export class YamlUploadModalComponent implements OnDestroy {
     this.uploadForm = this.formBuilder.group({
       file: [null, Validators.required]
     });
-  }
-
-  private getServerUrl(): string {
-    // You will implement this method to get the URL from environment
-    return `${Config.apiURL}files`;
   }
 }
