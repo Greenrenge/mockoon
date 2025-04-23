@@ -17,7 +17,8 @@ RUN pnpm deploy --filter=api-server --prod /prod/api-server --legacy
 
 # Build stage
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm run build:libs
 
 # Replace placeholders in environment file
 RUN sed -i "s|\${API_URL}|$API_URL|g" ./packages/app/src/renderer/environments/environment.prod-web-docker.ts
