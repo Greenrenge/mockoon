@@ -1,17 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import {
-  createClient,
-  SignInWithOAuthCredentials,
-  SupabaseClient,
-  User as SupabaseUser
-} from '@supabase/supabase-js';
-import {
   catchError,
   combineLatest,
   EMPTY,
   filter,
-  from,
   mergeMap,
   Observable,
   of,
@@ -30,13 +23,18 @@ import {
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 
+export interface KeycloakUser {
+  id: string;
+  email: string;
+  username: string;
+}
+
 @Injectable({ providedIn: 'root' })
-export class UserServiceSupabase {
+export class UserServiceKeycloak {
   private isWeb = Config.isWeb;
-  private supabase: SupabaseClient;
-  // ReplaySubject with a buffer size of 1 to store and emit the most recent auth state (SupabaseUser or null).
-  // Ensures new subscribers always receive the current authentication status immediately.
-  private authState$ = new ReplaySubject<SupabaseUser | null>(1);
+  // ReplaySubject with a buffer size of 1 to store and emit the most recent auth state
+  private authState$ = new ReplaySubject<KeycloakUser | null>(1);
+  private token: string | null = null;
 
   constructor(
     private httpClient: HttpClient,
@@ -44,18 +42,7 @@ export class UserServiceSupabase {
     private uiService: UIService,
     private mainApiService: MainApiService,
     private loggerService: LoggerService
-  ) {
-    // Initialize Supabase client
-    this.supabase = createClient(
-      Config.supabaseConfig.url,
-      Config.supabaseConfig.anonKey
-    );
-
-    // Listen to auth state changes
-    this.supabase.auth.onAuthStateChange((event, session) => {
-      this.authState$.next(session?.user || null);
-    });
-  }
+  ) {}
 
   /**
    * Monitor auth token state and update the store
@@ -69,8 +56,6 @@ export class UserServiceSupabase {
 
   /**
    * Get user info from the server and update the store
-   *
-   * @returns
    */
   public getUserInfo() {
     return this.getIdToken().pipe(
@@ -91,16 +76,15 @@ export class UserServiceSupabase {
   /**
    * Get observable of authentication state changes
    */
-  public authStateChanges(): Observable<SupabaseUser | null> {
+  public authStateChanges(): Observable<KeycloakUser | null> {
     return this.authState$.asObservable();
   }
 
   /**
    * Get current ID token
-   * @returns Observable that emits the current ID token
    */
   public getIdToken(): Observable<string | null> {
-    return from(this.getIdTokenInternal());
+    return of(this.token);
   }
 
   /**
@@ -118,28 +102,10 @@ export class UserServiceSupabase {
 
   /**
    * Force refresh the auth token
-   * Returns an Observable with the new token
    */
   public refreshToken(): Observable<string | null> {
-    return from(this.supabase.auth.refreshSession()).pipe(
-      switchMap(({ data }) => {
-        if (data.session?.access_token) {
-          return of(data.session.access_token);
-        }
-
-        return of(null);
-      }),
-      catchError(() => of(null))
-    );
-  }
-
-  /**
-   * Reload user session
-   */
-  public reloadUser() {
-    return from(this.supabase.auth.refreshSession()).pipe(
-      catchError(() => EMPTY)
-    );
+    // Implement token refresh logic with Keycloak
+    return EMPTY;
   }
 
   /**
@@ -147,7 +113,6 @@ export class UserServiceSupabase {
    */
   public startLoginFlow() {
     if (Config.isWeb) {
-      //       this.uiService.openModal('authIframe');
       this.uiService.openModal('authCustomProvider');
     } else {
       this.uiService.openModal('auth');
@@ -173,70 +138,59 @@ export class UserServiceSupabase {
       take(1),
       tap(([user, settings]) => {
         if (!user && settings.welcomeShown) {
-          //   this.uiService.openModal('authIframe');
           this.uiService.openModal('authCustomProvider');
         }
       })
     );
   }
-  public authCallbackHandler(_token: string) {
-    // TODO: GREEN not implemented - for non-web
-    return EMPTY;
-  }
+
   /**
-   * Handle web authentication callback with token
+   * Handle authentication callback
    */
-  public webAuthCallbackHandler(_token: string) {
-    // TODO: GREEN not implemented - for supabase
-    //     return from(this.supabase.auth.signInWithCustomToken({ token }));
+  public authCallbackHandler(token: string) {
+    this.token = token;
+
+    return this.validateAndSetUser(token);
   }
 
   /**
-   * Authenticate with a token
+   * Handle web authentication callback with token
    */
-  public authWithToken(_token: string) {
-    // TODO: GREEN not implemented - for supabase
-    //     return from(this.supabase.auth.signInWithCustomToken({ token }));
+  public webAuthCallbackHandler(token: string) {
+    return this.validateAndSetUser(token);
   }
 
   /**
    * Log out user and clear user data
    */
   public logout() {
-    return from(this.supabase.auth.signOut()).pipe(
-      tap(() => {
-        this.store.update(updateUserAction(null));
-        this.store.update(updateDeployInstancesAction([]));
-      })
-    );
+    this.token = null;
+    this.authState$.next(null);
+    this.store.update(updateUserAction(null));
+    this.store.update(updateDeployInstancesAction([]));
+
+    return EMPTY;
   }
 
   /**
-   * Sign in with OAuth provider
-   * @param provider
-   **/
-  public signInWithOAuth(option: SignInWithOAuthCredentials) {
-    return from(this.supabase.auth.signInWithOAuth(option)).pipe(
-      tap(() => {
-        this.store.update(updateUserAction(null));
-      }),
-      catchError((error) => {
-        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
-
-        return EMPTY;
-      })
-    );
-  }
-
-  /**
-   * Internal method to get the ID token as a Promise
-   * Used by other methods that still need the Promise-based approach
+   * Validate token and set user info
    */
-  private async getIdTokenInternal(): Promise<string | null> {
-    const {
-      data: { session }
-    } = await this.supabase.auth.getSession();
+  private validateAndSetUser(token: string): Observable<any> {
+    this.token = token;
 
-    return session?.access_token || null;
+    return this.httpClient
+      .get<KeycloakUser>(`${Config.apiURL}auth/validate`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .pipe(
+        tap((user) => {
+          this.authState$.next(user);
+        }),
+        catchError((error) => {
+          this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
+
+          return EMPTY;
+        })
+      );
   }
 }

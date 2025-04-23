@@ -66,7 +66,7 @@ export class AuthSupabaseModalComponent implements OnDestroy {
     this.isLoading$.next(false);
     this.isSuccess$.next(false);
     this.errorMessage$.next(null);
-    this.uiService.closeModal('authSupabase');
+    this.uiService.closeModal('authCustomProvider');
   }
 
   ngOnDestroy() {

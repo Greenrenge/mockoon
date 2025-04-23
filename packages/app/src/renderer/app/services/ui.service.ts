@@ -60,7 +60,7 @@ type ModalNames =
   | 'welcome'
   | 'auth'
   | 'authIframe'
-  | 'authSupabase'
+  | 'authCustomProvider'
   | 'confirm'
   | 'deploy'
   | 'editor'
