@@ -66,7 +66,7 @@
     "package:desktop:test:linux": "lerna run --stream --scope @mockoon/app package:test:linux",
     "deploy:web": "lerna run --stream --scope @mockoon/app deploy:web",
     "documentation:desktop": "lerna run --stream --scope @mockoon/app documentation",
-    "start-dev": "lerna run --stream --scope @mockoon/app --scope api-server start-dev",
+    "start-dev": "pnpm run build:libs &&  concurrently \"lerna run --stream --scope @mockoon/app --scope api-server start-dev\" \"lerna run --stream --scope @mockoon/commons build:watch\" \"lerna run --stream --scope @mockoon/commons-server build:watch\" \"lerna run --stream --scope @mockoon/cloud build:watch\"",
     "build:api-server": "lerna run --stream --scope api-server build:prod",
     "build:web": "lerna run --stream --scope @mockoon/app build:prod:web:docker",
     "build:desktop:prod:custom": "lerna run --stream --scope @mockoon/app build:prod:all:custom"

@@ -29,6 +29,10 @@ node_modules
 test
 .vscode
 data
+**/dist
+**/coverage
+**/out
+**/out-tsc
 
 node_modules
 .git
