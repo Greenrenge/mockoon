@@ -1,17 +1,23 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { filter, Observable, switchMap } from 'rxjs';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from '../interfaces/user-service.interface';
+import { UserServiceFactory } from './user-service.factory';
 
 @Injectable({ providedIn: 'root' })
 export class ImportExportOpenAPIService {
   private serverUrl = '';
+
   constructor(
-    private userService: UserServiceSupabase,
+    userServiceFactory: UserServiceFactory,
     private store: Store,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
   ) {}
 
   public init() {
@@ -28,6 +34,7 @@ export class ImportExportOpenAPIService {
       )
     );
   }
+
   public downloadOpenAPIFile(environmentUuid: string) {
     return this.userService.getIdToken().pipe(
       filter((token) => !!token),

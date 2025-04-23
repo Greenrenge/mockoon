@@ -42,16 +42,20 @@ module.exports = (env, argv) => {
       new webpack.DefinePlugin({
         IS_DEV: argv.mode === 'development',
         IS_TESTING: env.isTesting ? true : false,
-        WEBSITE_URL: JSON.stringify(
-          argv.mode === 'development'
-            ? 'http://localhost:3000/api'
-            : 'https://mockoon.com/' //TODO: GREEN APP
-        ),
-        API_URL: JSON.stringify(
-          argv.mode === 'development'
-            ? 'http://localhost:5003/api'
-            : 'https://api.mockoon.com/' //TODO: GREEN APP: should init the form for the api on startup and injects to the renderer
-        )
+        WEBSITE_URL:
+          process.env.WEB_URL ||
+          JSON.stringify(
+            argv.mode === 'development'
+              ? 'http://localhost:3000/api'
+              : 'https://mockoon.com/' //TODO: GREEN APP
+          ),
+        API_URL:
+          process.env.API_URL ||
+          JSON.stringify(
+            argv.mode === 'development'
+              ? 'http://localhost:5003/api'
+              : 'https://api.mockoon.com/' //TODO: GREEN APP: should init the form for the api on startup and injects to the renderer
+          )
       })
     ]
   };

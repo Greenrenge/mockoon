@@ -34,6 +34,8 @@ import { NgbConfigFactory } from 'src/renderer/app/modules-config/ngb.config';
 import { GlobalErrorHandler } from 'src/renderer/app/services/global-error-handler';
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
 import { environment } from 'src/renderer/environments/environment';
+import { USER_SERVICE_TOKEN } from './app/interfaces/user-service.interface';
+import { UserServiceFactory } from './app/services/user-service.factory';
 
 declare global {
   interface Window {
@@ -59,7 +61,6 @@ bootstrapApplication(AppComponent, {
         }
       }),
       ReactiveFormsModule.withConfig({
-        // enable the legacy disabled state handling (angular v15)
         callSetDisabledState: 'whenDisabledForLegacyCode'
       }),
       NgxMaskDirective
@@ -89,12 +90,15 @@ bootstrapApplication(AppComponent, {
       provide: NgbModalConfig,
       useFactory: NgbModalConfigFactory
     },
+    {
+      provide: USER_SERVICE_TOKEN,
+      useFactory: (factory: UserServiceFactory) => factory.getService(),
+      deps: [UserServiceFactory]
+    },
     provideNgxMask(),
     provideHttpClient(withInterceptorsFromDi()),
-
     provideAnimations(),
     {
-      /* Either get the main API from window.api (electron's preload script + ipc.ts) or from a service, for the web version */
       provide: MainApiService,
       useFactory: () => (environment.web ? new MainApiService() : window.api)
     }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import {
   BaseSyncAction,
   ConnectedPayload,
@@ -44,13 +44,16 @@ import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
 import { SyncPayloadsService } from 'src/renderer/app/services/sync-payloads.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import {
   updateSettingsEnvironmentDescriptorAction,
   updateSyncAction
 } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from '../interfaces/user-service.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SyncService {
@@ -61,7 +64,7 @@ export class SyncService {
   private migrationApproval: boolean;
 
   constructor(
-    private userService: UserServiceSupabase,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
     private store: Store,
     private syncPayloadsService: SyncPayloadsService,
     private environmentsService: EnvironmentsService,

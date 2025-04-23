@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { RemoteConfigData } from '@mockoon/cloud';
 import { BehaviorSubject, EMPTY, Observable, from } from 'rxjs';
 import {
@@ -9,9 +9,12 @@ import {
   switchMap,
   tap
 } from 'rxjs/operators';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Config } from 'src/renderer/config';
 import { environment } from 'src/renderer/environments/environment';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from '../interfaces/user-service.interface';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteConfigService {
@@ -19,7 +22,7 @@ export class RemoteConfigService {
 
   constructor(
     private httpClient: HttpClient,
-    private userService: UserServiceSupabase
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
   ) {}
 
   /**

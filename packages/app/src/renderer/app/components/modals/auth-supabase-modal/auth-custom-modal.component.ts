@@ -1,5 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  OnDestroy
+} from '@angular/core';
 import {
   BehaviorSubject,
   EMPTY,
@@ -11,17 +16,22 @@ import {
 } from 'rxjs';
 import { SpinnerComponent } from 'src/renderer/app/components/spinner.component';
 import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from 'src/renderer/app/interfaces/user-service.interface';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
+
 @Component({
-  selector: 'app-auth-supabase-modal',
-  templateUrl: './auth-supabase-modal.component.html',
-  styleUrls: ['./auth-supabase-modal.component.scss'],
+  selector: 'app-auth-custom-modal',
+  templateUrl: './auth-custom-modal.component.html',
+  styleUrls: ['./auth-custom-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, SpinnerComponent, SvgComponent]
 })
-export class AuthSupabaseModalComponent implements OnDestroy {
+export class AuthCustomModalComponent implements OnDestroy {
+  public providers: string[] = ['github', 'keycloak'];
   public isLoading$ = new BehaviorSubject<boolean>(false);
   public isSuccess$ = new BehaviorSubject<boolean>(false);
   public errorMessage$ = new BehaviorSubject<string | null>(null);
@@ -29,20 +39,17 @@ export class AuthSupabaseModalComponent implements OnDestroy {
 
   constructor(
     private uiService: UIService,
-    private userService: UserServiceSupabase
-  ) {}
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
+  ) {
+    this.providers = this.userService.getProviderTokens();
+  }
 
-  public onSubmit(provider: 'github' | 'keycloak'): void {
+  public onSubmit(provider: string): void {
     this.isLoading$.next(true);
     this.errorMessage$.next(null);
 
     this.userService
-      .signInWithOAuth({
-        provider,
-        options: {
-          ...(provider === 'keycloak' && { scopes: 'openid' })
-        }
-      })
+      .signInWithProvider(provider)
       .pipe(
         tap(() => {
           this.isLoading$.next(false);

@@ -22,6 +22,7 @@ import {
 } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
+import { IUserService } from '../interfaces/user-service.interface';
 
 export interface KeycloakUser {
   id: string;
@@ -30,9 +31,8 @@ export interface KeycloakUser {
 }
 
 @Injectable({ providedIn: 'root' })
-export class UserServiceKeycloak {
+export class UserServiceKeycloak implements IUserService {
   private isWeb = Config.isWeb;
-  // ReplaySubject with a buffer size of 1 to store and emit the most recent auth state
   private authState$ = new ReplaySubject<KeycloakUser | null>(1);
   private token: string | null = null;
 
@@ -44,9 +44,10 @@ export class UserServiceKeycloak {
     private loggerService: LoggerService
   ) {}
 
-  /**
-   * Monitor auth token state and update the store
-   */
+  public getProviderTokens(): string[] {
+    return ['keycloak'];
+  }
+
   public init() {
     return this.idTokenChanges().pipe(
       filter((token) => !!token),
@@ -54,9 +55,6 @@ export class UserServiceKeycloak {
     );
   }
 
-  /**
-   * Get user info from the server and update the store
-   */
   public getUserInfo() {
     return this.getIdToken().pipe(
       switchMap((token) =>
@@ -73,23 +71,14 @@ export class UserServiceKeycloak {
     );
   }
 
-  /**
-   * Get observable of authentication state changes
-   */
   public authStateChanges(): Observable<KeycloakUser | null> {
     return this.authState$.asObservable();
   }
 
-  /**
-   * Get current ID token
-   */
   public getIdToken(): Observable<string | null> {
     return of(this.token);
   }
 
-  /**
-   * Get observable of ID token changes
-   */
   public idTokenChanges(): Observable<string | null> {
     return this.authStateChanges().pipe(
       mergeMap((user) => {
@@ -100,17 +89,15 @@ export class UserServiceKeycloak {
     );
   }
 
-  /**
-   * Force refresh the auth token
-   */
   public refreshToken(): Observable<string | null> {
-    // Implement token refresh logic with Keycloak
+    // TODO: Implement Keycloak token refresh
     return EMPTY;
   }
 
-  /**
-   * Start login flow based on platform (web or desktop)
-   */
+  public reloadUser() {
+    return this.validateAndSetUser(this.token);
+  }
+
   public startLoginFlow() {
     if (Config.isWeb) {
       this.uiService.openModal('authCustomProvider');
@@ -120,16 +107,10 @@ export class UserServiceKeycloak {
     }
   }
 
-  /**
-   * Stop authentication flow
-   */
   public stopAuthFlow() {
     this.mainApiService.send('APP_AUTH_STOP_SERVER');
   }
 
-  /**
-   * Handle web authentication flow
-   */
   public webAuthHandler() {
     return combineLatest([
       this.authStateChanges(),
@@ -144,25 +125,20 @@ export class UserServiceKeycloak {
     );
   }
 
-  /**
-   * Handle authentication callback
-   */
   public authCallbackHandler(token: string) {
     this.token = token;
 
     return this.validateAndSetUser(token);
   }
 
-  /**
-   * Handle web authentication callback with token
-   */
   public webAuthCallbackHandler(token: string) {
     return this.validateAndSetUser(token);
   }
 
-  /**
-   * Log out user and clear user data
-   */
+  public authWithToken(token: string) {
+    return this.validateAndSetUser(token);
+  }
+
   public logout() {
     this.token = null;
     this.authState$.next(null);
@@ -172,9 +148,12 @@ export class UserServiceKeycloak {
     return EMPTY;
   }
 
-  /**
-   * Validate token and set user info
-   */
+  public signInWithProvider(providerToken: string) {
+    // Keycloak implementation would initialize login flow here
+    // This is a placeholder that needs to be implemented
+    return EMPTY;
+  }
+
   private validateAndSetUser(token: string): Observable<any> {
     this.token = token;
 

@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  Inject,
   OnInit
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
@@ -43,9 +44,12 @@ import { TelemetryService } from 'src/renderer/app/services/telemetry.service';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
 import { TourService } from 'src/renderer/app/services/tour.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { environment } from 'src/renderer/environments/environment';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from './interfaces/user-service.interface';
 
 @Component({
   selector: 'app-root',
@@ -87,7 +91,7 @@ export class AppComponent implements OnInit {
     private mainApiListenerService: MainApiListenerService,
     private settingsService: SettingsService,
     private appQuitService: AppQuitService,
-    private userService: UserServiceSupabase,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
     private title: Title,
     private tourService: TourService,
     private remoteConfigService: RemoteConfigService,

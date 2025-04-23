@@ -1,7 +1,3 @@
-import dotenv from 'dotenv'
-
-dotenv.config()
-
 export default {
 	supabase: {
 		url: process.env.SUPABASE_URL || '',

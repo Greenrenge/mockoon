@@ -1,5 +1,10 @@
 import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  OnInit
+} from '@angular/core';
 import { User } from '@mockoon/cloud';
 import { Environment } from '@mockoon/commons';
 import {
@@ -14,6 +19,10 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
 import { TeamPresenceComponent } from 'src/renderer/app/components/team-presence/team-presence.component';
 import { TourStepDirective } from 'src/renderer/app/directives/tour-step.directive';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from 'src/renderer/app/interfaces/user-service.interface';
 import { EnvironmentLog } from 'src/renderer/app/models/environment-logs.model';
 import {
   EnvironmentStatus,
@@ -26,8 +35,6 @@ import { RemoteConfigService } from 'src/renderer/app/services/remote-config.ser
 import { SyncService } from 'src/renderer/app/services/sync.service';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-// import { UserService } from 'src/renderer/app/services/user.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 import { environment as env } from 'src/renderer/environments/environment';
@@ -83,13 +90,13 @@ export class HeaderComponent implements OnInit {
   constructor(
     private store: Store,
     private environmentsService: EnvironmentsService,
-    private userService: UserServiceSupabase,
     private remoteConfigService: RemoteConfigService,
     private uiService: UIService,
     private syncService: SyncService,
     private toastsService: ToastsService,
     private deployService: DeployService,
-    private mainApiService: MainApiService
+    private mainApiService: MainApiService,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
   ) {}
 
   ngOnInit() {
@@ -99,7 +106,6 @@ export class HeaderComponent implements OnInit {
     this.activeEnvironment$ = this.store.selectActiveEnvironment();
     this.activeEnvironmentState$ = this.store.selectActiveEnvironmentStatus();
     this.environmentLogs$ = this.store.selectActiveEnvironmentLogs();
-    // this.userService.authStateChanges
 
     this.tabs = [
       {

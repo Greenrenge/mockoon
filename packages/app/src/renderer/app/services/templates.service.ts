@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import {
   Template,
   TemplateGenerateOptions,
@@ -18,10 +18,13 @@ import {
 } from 'rxjs';
 import { DeepPartial } from 'src/renderer/app/libs/utils.lib';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { updateUserAction } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from '../interfaces/user-service.interface';
 
 @Injectable({ providedIn: 'root' })
 export class TemplatesService {
@@ -39,7 +42,7 @@ export class TemplatesService {
 
   constructor(
     private httpClient: HttpClient,
-    private userService: UserServiceSupabase,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
     private toastsService: ToastsService,
     private store: Store
   ) {}

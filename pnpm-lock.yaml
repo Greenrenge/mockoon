@@ -98,9 +98,6 @@ importers:
       directory-import:
         specifier: ^2.3.1
         version: 2.3.1
-      dotenv:
-        specifier: 16.4.7
-        version: 16.4.7
       extract-files:
         specifier: ^11.0.0
         version: 11.0.0(patch_hash=273a954ff3e3e017627cd78ce0ad8dac1aa4125d455866d65126dc7fc3d090c6)

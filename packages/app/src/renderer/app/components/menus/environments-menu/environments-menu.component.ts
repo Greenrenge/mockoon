@@ -2,6 +2,7 @@ import { AsyncPipe, NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  Inject,
   OnDestroy,
   OnInit
 } from '@angular/core';
@@ -47,6 +48,10 @@ import { DropzoneDirective } from 'src/renderer/app/directives/dropzone.directiv
 import { ResizeColumnDirective } from 'src/renderer/app/directives/resize-column.directive';
 import { ScrollWhenActiveDirective } from 'src/renderer/app/directives/scroll-to-active.directive';
 import { TourStepDirective } from 'src/renderer/app/directives/tour-step.directive';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from 'src/renderer/app/interfaces/user-service.interface';
 import { buildApiUrl } from 'src/renderer/app/libs/utils.lib';
 import { EnvironmentsStatuses } from 'src/renderer/app/models/store.model';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
@@ -55,7 +60,6 @@ import { ImportExportOpenAPIService } from 'src/renderer/app/services/import-exp
 import { SettingsService } from 'src/renderer/app/services/settings.service';
 import { SyncService } from 'src/renderer/app/services/sync.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 import {
@@ -344,7 +348,7 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
     private syncsService: SyncService,
     private uiService: UIService,
     private importExportOpenAPIService: ImportExportOpenAPIService,
-    private userService: UserServiceSupabase
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
   ) {}
 
   ngOnInit() {

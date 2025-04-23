@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Plans } from '@mockoon/cloud';
 import {
   EMPTY,
@@ -15,7 +15,6 @@ import {
 } from 'rxjs';
 import { DeployInstanceWithPort } from 'src/renderer/app/models/store.model';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import {
   addDeployInstanceAction,
   removeDeployInstanceAction,
@@ -26,14 +25,18 @@ import {
 } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from '../interfaces/user-service.interface';
 
 @Injectable({ providedIn: 'root' })
 export class DeployService {
   constructor(
-    private userService: UserServiceSupabase,
     private store: Store,
     private remoteConfig: RemoteConfigService,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
   ) {}
 
   public init() {

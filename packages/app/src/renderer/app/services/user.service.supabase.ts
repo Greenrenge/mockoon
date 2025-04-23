@@ -29,9 +29,10 @@ import {
 } from 'src/renderer/app/stores/actions';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
+import { IUserService } from '../interfaces/user-service.interface';
 
 @Injectable({ providedIn: 'root' })
-export class UserServiceSupabase {
+export class UserServiceSupabase implements IUserService {
   private isWeb = Config.isWeb;
   private supabase: SupabaseClient;
   // ReplaySubject with a buffer size of 1 to store and emit the most recent auth state (SupabaseUser or null).
@@ -55,6 +56,9 @@ export class UserServiceSupabase {
     this.supabase.auth.onAuthStateChange((event, session) => {
       this.authState$.next(session?.user || null);
     });
+  }
+  public getProviderTokens(): string[] {
+    return ['keycloak', 'github'];
   }
 
   /**
@@ -173,30 +177,26 @@ export class UserServiceSupabase {
       take(1),
       tap(([user, settings]) => {
         if (!user && settings.welcomeShown) {
-          //   this.uiService.openModal('authIframe');
           this.uiService.openModal('authCustomProvider');
         }
       })
     );
   }
   public authCallbackHandler(_token: string) {
-    // TODO: GREEN not implemented - for non-web
     return EMPTY;
   }
   /**
    * Handle web authentication callback with token
    */
   public webAuthCallbackHandler(_token: string) {
-    // TODO: GREEN not implemented - for supabase
-    //     return from(this.supabase.auth.signInWithCustomToken({ token }));
+    return EMPTY;
   }
 
   /**
    * Authenticate with a token
    */
   public authWithToken(_token: string) {
-    // TODO: GREEN not implemented - for supabase
-    //     return from(this.supabase.auth.signInWithCustomToken({ token }));
+    return EMPTY;
   }
 
   /**
@@ -215,8 +215,15 @@ export class UserServiceSupabase {
    * Sign in with OAuth provider
    * @param provider
    **/
-  public signInWithOAuth(option: SignInWithOAuthCredentials) {
-    return from(this.supabase.auth.signInWithOAuth(option)).pipe(
+  public signInWithProvider(providerToken: string) {
+    return from(
+      this.supabase.auth.signInWithOAuth({
+        provider: providerToken as SignInWithOAuthCredentials['provider'],
+        options: {
+          ...(providerToken === 'keycloak' && { scopes: 'openid' })
+        }
+      })
+    ).pipe(
       tap(() => {
         this.store.update(updateUserAction(null));
       }),

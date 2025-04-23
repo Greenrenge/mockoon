@@ -7,7 +7,7 @@ import {
 import { BehaviorSubject, Observable, Subject, first } from 'rxjs';
 import { AuthIframeModalComponent } from 'src/renderer/app/components/modals/auth-iframe-modal/auth-iframe-modal.component';
 import { AuthModalComponent } from 'src/renderer/app/components/modals/auth-modal/auth-modal.component';
-import { AuthSupabaseModalComponent } from 'src/renderer/app/components/modals/auth-supabase-modal/auth-supabase-modal.component';
+import { AuthCustomModalComponent } from 'src/renderer/app/components/modals/auth-supabase-modal/auth-custom-modal.component';
 import { ChangelogModalComponent } from 'src/renderer/app/components/modals/changelog-modal/changelog-modal.component';
 import { CommandPaletteModalComponent } from 'src/renderer/app/components/modals/command-palette-modal/command-palette-modal.component';
 import { ConfirmModalComponent } from 'src/renderer/app/components/modals/confirm-modal/confirm-modal.component';
@@ -141,8 +141,8 @@ export class UIService {
         modalDialogClass: 'modal-dialog-rounded'
       }
     },
-    authSupabase: {
-      component: AuthSupabaseModalComponent,
+    authCustomProvider: {
+      component: AuthCustomModalComponent,
       options: {
         ...commonConfigs.medium,
         keyboard: false,
@@ -184,7 +184,7 @@ export class UIService {
     welcome: null,
     auth: null,
     authIframe: null,
-    authSupabase: null,
+    authCustomProvider: null,
     confirm: null,
     deploy: null,
     editor: null,

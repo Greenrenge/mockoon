@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Inject, Injectable, NgZone } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
@@ -7,10 +7,13 @@ import { ImportExportService } from 'src/renderer/app/services/import-export.ser
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
 import { TourService } from 'src/renderer/app/services/tour.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
-import { UserServiceSupabase } from 'src/renderer/app/services/user.service.supabase';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/renderer/config';
 import { FileWatcherOptions } from 'src/shared/models/settings.model';
+import {
+  IUserService,
+  USER_SERVICE_TOKEN
+} from '../interfaces/user-service.interface';
 
 @Injectable({ providedIn: 'root' })
 export class MainApiListenerService {
@@ -20,7 +23,7 @@ export class MainApiListenerService {
     private importExportService: ImportExportService,
     private store: Store,
     private zone: NgZone,
-    private userService: UserServiceSupabase,
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
     private uiService: UIService,
     private tourService: TourService,
     private mainApiService: MainApiService

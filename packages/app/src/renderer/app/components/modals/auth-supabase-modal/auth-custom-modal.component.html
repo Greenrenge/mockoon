@@ -14,6 +14,7 @@
       <div class="mb-3">
         <div class="input-group align-items-center">
           <button
+            *ngIf="providers.includes('github')"
             (click)="onSubmit('github')"
             [disabled]="isLoading$ | async"
             class="btn btn-primary me-2"
@@ -23,6 +24,7 @@
           </button>
 
           <button
+            *ngIf="providers.includes('keycloak')"
             (click)="onSubmit('keycloak')"
             [disabled]="isLoading$ | async"
             class="btn btn-secondary me-2"
