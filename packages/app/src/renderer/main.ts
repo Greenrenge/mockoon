@@ -25,12 +25,12 @@ import {
   NgbTooltipConfig,
   NgbTypeaheadConfig
 } from '@ng-bootstrap/ng-bootstrap';
-import {} from // AutoRefreshTokenService,
-
-// createKeycloakSignal,
-// KEYCLOAK_EVENT_SIGNAL,
-// UserActivityService
-'keycloak-angular';
+import {
+  AutoRefreshTokenService,
+  createKeycloakSignal,
+  KEYCLOAK_EVENT_SIGNAL,
+  UserActivityService
+} from 'keycloak-angular';
 import Keycloak from 'keycloak-js';
 import { MarkdownModule, MARKED_OPTIONS } from 'ngx-markdown';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
@@ -64,30 +64,43 @@ bootstrapApplication(AppComponent, {
       await appConfigService.load();
     }),
     makeEnvironmentProviders([
-      // AutoRefreshTokenService,
-      // UserActivityService,
-      // {
-      //   provide: KEYCLOAK_EVENT_SIGNAL,
-      //   useFactory: (appConfigService: AppConfigService, keycloak) => {
-      //     const cfg = appConfigService.getConfig();
-      //     if (cfg.authProvider === 'keycloak') {
-      //       return createKeycloakSignal(keycloak);
-      //     }
+      AutoRefreshTokenService,
+      UserActivityService,
+      {
+        provide: KEYCLOAK_EVENT_SIGNAL,
+        useFactory: (appConfigService: AppConfigService, keycloak) => {
+          const cfg = appConfigService.getConfig();
+          if (cfg.authProvider === 'keycloak') {
+            return createKeycloakSignal(keycloak);
+          }
 
-      //     return null;
-      //   },
-      //   deps: [AppConfigService, Keycloak]
-      // },
+          return null;
+        },
+        deps: [AppConfigService, Keycloak]
+      },
       {
         provide: Keycloak,
         useFactory: (appConfigService: AppConfigService) => {
           const cfg = appConfigService.getConfig();
           if (cfg.authProvider === 'keycloak') {
-            return new Keycloak({
+            const keycloak = new Keycloak({
               url: cfg.option.url,
               realm: cfg.option.realm,
               clientId: cfg.option.clientId
             });
+            keycloak
+              .init({
+                onLoad: 'login-required',
+                checkLoginIframe: false,
+                silentCheckSsoRedirectUri:
+                  window.location.origin + '/silent-check-sso.html'
+              })
+              .catch((error) =>
+                // eslint-disable-next-line no-console
+                console.error('Keycloak initialization failed', error)
+              );
+
+            return keycloak;
           }
 
           return null;

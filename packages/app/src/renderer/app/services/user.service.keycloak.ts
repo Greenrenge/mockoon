@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
+import { AutoRefreshTokenService } from 'keycloak-angular';
 import Keycloak from 'keycloak-js';
 import {
   catchError,
@@ -46,28 +47,16 @@ export class UserServiceKeycloak implements IUserService {
     private mainApiService: MainApiService,
     private loggerService: LoggerService,
     private appConfigService: AppConfigService,
-    @Inject(Keycloak) private keycloak: Keycloak
-    // @Inject(AutoRefreshTokenService)
-    // private autoRefreshTokenService: AutoRefreshTokenService
+    @Inject(Keycloak) private keycloak: Keycloak,
+    @Inject(AutoRefreshTokenService)
+    private autoRefreshTokenService: AutoRefreshTokenService
   ) {
     // Initialize Keycloak client if needed
-    if (!keycloak.didInitialize) {
-      keycloak
-        .init({
-          onLoad: 'check-sso',
-          silentCheckSsoRedirectUri:
-            window.location.origin + '/silent-check-sso.html'
-        })
-        .catch((error) =>
-          // eslint-disable-next-line no-console
-          console.error('Keycloak initialization failed', error)
-        );
-    }
     this.setupAuthStateMonitoring();
-    // this.autoRefreshTokenService.start({
-    //   onInactivityTimeout: 'logout',
-    //   sessionTimeout: 60000
-    // });
+    autoRefreshTokenService.start({
+      onInactivityTimeout: 'logout',
+      sessionTimeout: 50000
+    });
   }
 
   public getProviderTokens(): string[] {
@@ -100,7 +89,7 @@ export class UserServiceKeycloak implements IUserService {
         this.store.update(updateUserAction({ ...info }));
       }),
       catchError((error) => {
-        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
 
         return EMPTY;
       })
@@ -159,7 +148,7 @@ export class UserServiceKeycloak implements IUserService {
         return of(this.keycloak.token || null);
       }),
       catchError((error) => {
-        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
 
         return of(null);
       })
@@ -232,28 +221,27 @@ export class UserServiceKeycloak implements IUserService {
       return EMPTY;
     }
 
-    return EMPTY;
-    // return from(
-    //   this.keycloak.init({
-    //     token,
-    //     onLoad: 'check-sso',
-    //     checkLoginIframe: false
-    //   })
-    // ).pipe(
-    //   tap((authenticated) => {
-    //     if (authenticated) {
-    //       this.token = this.keycloak.token || null;
-    //       // Let the onAuthSuccess handler update the auth state
-    //     } else {
-    //       this.authState$.next(null);
-    //     }
-    //   }),
-    //   catchError((error) => {
-    //     this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+    return from(
+      this.keycloak.init({
+        token,
+        onLoad: 'check-sso',
+        checkLoginIframe: false
+      })
+    ).pipe(
+      tap((authenticated) => {
+        if (authenticated) {
+          this.token = this.keycloak.token || null;
+          // Let the onAuthSuccess handler update the auth state
+        } else {
+          this.authState$.next(null);
+        }
+      }),
+      catchError((error) => {
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
 
-    //     return EMPTY;
-    //   })
-    // );
+        return EMPTY;
+      })
+    );
   }
 
   /**
@@ -267,33 +255,32 @@ export class UserServiceKeycloak implements IUserService {
    * Authenticate with a token
    */
   public authWithToken(token: string) {
-    return EMPTY;
-    // if (!this.keycloak) {
-    //   return EMPTY;
-    // }
+    if (!this.keycloak) {
+      return EMPTY;
+    }
 
-    // this.token = token;
+    this.token = token;
 
-    // return from(
-    //   this.keycloak.init({
-    //     token,
-    //     onLoad: 'check-sso',
-    //     checkLoginIframe: false
-    //   })
-    // ).pipe(
-    //   tap((authenticated) => {
-    //     if (authenticated) {
-    //       // Let the onAuthSuccess handler update the auth state
-    //     } else {
-    //       this.authState$.next(null);
-    //     }
-    //   }),
-    //   catchError((error) => {
-    //     this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+    return from(
+      this.keycloak.init({
+        token,
+        onLoad: 'check-sso',
+        checkLoginIframe: false
+      })
+    ).pipe(
+      tap((authenticated) => {
+        if (authenticated) {
+          // Let the onAuthSuccess handler update the auth state
+        } else {
+          this.authState$.next(null);
+        }
+      }),
+      catchError((error) => {
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
 
-    //     return EMPTY;
-    //   })
-    // );
+        return EMPTY;
+      })
+    );
   }
 
   /**
@@ -312,7 +299,7 @@ export class UserServiceKeycloak implements IUserService {
         this.store.update(updateDeployInstancesAction([]));
       }),
       catchError((error) => {
-        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
 
         return EMPTY;
       })
@@ -334,7 +321,7 @@ export class UserServiceKeycloak implements IUserService {
       })
     ).pipe(
       catchError((error) => {
-        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
 
         return EMPTY;
       })
@@ -347,9 +334,9 @@ export class UserServiceKeycloak implements IUserService {
   private setupAuthStateMonitoring() {
     if (!this.keycloak) return;
 
-    // this.keycloak.onTokenExpired = () => {
-    //   this.refreshToken().subscribe();
-    // };
+    this.keycloak.onTokenExpired = () => {
+      this.refreshToken().subscribe();
+    };
 
     this.keycloak.onAuthSuccess = () => {
       if (this.keycloak.token) {
@@ -368,7 +355,11 @@ export class UserServiceKeycloak implements IUserService {
             this.authState$.next(user);
           })
           .catch((error) => {
-            this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+            this.loggerService.logMessage(
+              'error',
+              'LOGIN_ERROR',
+              error.message
+            );
             this.authState$.next(null);
           });
       }

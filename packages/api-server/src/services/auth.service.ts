@@ -49,7 +49,7 @@ const AuthService: AppServiceSchema = {
 			},
 			cache: {
 				keys: ['token'],
-				ttl: 5 * 60,
+				ttl: 2 * 60,
 			},
 			async handler(ctx: AuthContextMeta) {
 				if (config.configuration.authProvider === 'supabase') {
