@@ -193,7 +193,7 @@ Mocknoon supports the following environment variables for configuration:
 
 ## Documentation
 
-You will find Mocknoon's documentation in our repository. It covers all features, including KPC-specific modifications and additions.
+You will find Mocknoon's documentation in our repository. It covers all features, including specific modifications and additions.
 
 ## Contributing
 
