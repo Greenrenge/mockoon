@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { filter, Observable, switchMap } from 'rxjs';
+import { AppConfigService } from 'src/renderer/app/services/app-config.services';
 import { Store } from 'src/renderer/app/stores/store';
-import { Config } from 'src/renderer/config';
 import {
   IUserService,
   USER_SERVICE_TOKEN
@@ -17,11 +17,12 @@ export class ImportExportOpenAPIService {
     userServiceFactory: UserServiceFactory,
     private store: Store,
     private httpClient: HttpClient,
+    private appConfig: AppConfigService,
     @Inject(USER_SERVICE_TOKEN) private userService: IUserService
   ) {}
 
   public init() {
-    this.serverUrl = `${Config.apiURL}files`;
+    this.serverUrl = `${this.appConfig.getConfig().apiURL}files`;
   }
 
   public uploadOpenAPIFile(formData: FormData): Observable<any> {

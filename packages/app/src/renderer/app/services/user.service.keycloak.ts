@@ -80,9 +80,12 @@ export class UserServiceKeycloak implements IUserService {
     return this.getIdToken().pipe(
       switchMap((token) =>
         token
-          ? this.httpClient.get(`${Config.apiURL}user`, {
-              headers: { Authorization: `Bearer ${token}` }
-            })
+          ? this.httpClient.get(
+              `${this.appConfigService.getConfig().apiURL}user`,
+              {
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            )
           : EMPTY
       ),
       tap((info: any) => {

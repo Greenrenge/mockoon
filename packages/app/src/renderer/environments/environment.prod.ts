@@ -5,6 +5,6 @@ export const environment: AppEnvironment = {
   web: false,
   remoteConfig: 'prod',
   ci: false,
-  websiteURL: 'https://mockoon.com/',
-  apiURL: 'https://api.mockoon.com/'
+  websiteURL: 'https://any.com/',
+  apiURL: 'https://api.any.com/'
 };

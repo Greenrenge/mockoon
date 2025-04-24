@@ -2,7 +2,7 @@
   "compilerOptions": {
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "sourceMap": true,
     "declaration": true,
     "strict": true,

@@ -91,6 +91,7 @@ bootstrapApplication(AppComponent, {
             keycloak
               .init({
                 onLoad: 'login-required',
+                // https://github.com/keycloak/keycloak/issues/36063 , only works on https
                 checkLoginIframe: false,
                 silentCheckSsoRedirectUri:
                   window.location.origin + '/silent-check-sso.html'

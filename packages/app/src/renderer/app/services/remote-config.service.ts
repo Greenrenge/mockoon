@@ -9,8 +9,8 @@ import {
   switchMap,
   tap
 } from 'rxjs/operators';
+import { AppConfigService } from 'src/renderer/app/services/app-config.services';
 import { Config } from 'src/renderer/config';
-import { environment } from 'src/renderer/environments/environment';
 import {
   IUserService,
   USER_SERVICE_TOKEN
@@ -22,7 +22,8 @@ export class RemoteConfigService {
 
   constructor(
     private httpClient: HttpClient,
-    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
+    private appConfig: AppConfigService
   ) {}
 
   /**
@@ -60,7 +61,7 @@ export class RemoteConfigService {
 
         return this.httpClient
           .post<RemoteConfigData>(
-            `${environment.apiURL}remoteconfig`,
+            `${this.appConfig.getConfig().apiURL}remoteconfig`,
             { version: Config.appVersion },
             {
               headers

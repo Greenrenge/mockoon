@@ -14,6 +14,7 @@ import {
   tap
 } from 'rxjs';
 import { DeployInstanceWithPort } from 'src/renderer/app/models/store.model';
+import { AppConfigService } from 'src/renderer/app/services/app-config.services';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
 import {
   addDeployInstanceAction,
@@ -36,7 +37,8 @@ export class DeployService {
     private store: Store,
     private remoteConfig: RemoteConfigService,
     private httpClient: HttpClient,
-    @Inject(USER_SERVICE_TOKEN) private userService: IUserService
+    @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
+    private appConfig: AppConfigService
   ) {}
 
   public init() {
@@ -61,7 +63,7 @@ export class DeployService {
       switchMap(([user, token]) => {
         if (user?.plan !== Plans.FREE) {
           return this.httpClient.get<DeployInstanceWithPort[]>(
-            `${Config.apiURL}deployments`,
+            `${this.appConfig.getConfig().apiURL}deployments`,
             {
               headers: {
                 Authorization: `Bearer ${token}`

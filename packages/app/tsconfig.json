@@ -5,6 +5,7 @@
     "outDir": "./dist/out-tsc",
     "declaration": false,
     "strict": false,
+    "moduleResolution": "bundler",
     "strictNullChecks": false,
     "module": "es2020",
     "emitDecoratorMetadata": true,
@@ -12,8 +13,13 @@
     "resolveJsonModule": true,
     "target": "ES2022",
     "esModuleInterop": true,
-    "typeRoots": ["node_modules/@types"],
-    "lib": ["es2018", "dom"],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2018",
+      "dom"
+    ],
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {

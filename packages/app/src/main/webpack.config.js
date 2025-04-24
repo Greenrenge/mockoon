@@ -47,14 +47,14 @@ module.exports = (env, argv) => {
           JSON.stringify(
             argv.mode === 'development'
               ? 'http://localhost:3000/api'
-              : 'https://mockoon.com/' //TODO: GREEN APP
+              : 'https://any.com/' //TODO: GREEN APP
           ),
         API_URL:
           process.env.API_URL ||
           JSON.stringify(
             argv.mode === 'development'
               ? 'http://localhost:5003/api'
-              : 'https://api.mockoon.com/' //TODO: GREEN APP: should init the form for the api on startup and injects to the renderer
+              : 'https://api.any.com/' //TODO: GREEN APP: should init the form for the api on startup and injects to the renderer
           )
       })
     ]
