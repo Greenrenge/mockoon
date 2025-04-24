@@ -9,7 +9,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build:prod": "rm -rf ./dist && tsc --project ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cp -r ./src/public ./dist/api-server/src ",
+    "build:prod": "rm -rf ./dist && tsc --project ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cp -r ./src/public ./dist/api-server/src && cp -r ./src/assets ./dist/api-server/src",
     "dev": "NODE_ENV=development ts-node -P ./tsconfig-transpile-only.json  -r module-alias/register ./node_modules/moleculer/bin/moleculer-runner.js -i 1 --config ./moleculer.config.ts --hot --mask **/*.service.* src/services src/*api* ",
     "dev:repl": "ts-node -P ./tsconfig-transpile-only.json -r module-alias/register ./node_modules/moleculer/bin/moleculer-runner.js --config ./moleculer.config.ts --repl --hot  --mask **/*.service.* src/services src/*api* ",
     "start": "cd dist/api-server/ && moleculer-runner --config ./moleculer.config.js -i 1 ./**/*.service.*  ./src/services ./src/*api*",

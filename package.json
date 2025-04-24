@@ -69,7 +69,6 @@
     "start-dev:watch": "pnpm run build:libs &&  concurrently \"lerna run --stream --scope @mockoon/app --scope api-server start-dev\" \"lerna run --stream --scope @mockoon/commons build:watch\" \"lerna run --stream --scope @mockoon/commons-server build:watch\" \"lerna run --stream --scope @mockoon/cloud build:watch\"",
     "start-dev": "lerna run --stream --scope @mockoon/app --scope api-server start-dev",
     "build:api-server": "lerna run --stream --scope api-server build:prod",
-    "build:web": "lerna run --stream --scope @mockoon/app build:prod:web:docker",
     "build:desktop:prod:custom": "lerna run --stream --scope @mockoon/app build:prod:all:custom"
   },
   "devDependencies": {

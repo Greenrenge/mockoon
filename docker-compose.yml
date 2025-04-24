@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - API_URL=${API_URL}
     logging:
       driver: 'json-file'
       options:
@@ -43,13 +41,13 @@ services:
     env_file:
       - ./.env
     environment:
-      ### BUILDTIME
-      # - API_URL=http://localhost:3000/api/
-      # - WEB_URL=http://localhost:3000/
-      ### RUNTIME
       # - SUPABASE_URL=
       # - SUPABASE_ANON_KEY=
       # - SUPABASE_SERVICE_ROLE_KEY=
+      # - AUTH_PROVIDER=keycloak
+      # - KEYCLOAK_URL=https://keycloak.example.com
+      # - KEYCLOAK_CLIENT_ID=mockoon
+      # - KEYCLOAK_REALM=mockoon
       # - API_PORT=3000
       # - WS_PORT=4000
       # - WS_FULL_URL=ws://localhost:4000

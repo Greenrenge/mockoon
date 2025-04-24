@@ -95,25 +95,6 @@
                 }
               ]
             },
-            "production-custom": {
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                }
-              },
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/renderer/environments/environment.ts",
-                  "with": "src/renderer/environments/environment.prod-custom.ts"
-                }
-              ]
-            },
             "production-web": {
               "optimization": {
                 "scripts": true,
@@ -130,25 +111,6 @@
                 {
                   "replace": "src/renderer/environments/environment.ts",
                   "with": "src/renderer/environments/environment.prod-web.ts"
-                }
-              ]
-            },
-            "production-web-docker": {
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                }
-              },
-              "outputHashing": "all",
-              "sourceMap": true,
-              "namedChunks": false,
-              "extractLicenses": false,
-              "fileReplacements": [
-                {
-                  "replace": "src/renderer/environments/environment.ts",
-                  "with": "src/renderer/environments/environment.prod-web-docker.ts"
                 }
               ]
             },

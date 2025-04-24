@@ -5,10 +5,6 @@ RUN corepack enable
 COPY . /app
 WORKDIR /app
 
-# Build-time arguments
-ARG API_URL
-ARG WEB_URL
-
 # Install dependencies
 FROM base AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
@@ -19,12 +15,7 @@ RUN pnpm deploy --filter=api-server --prod /prod/api-server --legacy
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build:libs
-
-# Replace placeholders in environment file
-RUN sed -i "s|\${API_URL}|$API_URL|g" ./packages/app/src/renderer/environments/environment.prod-web-docker.ts
-RUN sed -i "s|\${WEB_URL}|$WEB_URL|g" ./packages/app/src/renderer/environments/environment.prod-web-docker.ts
-
-RUN pnpm run build:web
+RUN pnpm run build:web:prod
 
 RUN cp -r ./packages/app/dist/renderer/* ./packages/api-server/src/public
 RUN pnpm run build:api-server

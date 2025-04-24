@@ -2,7 +2,6 @@ export default {
 	keycloak: {
 		url: process.env.KEYCLOAK_URL || 'http://localhost:8080/auth',
 		clientId: process.env.KEYCLOAK_CLIENT_ID || 'api',
-		clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
 		realm: process.env.KEYCLOAK_REALM || 'master',
 	},
 	supabase: {
