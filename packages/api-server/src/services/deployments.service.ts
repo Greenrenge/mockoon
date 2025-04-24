@@ -23,9 +23,6 @@ function StopInstance(serverInstance: MockoonServer) {
 		serverInstance.on('stopped', () => {
 			resolve(true)
 		})
-		// serverInstance.on('error', (errorCode: any, originalError: any) => {
-		// 	reject(originalError)
-		// })
 		setTimeout(() => {
 			reject(new Error('Timeout'))
 		}, 10000)

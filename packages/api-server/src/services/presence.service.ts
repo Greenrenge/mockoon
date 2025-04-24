@@ -116,7 +116,6 @@ class PresenceStore {
 
 const PresenceService: AppServiceSchema = {
 	name: 'presence',
-
 	actions: {
 		addUserDevice: {
 			params: {

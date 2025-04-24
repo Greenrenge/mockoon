@@ -1,4 +1,10 @@
 export default {
+	keycloak: {
+		url: process.env.KEYCLOAK_URL || 'http://localhost:8080/auth',
+		clientId: process.env.KEYCLOAK_CLIENT_ID || 'api',
+		clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+		realm: process.env.KEYCLOAK_REALM || 'master',
+	},
 	supabase: {
 		url: process.env.SUPABASE_URL || '',
 		anonKey: process.env.SUPABASE_ANON_KEY || '',
@@ -16,6 +22,7 @@ export default {
 		syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '30000', 10),
 	},
 	configuration: {
+		authProvider: process.env.AUTH_PROVIDER || ('supabase' as 'supabase' | 'keycloak'),
 		apiPort: parseInt(process.env.API_PORT || '5003', 10),
 		wsPort: parseInt(process.env.WS_PORT || '4001', 10),
 		wsFullUrl: process.env.WS_FULL_URL || 'ws://localhost:4001',

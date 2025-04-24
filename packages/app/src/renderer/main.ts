@@ -2,6 +2,9 @@ import {
   enableProdMode,
   ErrorHandler,
   importProvidersFrom,
+  inject,
+  makeEnvironmentProviders,
+  provideAppInitializer,
   SecurityContext
 } from '@angular/core';
 import { MainAPIModel } from 'src/renderer/app/models/main-api.model';
@@ -22,6 +25,13 @@ import {
   NgbTooltipConfig,
   NgbTypeaheadConfig
 } from '@ng-bootstrap/ng-bootstrap';
+import {} from // AutoRefreshTokenService,
+
+// createKeycloakSignal,
+// KEYCLOAK_EVENT_SIGNAL,
+// UserActivityService
+'keycloak-angular';
+import Keycloak from 'keycloak-js';
 import { MarkdownModule, MARKED_OPTIONS } from 'ngx-markdown';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { AppComponent } from 'src/renderer/app/app.component';
@@ -31,12 +41,12 @@ import { NgbModalConfigFactory } from 'src/renderer/app/modules-config/ngb-modal
 import { NgbTooltipConfigFactory } from 'src/renderer/app/modules-config/ngb-tooltip.config';
 import { NgbTypeaheadConfigFactory } from 'src/renderer/app/modules-config/ngb-typeahead.config';
 import { NgbConfigFactory } from 'src/renderer/app/modules-config/ngb.config';
+import { AppConfigService } from 'src/renderer/app/services/app-config.services';
 import { GlobalErrorHandler } from 'src/renderer/app/services/global-error-handler';
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
 import { environment } from 'src/renderer/environments/environment';
 import { USER_SERVICE_TOKEN } from './app/interfaces/user-service.interface';
 import { UserServiceFactory } from './app/services/user-service.factory';
-
 declare global {
   interface Window {
     api: MainAPIModel;
@@ -49,6 +59,42 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideAppInitializer(async () => {
+      const appConfigService = inject(AppConfigService);
+      await appConfigService.load();
+    }),
+    makeEnvironmentProviders([
+      // AutoRefreshTokenService,
+      // UserActivityService,
+      // {
+      //   provide: KEYCLOAK_EVENT_SIGNAL,
+      //   useFactory: (appConfigService: AppConfigService, keycloak) => {
+      //     const cfg = appConfigService.getConfig();
+      //     if (cfg.authProvider === 'keycloak') {
+      //       return createKeycloakSignal(keycloak);
+      //     }
+
+      //     return null;
+      //   },
+      //   deps: [AppConfigService, Keycloak]
+      // },
+      {
+        provide: Keycloak,
+        useFactory: (appConfigService: AppConfigService) => {
+          const cfg = appConfigService.getConfig();
+          if (cfg.authProvider === 'keycloak') {
+            return new Keycloak({
+              url: cfg.option.url,
+              realm: cfg.option.realm,
+              clientId: cfg.option.clientId
+            });
+          }
+
+          return null;
+        },
+        deps: [AppConfigService]
+      }
+    ]),
     importProvidersFrom(
       BrowserModule,
       FormsModule,
@@ -92,8 +138,11 @@ bootstrapApplication(AppComponent, {
     },
     {
       provide: USER_SERVICE_TOKEN,
-      useFactory: (factory: UserServiceFactory) => factory.getService(),
-      deps: [UserServiceFactory]
+      useFactory: (
+        factory: UserServiceFactory,
+        appConfigService: AppConfigService
+      ) => factory.getService(appConfigService.getConfig().authProvider),
+      deps: [UserServiceFactory, AppConfigService]
     },
     provideNgxMask(),
     provideHttpClient(withInterceptorsFromDi()),

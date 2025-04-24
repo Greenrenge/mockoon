@@ -1,10 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+import Keycloak from 'keycloak-js';
 import {
   catchError,
   combineLatest,
   EMPTY,
   filter,
+  from,
   mergeMap,
   Observable,
   of,
@@ -13,6 +15,7 @@ import {
   take,
   tap
 } from 'rxjs';
+import { AppConfigService } from 'src/renderer/app/services/app-config.services';
 import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
@@ -41,13 +44,39 @@ export class UserServiceKeycloak implements IUserService {
     private store: Store,
     private uiService: UIService,
     private mainApiService: MainApiService,
-    private loggerService: LoggerService
-  ) {}
+    private loggerService: LoggerService,
+    private appConfigService: AppConfigService,
+    @Inject(Keycloak) private keycloak: Keycloak
+    // @Inject(AutoRefreshTokenService)
+    // private autoRefreshTokenService: AutoRefreshTokenService
+  ) {
+    // Initialize Keycloak client if needed
+    if (!keycloak.didInitialize) {
+      keycloak
+        .init({
+          onLoad: 'check-sso',
+          silentCheckSsoRedirectUri:
+            window.location.origin + '/silent-check-sso.html'
+        })
+        .catch((error) =>
+          // eslint-disable-next-line no-console
+          console.error('Keycloak initialization failed', error)
+        );
+    }
+    this.setupAuthStateMonitoring();
+    // this.autoRefreshTokenService.start({
+    //   onInactivityTimeout: 'logout',
+    //   sessionTimeout: 60000
+    // });
+  }
 
   public getProviderTokens(): string[] {
     return ['keycloak'];
   }
 
+  /**
+   * Monitor auth token state and update the store
+   */
   public init() {
     return this.idTokenChanges().pipe(
       filter((token) => !!token),
@@ -55,6 +84,9 @@ export class UserServiceKeycloak implements IUserService {
     );
   }
 
+  /**
+   * Get user info from the server and update the store
+   */
   public getUserInfo() {
     return this.getIdToken().pipe(
       switchMap((token) =>
@@ -67,18 +99,36 @@ export class UserServiceKeycloak implements IUserService {
       tap((info: any) => {
         this.store.update(updateUserAction({ ...info }));
       }),
-      catchError(() => EMPTY)
+      catchError((error) => {
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+
+        return EMPTY;
+      })
     );
   }
 
+  /**
+   * Get observable of authentication state changes
+   */
   public authStateChanges(): Observable<KeycloakUser | null> {
     return this.authState$.asObservable();
   }
 
+  /**
+   * Get current ID token
+   * @returns Observable that emits the current ID token
+   */
   public getIdToken(): Observable<string | null> {
-    return of(this.token);
+    if (!this.keycloak) {
+      return of(null);
+    }
+
+    return of(this.keycloak.token || null);
   }
 
+  /**
+   * Get observable of ID token changes
+   */
   public idTokenChanges(): Observable<string | null> {
     return this.authStateChanges().pipe(
       mergeMap((user) => {
@@ -89,15 +139,58 @@ export class UserServiceKeycloak implements IUserService {
     );
   }
 
+  /**
+   * Force refresh the auth token
+   * Returns an Observable with the new token
+   */
   public refreshToken(): Observable<string | null> {
-    // TODO: Implement Keycloak token refresh
-    return EMPTY;
+    if (!this.keycloak) {
+      return of(null);
+    }
+
+    return from(this.keycloak.updateToken(30)).pipe(
+      switchMap((refreshed) => {
+        if (refreshed) {
+          this.token = this.keycloak.token || null;
+
+          return of(this.token);
+        }
+
+        return of(this.keycloak.token || null);
+      }),
+      catchError((error) => {
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+
+        return of(null);
+      })
+    );
   }
 
+  /**
+   * Reload user session
+   */
   public reloadUser() {
-    return this.validateAndSetUser(this.token);
+    return this.refreshToken().pipe(
+      switchMap(() =>
+        this.keycloak ? from(this.keycloak.loadUserProfile()) : EMPTY
+      ),
+      tap((profile: any) => {
+        if (profile) {
+          const user: KeycloakUser = {
+            id: profile.id || this.keycloak?.subject || '',
+            email: profile.email || '',
+            username: profile.username || ''
+          };
+          this.authState$.next(user);
+        }
+      }),
+      catchError(() => EMPTY)
+    );
   }
 
+  /**
+   * Start login flow based on platform (web or desktop)
+   */
   public startLoginFlow() {
     if (Config.isWeb) {
       this.uiService.openModal('authCustomProvider');
@@ -107,10 +200,16 @@ export class UserServiceKeycloak implements IUserService {
     }
   }
 
+  /**
+   * Stop authentication flow
+   */
   public stopAuthFlow() {
     this.mainApiService.send('APP_AUTH_STOP_SERVER');
   }
 
+  /**
+   * Handle web authentication flow
+   */
   public webAuthHandler() {
     return combineLatest([
       this.authStateChanges(),
@@ -125,51 +224,164 @@ export class UserServiceKeycloak implements IUserService {
     );
   }
 
+  /**
+   * Handle authentication callback with token
+   */
   public authCallbackHandler(token: string) {
-    this.token = token;
+    if (!this.keycloak) {
+      return EMPTY;
+    }
 
-    return this.validateAndSetUser(token);
+    return EMPTY;
+    // return from(
+    //   this.keycloak.init({
+    //     token,
+    //     onLoad: 'check-sso',
+    //     checkLoginIframe: false
+    //   })
+    // ).pipe(
+    //   tap((authenticated) => {
+    //     if (authenticated) {
+    //       this.token = this.keycloak.token || null;
+    //       // Let the onAuthSuccess handler update the auth state
+    //     } else {
+    //       this.authState$.next(null);
+    //     }
+    //   }),
+    //   catchError((error) => {
+    //     this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+
+    //     return EMPTY;
+    //   })
+    // );
   }
 
+  /**
+   * Handle web authentication callback with token
+   */
   public webAuthCallbackHandler(token: string) {
-    return this.validateAndSetUser(token);
+    return this.authCallbackHandler(token);
   }
 
+  /**
+   * Authenticate with a token
+   */
   public authWithToken(token: string) {
-    return this.validateAndSetUser(token);
+    return EMPTY;
+    // if (!this.keycloak) {
+    //   return EMPTY;
+    // }
+
+    // this.token = token;
+
+    // return from(
+    //   this.keycloak.init({
+    //     token,
+    //     onLoad: 'check-sso',
+    //     checkLoginIframe: false
+    //   })
+    // ).pipe(
+    //   tap((authenticated) => {
+    //     if (authenticated) {
+    //       // Let the onAuthSuccess handler update the auth state
+    //     } else {
+    //       this.authState$.next(null);
+    //     }
+    //   }),
+    //   catchError((error) => {
+    //     this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+
+    //     return EMPTY;
+    //   })
+    // );
   }
 
+  /**
+   * Log out user and clear user data
+   */
   public logout() {
-    this.token = null;
-    this.authState$.next(null);
-    this.store.update(updateUserAction(null));
-    this.store.update(updateDeployInstancesAction([]));
+    if (!this.keycloak) {
+      return EMPTY;
+    }
 
-    return EMPTY;
-  }
+    return from(this.keycloak.logout()).pipe(
+      tap(() => {
+        this.authState$.next(null);
+        this.token = null;
+        this.store.update(updateUserAction(null));
+        this.store.update(updateDeployInstancesAction([]));
+      }),
+      catchError((error) => {
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
 
-  public signInWithProvider(providerToken: string) {
-    // Keycloak implementation would initialize login flow here
-    // This is a placeholder that needs to be implemented
-    return EMPTY;
-  }
-
-  private validateAndSetUser(token: string): Observable<any> {
-    this.token = token;
-
-    return this.httpClient
-      .get<KeycloakUser>(`${Config.apiURL}auth/validate`, {
-        headers: { Authorization: `Bearer ${token}` }
+        return EMPTY;
       })
-      .pipe(
-        tap((user) => {
-          this.authState$.next(user);
-        }),
-        catchError((error) => {
-          this.loggerService.logMessage('error', 'LOGIN_ERROR', error.message);
+    );
+  }
 
-          return EMPTY;
-        })
-      );
+  /**
+   * Sign in with OAuth provider
+   * @param providerToken
+   **/
+  public signInWithProvider(providerToken: string) {
+    if (!this.keycloak || providerToken !== 'keycloak') {
+      return EMPTY;
+    }
+
+    return from(
+      this.keycloak.login({
+        redirectUri: window.location.origin
+      })
+    ).pipe(
+      catchError((error) => {
+        this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+
+        return EMPTY;
+      })
+    );
+  }
+
+  /**
+   * Set up monitoring of the auth state
+   */
+  private setupAuthStateMonitoring() {
+    if (!this.keycloak) return;
+
+    // this.keycloak.onTokenExpired = () => {
+    //   this.refreshToken().subscribe();
+    // };
+
+    this.keycloak.onAuthSuccess = () => {
+      if (this.keycloak.token) {
+        this.token = this.keycloak.token;
+
+        // Extract user information from token or profile
+        this.keycloak
+          .loadUserProfile()
+          .then((profile) => {
+            const user: KeycloakUser = {
+              id: profile.id || this.keycloak.subject || '',
+              email: profile.email || '',
+              username: profile.username || ''
+            };
+
+            this.authState$.next(user);
+          })
+          .catch((error) => {
+            this.loggerService.logMessage('error', 'LOGIN_ERROR', error);
+            this.authState$.next(null);
+          });
+      }
+    };
+
+    this.keycloak.onAuthError = () => {
+      this.authState$.next(null);
+      this.token = null;
+    };
+
+    this.keycloak.onAuthLogout = () => {
+      this.authState$.next(null);
+      this.token = null;
+    };
   }
 }

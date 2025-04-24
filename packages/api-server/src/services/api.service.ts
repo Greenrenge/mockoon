@@ -12,8 +12,8 @@ import ApiGateway, {
 	Route,
 } from 'moleculer-web'
 import config from '../config'
+import { buildStaticRoute } from '../static-assets-serve/route-builder'
 import { AuthContextMeta } from '../types/common'
-
 export default {
 	name: 'api',
 	mixins: [ApiGateway],
@@ -39,6 +39,24 @@ export default {
 		port: config.configuration.apiPort,
 		routes: [
 			{
+				path: '/public',
+				bodyParsers: {
+					json: true,
+					urlencoded: { extended: true },
+				},
+				mappingPolicy: 'restrict',
+				aliases: {
+					'GET /web-config': 'api.webConfig',
+					'GET /_info': 'api.info',
+					'GET /_aliases': 'api.listAliases',
+					'GET /_health': 'api.health',
+				},
+			},
+			buildStaticRoute({
+				fromFolder: './src/assets/auth',
+				toRoute: '/auth',
+			}),
+			{
 				path: '/api',
 				bodyParsers: {
 					json: true,
@@ -46,11 +64,7 @@ export default {
 				},
 				mappingPolicy: 'restrict',
 				whitelist: ['api.listAliases', 'mockoon.*', 'deployments.*'],
-				aliases: {
-					'GET /_info': 'api.info',
-					'GET /_aliases': 'api.listAliases',
-					'GET /_health': 'api.health',
-				},
+				aliases: {},
 				autoAliases: true, // allow api.* to be called directly with rest: config
 				authentication: true, // allow request authorization header to ctx.meta.accessToken/accountId
 				use: [
@@ -178,6 +192,30 @@ export default {
 		},
 	},
 	actions: {
+		webConfig: {
+			visibility: 'published',
+			handler(ctx: Context) {
+				const authProvider = config.configuration.authProvider
+				return {
+					websiteURL: config.configuration.deployUrl?.replace('/api', '') || '', // current web url
+					apiURL: config.configuration.deployUrl?.endsWith('/') // add trailing slash
+						? config.configuration.deployUrl
+						: config.configuration.deployUrl + '/',
+					authProvider,
+					option: {
+						...(authProvider === 'supabase' && {
+							url: config.supabase.url,
+							anonKey: config.supabase.anonKey,
+						}),
+						...(authProvider === 'keycloak' && {
+							url: config.keycloak.url,
+							realm: config.keycloak.realm,
+							clientId: config.keycloak.clientId,
+						}),
+					},
+				}
+			},
+		},
 		info: {
 			handler() {
 				return 'API Gateway Service'

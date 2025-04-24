@@ -20,6 +20,7 @@ import {
   take,
   tap
 } from 'rxjs';
+import { AppConfigService } from 'src/renderer/app/services/app-config.services';
 import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { MainApiService } from 'src/renderer/app/services/main-api.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
@@ -44,16 +45,20 @@ export class UserServiceSupabase implements IUserService {
     private store: Store,
     private uiService: UIService,
     private mainApiService: MainApiService,
-    private loggerService: LoggerService
+    private loggerService: LoggerService,
+    private appConfigService: AppConfigService
   ) {
     // Initialize Supabase client
-    this.supabase = createClient(
-      Config.supabaseConfig.url,
-      Config.supabaseConfig.anonKey
-    );
+    this.supabase =
+      appConfigService.getConfig().authProvider === 'supabase'
+        ? createClient(
+            appConfigService.getConfig().option?.url,
+            appConfigService.getConfig().option?.anonKey
+          )
+        : null;
 
     // Listen to auth state changes
-    this.supabase.auth.onAuthStateChange((event, session) => {
+    this.supabase?.auth.onAuthStateChange((event, session) => {
       this.authState$.next(session?.user || null);
     });
   }

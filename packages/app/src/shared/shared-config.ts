@@ -54,17 +54,6 @@ export const SharedConfig = (options: {
     defaultMainMenuSize: 100,
     defaultSecondaryMenuSize: 200,
     storageSaveDelay: 1000, // ms
-    fileReWatchDelay: 3000, // ms
-    authProvider: 'supabase',
-    supabaseConfig: {
-      url: 'https://uvxumifocjshijbqfbuf.supabase.co',
-      anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2eHVtaWZvY2pzaGlqYnFmYnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNTE0MTMsImV4cCI6MjA1OTkyNzQxM30.L80vddpXnbJYzU11FGUEGelWP_z9v4PZ9imfH1ea8Q4'
-    }
-    // keycloakConfig: {
-    //   url: process.env.KEYCLOAK_URL || 'http://localhost:8080',
-    //   realm: process.env.KEYCLOAK_REALM || 'master',
-    //   clientId: process.env.KEYCLOAK_CLIENT_ID || 'mockoon'
-    // }
+    fileReWatchDelay: 3000 // ms
   };
 };

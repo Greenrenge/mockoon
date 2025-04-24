@@ -181,6 +181,10 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
       label: 'Export configuration to OpenAPI',
       icon: 'assignment',
       twoSteps: false,
+      disabled$: () =>
+        this.store
+          .select('user')
+          .pipe(map((user) => !user || user?.plan === 'FREE')),
       action: ({ environmentUuid }: dropdownMenuPayload) => {
         this.importExportOpenAPIService
           .downloadOpenAPIFile(environmentUuid)
