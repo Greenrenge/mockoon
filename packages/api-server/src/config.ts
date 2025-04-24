@@ -21,7 +21,7 @@ export default {
 		syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '30000', 10),
 	},
 	configuration: {
-		authProvider: process.env.AUTH_PROVIDER || ('supabase' as 'supabase' | 'keycloak'),
+		authProvider: process.env.AUTH_PROVIDER || ('disabled' as 'supabase' | 'keycloak' | 'disabled'),
 		apiPort: parseInt(process.env.API_PORT || '5003', 10),
 		wsPort: parseInt(process.env.WS_PORT || '4001', 10),
 		wsFullUrl: process.env.WS_FULL_URL || 'ws://localhost:4001',

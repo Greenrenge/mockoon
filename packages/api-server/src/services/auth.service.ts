@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import config from '../config'
 import { verifyJWT } from '../libs/keycloak-jwks'
 import supabase from '../supabase'
@@ -47,10 +48,13 @@ const AuthService: AppServiceSchema = {
 			params: {
 				token: { type: 'string', optional: true },
 			},
-			cache: {
-				keys: ['token'],
-				ttl: 2 * 60,
-			},
+			cache:
+				config.configuration.authProvider === 'disabled'
+					? false
+					: {
+							keys: ['token'],
+							ttl: 2 * 60,
+						},
 			async handler(ctx: AuthContextMeta) {
 				if (config.configuration.authProvider === 'supabase') {
 					try {
@@ -96,7 +100,7 @@ const AuthService: AppServiceSchema = {
 						this.logger.error('Token validation error', err)
 						return null
 					}
-				} else {
+				} else if (config.configuration.authProvider === 'keycloak') {
 					try {
 						const payload = await verifyJWT(ctx.params.token)
 						if (!payload) {
@@ -137,6 +141,38 @@ const AuthService: AppServiceSchema = {
 					} catch (err) {
 						this.logger.error('Token validation error', err)
 						return null
+					}
+				} else if (config.configuration.authProvider === 'disabled') {
+					// If auth is disabled, return a dummy user
+					const id = randomUUID()
+					return {
+						id: id,
+						uid: id,
+						email: 'anonymous',
+						plan: 'ENTERPRISE',
+						teamId: 'F1',
+						teamRole: 'owner',
+						deployInstancesQuota: 10,
+						deployInstancesQuotaUsed: 0,
+						cloudSyncItemsQuota: 999,
+						cloudSyncItemsQuotaUsed: 0,
+						cloudSyncSizeQuota: 100000000, // 100MB
+						cloudSyncHighestMajorVersion: 1,
+						templatesQuota: 999,
+						templatesQuotaUsed: 0,
+						nextQuotaResetOn: 1,
+						subscription: {
+							trial: false,
+							provider: 'manual',
+							frequency: 'YEARLY',
+							createdOn: 1744777380227,
+							renewOn: 4079996600352,
+							portalEnabled: true,
+							cancellationScheduled: false,
+							pastDue: false,
+							subscriptionId: 'F1',
+						},
+						displayName: 'Anonymous',
 					}
 				}
 			},

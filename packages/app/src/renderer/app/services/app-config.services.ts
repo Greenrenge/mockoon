@@ -33,6 +33,6 @@ export class AppConfigService {
   }
 
   public getAuthProvider(): string {
-    return this.config?.authProvider || 'supabase';
+    return this.config?.authProvider || 'disabled';
   }
 }
