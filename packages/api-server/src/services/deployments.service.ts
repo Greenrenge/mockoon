@@ -10,6 +10,7 @@ import DbService from 'moleculer-db'
 import SequelizeDbAdapter from 'moleculer-db-adapter-sequelize'
 import Sequelize, { ModelStatic } from 'sequelize'
 import config, { buildRemoteInstanceUrl } from '../config'
+import { syncSequelize } from '../libs/dbAdapters/sequelize-utils'
 import { mustLogin } from '../mixins/mustLogin'
 import { AppService, AppServiceSchema, AuthContextMeta, SyncEnv } from '../types/common'
 interface ServerInstanceInfo {
@@ -65,13 +66,19 @@ const MockoonServerService: AppServiceSchema = {
 	mixins: [DbService as any, mustLogin()],
 	dependencies: ['environments-store', 'socket-io'],
 	adapter: new SequelizeDbAdapter({
-		dialect: 'postgres',
-		host: config.postgres.host,
-		port: config.postgres.port,
-		database: config.postgres.database,
-		username: config.postgres.username,
-		password: config.postgres.password,
-		ssl: config.postgres.ssl,
+		dialect: config.database.dialect,
+		...(config.database.dialect === 'sqlite'
+			? {
+					storage: `${config.database.storage}/deployments.sqlite`,
+				}
+			: {
+					host: config.database.host,
+					port: config.database.port,
+					database: config.database.database,
+					username: config.database.username,
+					password: config.database.password,
+					ssl: config.database.ssl,
+				}),
 	}),
 	settings: {
 		rest: ['/'],
@@ -91,7 +98,7 @@ const MockoonServerService: AppServiceSchema = {
 				primaryKey: true,
 			},
 			environment: {
-				type: Sequelize.JSONB,
+				type: Sequelize.JSON,
 				allowNull: false,
 			},
 			port: {
@@ -332,6 +339,7 @@ const MockoonServerService: AppServiceSchema = {
 				const promises = Array.from(
 					this.metadata.instances.values() as Iterable<ServerInstanceInfo>,
 				).map((instance) => {
+					this.logger.fatal(`Stopping instance ${instance.environment.uuid}`)
 					return StopInstance(instance.server)
 				})
 				await Promise.all(promises)
@@ -578,7 +586,12 @@ const MockoonServerService: AppServiceSchema = {
 
 	async afterConnected(this: AppService) {
 		//@ts-ignore
-		// const InstanceModel = this.model! as ModelStatic<any>
+		const InstanceModel = this.model! as ModelStatic<any>
+		await syncSequelize({
+			Model: InstanceModel,
+			// @ts-ignore
+			sequelize: this.adapter.db,
+		})
 		// await InstanceModel.sync({ alter: true })
 		// @ts-ignore
 		await this.resync()
@@ -602,9 +615,31 @@ const MockoonServerService: AppServiceSchema = {
 	 * Service created lifecycle event handler
 	 */
 	created(this: Service) {
+		const stopSignals = [
+			'SIGHUP',
+			'SIGINT',
+			'SIGQUIT',
+			'SIGILL',
+			'SIGTRAP',
+			'SIGABRT',
+			'SIGBUS',
+			'SIGFPE',
+			'SIGUSR1',
+			'SIGSEGV',
+			'SIGUSR2',
+			'SIGTERM',
+		]
+
 		this.metadata.instances = new Map<string, ServerInstanceInfo>()
 		process.on('SIGINT', () => {
+			console.error('[SIGINT]Stopping all instances...')
 			this.actions.stopAll()
+		})
+		stopSignals.forEach((signal) => {
+			process.on(signal, () => {
+				console.error(`[${signal}]Stopping all instances...`)
+				this.actions.stopAll()
+			})
 		})
 	},
 

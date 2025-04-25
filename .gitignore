@@ -54,3 +54,7 @@ wip.md
 
 # env files
 .env*
+packages/api-server/data
+**/*.db
+**/*.sqlite
+data

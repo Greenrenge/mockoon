@@ -1,5 +1,6 @@
-import { DataTypes, Model, Sequelize } from 'sequelize'
+import { DataTypes, Model, Options, Sequelize } from 'sequelize'
 import { IEnvironmentDatabase } from '../db-environment-store'
+import { syncSequelize } from './sequelize-utils'
 
 /**
  * Sequelize model for Environment
@@ -29,18 +30,14 @@ class MetadataModel extends Model {
 /**
  * PostgreSQL implementation of the IEnvironmentDatabase interface using Sequelize
  */
-export class PostgresEnvironmentDatabase implements IEnvironmentDatabase {
+export class EnvironmentDatabase implements IEnvironmentDatabase {
 	private sequelize: Sequelize | null = null
 	private initialized: boolean = false
+	private opts: Options
 
-	constructor(
-		private host: string = 'localhost',
-		private port: number = 5432,
-		private database: string = 'mockoon',
-		private username: string = 'postgres',
-		private password: string = 'postgres',
-		private ssl: boolean = false,
-	) {}
+	constructor(opts: Options) {
+		this.opts = opts
+	}
 
 	/**
 	 * Initialize the database connection and create necessary tables
@@ -52,23 +49,7 @@ export class PostgresEnvironmentDatabase implements IEnvironmentDatabase {
 
 		try {
 			// Initialize Sequelize connection
-			this.sequelize = new Sequelize({
-				dialect: 'postgres',
-				host: this.host,
-				port: this.port,
-				database: this.database,
-				username: this.username,
-				password: this.password,
-				logging: false,
-				dialectOptions: this.ssl
-					? {
-							ssl: {
-								require: true,
-								rejectUnauthorized: false,
-							},
-						}
-					: {},
-			})
+			this.sequelize = new Sequelize(this.opts)
 
 			// Define models
 			EnvironmentModel.init(
@@ -78,7 +59,7 @@ export class PostgresEnvironmentDatabase implements IEnvironmentDatabase {
 						primaryKey: true,
 					},
 					environment: {
-						type: DataTypes.JSONB,
+						type: DataTypes.JSON,
 					},
 					environmentUuid: {
 						type: DataTypes.STRING,
@@ -113,27 +94,47 @@ export class PostgresEnvironmentDatabase implements IEnvironmentDatabase {
 			)
 
 			// Sync models with database
-			await this.sequelize.sync({ alter: true })
+			// await this.sequelize.sync({ alter: true })
+			await syncSequelize({
+				Model: EnvironmentModel,
+				sequelize: this.sequelize,
+			})
+			await syncSequelize({
+				Model: MetadataModel,
+				sequelize: this.sequelize,
+			})
 
 			// Test the connection
 			await this.sequelize.authenticate()
-			console.log('PostgreSQL connection has been established successfully.')
+			console.log('Database connection has been established successfully.')
 
 			this.initialized = true
 		} catch (error) {
-			console.error('Unable to connect to the PostgreSQL database:', error)
+			console.error('Unable to connect to the database:', error)
 			throw error
 		}
 	}
-
+	/**
+ * if (sequelize.getDialect() === 'postgres') {
+  // PostgreSQL-specific query
+  const result = await sequelize.query(`
+    SELECT * FROM my_table WHERE my_field @> '{"key": "value"}'
+  `);
+} else {
+  // SQLite-specific query using JSON1
+  const result = await sequelize.query(`
+    SELECT * FROM my_table WHERE json_extract(my_field, '$.key') = 'value'
+  `);
+}
+ */
 	/**
 	 * Load all environments from the database
 	 */
 	public async loadEnvironments(): Promise<EnvironmentModelType[]> {
 		try {
-			const environmentRecords = await EnvironmentModel.findAll({
-				raw: true,
-			})
+			const environmentRecords = (await EnvironmentModel.findAll({})).map((e) =>
+				e.get({ plain: true }),
+			)
 			return environmentRecords
 		} catch (error) {
 			console.error('Error loading environments from database:', error)

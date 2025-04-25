@@ -7,7 +7,7 @@ import { ServiceSchema } from 'moleculer'
 import os from 'os'
 import path from 'path'
 import { Environment } from '../../../commons/dist/cjs'
-import { EnvironmentModelType } from '../libs/dbAdapters/postgres-environment-database'
+import { EnvironmentModelType } from '../libs/dbAdapters/environment-database'
 import { mustLogin } from '../mixins/mustLogin'
 import { AuthContextMeta } from '../types/common'
 function uniqueId() {

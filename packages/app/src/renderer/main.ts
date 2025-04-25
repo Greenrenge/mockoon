@@ -64,7 +64,21 @@ bootstrapApplication(AppComponent, {
       await appConfigService.load();
     }),
     makeEnvironmentProviders([
-      AutoRefreshTokenService,
+      {
+        provide: AutoRefreshTokenService,
+        useFactory: (
+          appConfigService: AppConfigService,
+          userActivityService: UserActivityService,
+          keycloak: Keycloak
+        ) => {
+          if (appConfigService.getConfig().authProvider === 'keycloak') {
+            return new AutoRefreshTokenService(keycloak, userActivityService);
+          }
+
+          return null;
+        },
+        deps: [AppConfigService, UserActivityService, Keycloak]
+      },
       UserActivityService,
       {
         provide: KEYCLOAK_EVENT_SIGNAL,

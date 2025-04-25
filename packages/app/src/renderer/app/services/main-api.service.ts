@@ -101,7 +101,7 @@ export class MainApiService implements MainAPIModel {
         case 'APP_LOGS':
           if (data[0].type === 'error') {
             // eslint-disable-next-line no-console
-            console.error(data[0].message);
+            console.error(data?.[0]?.message);
           }
           break;
         default:

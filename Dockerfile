@@ -1,6 +1,7 @@
 FROM node:20 as base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
 RUN corepack enable
 COPY . /app
 WORKDIR /app
@@ -10,6 +11,8 @@ FROM base AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build:libs
 RUN pnpm deploy --filter=api-server --prod /prod/api-server --legacy
+# fix sqlite3 prebuild issue in arm64
+RUN cd /prod/api-server/node_modules/sqlite3 && npx node-gyp rebuild
 
 # Build stage
 FROM base AS build
@@ -27,6 +30,7 @@ WORKDIR /app
 COPY --from=prod-deps /prod/api-server /app
 
 COPY --from=build /app/packages/api-server/dist /app/dist
+RUN mkdir -p /app/dist/api-server/data
 
 EXPOSE 3000-3010 4000-4010
 

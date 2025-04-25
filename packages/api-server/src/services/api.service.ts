@@ -197,10 +197,10 @@ export default {
 			handler(ctx: Context) {
 				const authProvider = config.configuration.authProvider
 				return {
-					websiteURL: config.configuration.deployUrl?.replace('/api', '') || '', // current web url
-					apiURL: config.configuration.deployUrl?.endsWith('/') // add trailing slash
-						? config.configuration.deployUrl
-						: config.configuration.deployUrl + '/',
+					websiteURL: config.configuration.webFullUrl, // current web url
+					apiURL: `${config.configuration.webFullUrl}${
+						config.configuration.webFullUrl?.endsWith('/') ? '' : '/'
+					}api/`, // current api url
 					authProvider,
 					option: {
 						...(authProvider === 'supabase' && {

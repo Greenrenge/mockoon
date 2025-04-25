@@ -1,3 +1,6 @@
+import fs from 'fs'
+const dataPath = process.env.DB_PATH_SQLITE || './data'
+
 export default {
 	keycloak: {
 		url: process.env.KEYCLOAK_URL || 'http://localhost:8080/auth',
@@ -9,25 +12,36 @@ export default {
 		anonKey: process.env.SUPABASE_ANON_KEY || '',
 		serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 	},
-	postgres: {
-		host: process.env.POSTGRES_HOST || 'localhost',
-		port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
-		database: process.env.POSTGRES_DB || 'postgres',
-		username: process.env.POSTGRES_USER || 'postgres',
-		password: process.env.POSTGRES_PASSWORD || '1234',
-		ssl: process.env.POSTGRES_SSL === 'true',
+	database: {
+		dialect: process.env.DB_DRIVER || 'sqlite', //'mysql'|'sqlite'|'postgres'|'mssql',
+		host: process.env.DB_HOST || 'localhost',
+		port: parseInt(process.env.DB_PORT || '5432', 10),
+		database: process.env.DB_NAME || 'postgres',
+		username: process.env.DB_USER || 'postgres',
+		password: process.env.DB_PASSWORD || '1234',
+		ssl: process.env.DB_SSL === 'true',
+		storage: dataPath === ':memory:' ? ':memory:' : dataPath,
 	},
 	environment: {
-		syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '30000', 10),
+		syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '10000', 10),
 	},
 	configuration: {
 		authProvider: process.env.AUTH_PROVIDER || ('disabled' as 'supabase' | 'keycloak' | 'disabled'),
-		apiPort: parseInt(process.env.API_PORT || '5003', 10),
-		wsPort: parseInt(process.env.WS_PORT || '4001', 10),
-		wsFullUrl: process.env.WS_FULL_URL || 'ws://localhost:4001',
-		deployUrl: process.env.DEPLOY_URL || 'http://localhost:5003/api',
+		apiPort: parseInt(process.env.API_PORT || '8080', 10),
+		wsPort: parseInt(process.env.WS_PORT || '8081', 10),
+		wsFullUrl:
+			process.env.WS_FULL_URL || `ws://localhost:${parseInt(process.env.WS_PORT || '8081', 10)}`,
+		webFullUrl:
+			process.env.WEB_FULL_URL ||
+			`http://localhost:${parseInt(process.env.API_PORT || '8080', 10)}`,
 		instanceUrlPattern: process.env.INSTANCE_URL_PATTERN || 'http://localhost:{{PORT}}',
 	},
+}
+
+if (process.env.DB_DRIVER === 'sqlite') {
+	if (!fs.existsSync(dataPath)) {
+		fs.mkdirSync(dataPath, { recursive: true })
+	}
 }
 
 export function buildRemoteInstanceUrl(instanceUrlPattern: string, port: number): string {

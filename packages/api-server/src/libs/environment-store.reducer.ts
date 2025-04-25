@@ -22,7 +22,7 @@ import {
 	updateRouteMutator,
 	updateRouteResponseMutator,
 } from '@mockoon/commons'
-import { EnvironmentModelType } from './dbAdapters/postgres-environment-database'
+import { EnvironmentModelType } from './dbAdapters/environment-database'
 
 /**
  * State containing environments with their timestamps

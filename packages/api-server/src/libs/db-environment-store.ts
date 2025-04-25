@@ -7,7 +7,7 @@ import {
 import { Mutex } from 'async-mutex'
 import { EventEmitter } from 'events'
 import { debounce } from 'lodash'
-import { EnvironmentModelType } from './dbAdapters/postgres-environment-database'
+import { EnvironmentModelType } from './dbAdapters/environment-database'
 import { environmentsReducer, EnvironmentsState } from './environment-store.reducer'
 import { calcHash } from './hash'
 
@@ -132,7 +132,9 @@ export class DatabaseStore extends EventEmitter {
 	 * @returns The environment or undefined if not found
 	 */
 	public getEnvironmentByUUID(uuid: string): EnvironmentModelType | undefined {
-		return this.state.data.find((env) => env.environment.uuid === uuid)
+		return this.state.data.find(
+			(env) => env.environment.uuid === uuid || env.environmentUuid === uuid,
+		)
 	}
 
 	/**
@@ -218,6 +220,7 @@ export class DatabaseStore extends EventEmitter {
 				for (const uuid of existingUuids) {
 					if (!currentUuids.includes(uuid)) {
 						await this.dbAdapter!.deleteEnvironment(uuid)
+						console.info(`[DB-STORE] Deleted environment with UUID: ${uuid} from database`)
 					}
 				}
 
@@ -225,10 +228,12 @@ export class DatabaseStore extends EventEmitter {
 				for (const envWithTimestamp of this.state.data) {
 					// Save to database with the new signature - use environment as payload and timestamp from lastUpdateTimestamp
 					await this.dbAdapter!.saveEnvironment(envWithTimestamp)
+					console.info(`[DB-STORE] ${envWithTimestamp.environment.uuid} saved to database`)
 				}
 
 				// Update last sync timestamp
 				await this.dbAdapter!.updateLastSync(Date.now())
+				console.info(`[DB-STORE] Sync completed at ${new Date().toISOString()}`)
 
 				this.syncRequested = false
 				this.emit('synced')
