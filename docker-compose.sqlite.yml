@@ -14,7 +14,7 @@ services:
     ports:
       - 80:8080 # API
       - 81:8081 # WebSocket
-      - '3000-4000:3000-4000' # Mockoon Instances Ports
+      - '3000-3020:3000-3020' # Mockoon Instances Ports
     deploy:
       replicas: 1
     environment:
