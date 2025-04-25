@@ -119,7 +119,6 @@ const SyncService: AppServiceSchema = {
 									},
 								)
 								.then((environments) => {
-									service.logger.info('environments', environments)
 									this.emit(
 										SyncMessageTypes.ENV_LIST,
 										environments.map((env) => ({
@@ -182,28 +181,35 @@ const SyncService: AppServiceSchema = {
 			// Check authentication token
 			const token = socket.handshake.auth.token as string
 			if (!token) {
+				this.logger.error('No token:', { token })
 				throw new Error(SyncErrors.UNAUTHORIZED)
 			}
 			const user = (await this.broker.call('auth.validateToken', { token })) as User
 			if (!user) {
+				this.logger.error('Error validating token:', { token })
 				throw new Error(SyncErrors.UNAUTHORIZED)
 			}
 
 			socket.user = user
 			socket.accessToken = token
 
-			await this.broker.call(
-				'devices.register',
-				{
-					deviceId: deviceId,
-					userId: user.uid,
-					version: version,
-				},
-				{
-					//@ts-ignore
-					meta: this.socketGetMeta(socket),
-				},
-			)
+			await this.broker
+				.call(
+					'devices.register',
+					{
+						deviceId: deviceId,
+						userId: user.uid,
+						version: version,
+					},
+					{
+						//@ts-ignore
+						meta: this.socketGetMeta(socket),
+					},
+				)
+				.catch((err: Error) => {
+					this.logger.error('Error register device:', err)
+					return this.Promise.reject(err)
+				})
 
 			// Add socket to user's room for broadcasting
 			socket.join(`user:${user.uid}`)

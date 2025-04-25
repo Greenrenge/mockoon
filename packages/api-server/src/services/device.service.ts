@@ -21,18 +21,23 @@ interface UnregisterParams {
 interface CountParams {
 	userId: string
 }
-
 const DevicesService: AppServiceSchema = {
 	name: 'devices',
 	mixins: [DbService as any, mustLogin()],
 	adapter: new SequelizeDbAdapter({
-		dialect: 'postgres',
-		host: config.postgres.host,
-		port: config.postgres.port,
-		database: config.postgres.database,
-		username: config.postgres.username,
-		password: config.postgres.password,
-		ssl: config.postgres.ssl,
+		dialect: config.database.dialect,
+		...(config.database.dialect === 'sqlite'
+			? {
+					storage: `${config.database.storage}/devices.sqlite`,
+				}
+			: {
+					host: config.database.host,
+					port: config.database.port,
+					database: config.database.database,
+					username: config.database.username,
+					password: config.database.password,
+					ssl: config.database.ssl,
+				}),
 	}),
 	model: {
 		name: 'device',
@@ -125,7 +130,13 @@ const DevicesService: AppServiceSchema = {
 		this.logger.info('Database connected, syncing devices...')
 
 		//@ts-ignore
-		this.model!.sync({ alter: true })
+		// this.model!.sync({ alter: true })
+		syncSequelize({
+			//@ts-ignore
+			Model: this.model,
+			//@ts-ignore
+			sequelize: this.adapter.db,
+		})
 	},
 }
 

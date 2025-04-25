@@ -2,20 +2,12 @@ import { SyncActionTypes, UpSyncActions } from '@mockoon/cloud'
 import { Service } from 'moleculer'
 import config from '../config'
 import { DatabaseStore } from '../libs/db-environment-store'
-import { PostgresEnvironmentDatabase } from '../libs/dbAdapters/postgres-environment-database'
+import { EnvironmentDatabase } from '../libs/dbAdapters/environment-database'
 import { calcHash } from '../libs/hash'
 import { mustLogin } from '../mixins/mustLogin'
 
 interface EnvironmentServiceSettings {
 	syncIntervalMs: number
-	postgres: {
-		host: string
-		port: number
-		database: string
-		username: string
-		password: string
-		ssl: boolean
-	}
 }
 
 /**
@@ -32,7 +24,6 @@ export default class EnvironmentService extends Service<EnvironmentServiceSettin
 			mixins: [mustLogin()],
 			settings: {
 				syncIntervalMs: config.environment.syncIntervalMs,
-				postgres: config.postgres,
 			},
 
 			actions: {
@@ -60,7 +51,12 @@ export default class EnvironmentService extends Service<EnvironmentServiceSettin
 						const d = this.store.getEnvironmentByUUID(uuid)
 
 						if (!d) {
-							throw new Error(`Environment with UUID ${uuid} not found`)
+							throw new Error(
+								`Environment with UUID ${uuid} not found, only ${this.store
+									.getState()
+									.data.map((d) => d.environmentUuid)
+									.join(',')} is available`,
+							)
 						}
 
 						return {
@@ -192,18 +188,25 @@ export default class EnvironmentService extends Service<EnvironmentServiceSettin
 
 			started: async () => {
 				// Create the database adapter
-				const dbAdapter = new PostgresEnvironmentDatabase(
-					this.settings.postgres.host,
-					this.settings.postgres.port,
-					this.settings.postgres.database,
-					this.settings.postgres.username,
-					this.settings.postgres.password,
-					this.settings.postgres.ssl,
-				)
+				const dbAdapter = new EnvironmentDatabase({
+					dialect: config.database.dialect as any,
+					...(config.database.dialect === 'sqlite'
+						? {
+								storage: `${config.database.storage}/environments.sqlite`,
+							}
+						: {
+								host: config.database.host,
+								port: config.database.port,
+								database: config.database.database,
+								username: config.database.username,
+								password: config.database.password,
+								ssl: config.database.ssl,
+							}),
+				})
 
 				// Initialize the store with the adapter
 				await this.store.initialize(dbAdapter, this.settings.syncIntervalMs)
-				this.logger.info('Environment store initialized with PostgreSQL')
+				this.logger.info('Environment store initialized with DB')
 			},
 
 			stopped: async () => {

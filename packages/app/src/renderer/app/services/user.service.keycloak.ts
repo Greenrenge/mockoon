@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { AutoRefreshTokenService } from 'keycloak-angular';
 import Keycloak from 'keycloak-js';
 import {
@@ -48,12 +48,11 @@ export class UserServiceKeycloak implements IUserService {
     private loggerService: LoggerService,
     private appConfigService: AppConfigService,
     @Inject(Keycloak) private keycloak: Keycloak,
-    @Inject(AutoRefreshTokenService)
-    private autoRefreshTokenService: AutoRefreshTokenService
+    @Optional() private autoRefreshTokenService: AutoRefreshTokenService
   ) {
     // Initialize Keycloak client if needed
     this.setupAuthStateMonitoring();
-    autoRefreshTokenService.start({
+    autoRefreshTokenService?.start({
       onInactivityTimeout: 'logout',
       sessionTimeout: 50000
     });

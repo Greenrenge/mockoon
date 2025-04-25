@@ -8,7 +8,6 @@ import {
 } from '@angular/forms';
 import { BehaviorSubject, Subject, finalize, takeUntil } from 'rxjs';
 import { SpinnerComponent } from 'src/renderer/app/components/spinner.component';
-import { SvgComponent } from 'src/renderer/app/components/svg/svg.component';
 import { ImportExportOpenAPIService } from 'src/renderer/app/services/import-export-openapi.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
 
@@ -18,7 +17,7 @@ import { UIService } from 'src/renderer/app/services/ui.service';
   styleUrls: ['./yaml-upload-modal.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, SvgComponent]
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent]
 })
 export class YamlUploadModalComponent implements OnDestroy {
   public uploadForm: FormGroup;

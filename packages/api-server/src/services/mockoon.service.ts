@@ -24,7 +24,7 @@ export default {
 					enableTelemetry: false,
 					geoipEndpoint: 'http://ip-api.com/json/',
 					cloudSyncUrl: config.configuration.wsFullUrl,
-					deployUrl: config.configuration.deployUrl,
+					deployUrl: `${config.configuration.webFullUrl}/api`,
 				}
 			},
 		},
