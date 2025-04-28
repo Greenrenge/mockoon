@@ -1,10 +1,11 @@
-name: Manual build
-run-name: Manual build - ${{ inputs.namespace }}
+name: Automated build 
+run-name: Automated build CI
 
 on:
   push:
     branches:
       - gh-action
+      - main
   # workflow_dispatch:
   #   inputs:
   #     namespace:
