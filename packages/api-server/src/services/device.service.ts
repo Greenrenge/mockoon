@@ -4,6 +4,7 @@ import DbService from 'moleculer-db'
 import SequelizeDbAdapter from 'moleculer-db-adapter-sequelize'
 import Sequelize from 'sequelize'
 import config from '../config'
+import { syncSequelize } from '../libs/dbAdapters/sequelize-utils'
 import { mustLogin } from '../mixins/mustLogin'
 import { AppService, AppServiceSchema } from '../types/common'
 
