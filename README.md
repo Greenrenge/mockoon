@@ -3,30 +3,22 @@
     <img width="200" height="200" src="https://mockoon.com/images/logo-square-app.png">
   </a>
   <br>
-  <a href="https://mockoon.com/"><img src="https://img.shields.io/badge/Website-Go-green.svg?style=flat-square&colorB=1997c6"/></a>
-  <a href="https://mockoon.com/newsletter/"><img src="https://img.shields.io/badge/Newsletter-Subscribe-green.svg?style=flat-square"/></a>
-  <br>
-  <br>
-  <h1>Mockoon: awesome API mocking</h1>
+  <h1>KPC-Mockoon: Enterprise API Mocking</h1>
 </div>
 
-Mockoon is the easiest and quickest way to design and run mock APIs. No remote deployment, no account required, free and open-source.
+# KPC-Mockoon
 
-It combines a [desktop application](https://mockoon.com/download/) to design and run mock servers locally, and a [CLI](https://mockoon.com/cli/) to self-host your fake APIs. A [cloud](#subscribe-to-mockoon-cloud) is also available to collaborate with your team, keep your data in sync, and deploy your mock APIs.
+KPC-Mockoon is a fork of [Mockoon](https://mockoon.com) - the easiest and quickest way to design and run mock APIs. This fork adds enterprise-focused features for on-premises deployments and local API services.
 
-API mocking helps you speed up development and third-party API integration by reducing dependency on external services and their limitations: rate limits, costs, availability, etc.
-It also allows you to test your applications in a controlled environment with predictable responses, status codes, and latencies, and easily simulate edge cases and error scenarios.
-Finally, you can onboard new team members faster by providing them with a consistent and reliable environment to test and develop their applications.
+## About KPC-Mockoon
 
-➡️ [Download](https://mockoon.com/download/)
+API mocking helps you speed up development and third-party API integration by reducing dependency on external services and their limitations: rate limits, costs, availability, etc. It also allows you to test your applications in a controlled environment with predictable responses, status codes, and latencies, and easily simulate edge cases and error scenarios.
 
-<div align="center">
-  <img width="50%" src="https://mockoon.com/images/hero-repo.png">
-</div>
+KPC-Mockoon maintains all the core functionality of Mockoon while adapting cloud features to work locally:
 
 ## Features
 
-Mockoon offers many features:
+### Original Mockoon Features:
 
 - Unlimited number of mock local servers and routes
 - CLI to run your mock in headless environments, CI, etc.
@@ -37,110 +29,69 @@ Mockoon offers many features:
 - Proxy forwarding mode
 - HTTPS support
 
-You can check the [complete list](https://mockoon.com/features/) on the website.
+### KPC Modifications:
 
----
+- Local API service replacing cloud API service, enabling WebApp version to work on-premises
+- Authentication integration with:
+  - Supabase (with GitHub/KeyCloak integration)
+  - KeyCloak
+  - Disabled (no authentication)
+- Database support for PostgreSQL
 
-## Our sponsors
+### Newly Added Features:
 
-### Platinum
+- Import/Export OpenAPI/Swagger file(s) to create Mock Instances
+- Import/Export Mockoon Configuration from JSON
 
-<div align="center" style="margin-top:20px;margin-bottom:20px;">
-  <a href="https://github.blog/2023-04-12-github-accelerator-our-first-cohort-and-whats-next/">
-      <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://mockoon.com/images/sponsors/light/github.png">
-      <source media="(prefers-color-scheme: light)" srcset="https://mockoon.com/images/sponsors/github.png">
-      <img src="https://mockoon.com/images/sponsors/light/github.png" alt="GitHub logo" />
-      </picture>
-  </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://localazy.com/register?ref=a9CiDC61gOac-azO">
-      <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://mockoon.com/images/sponsors/light/localazy.png">
-      <source media="(prefers-color-scheme: light)" srcset="https://mockoon.com/images/sponsors/localazy.png">
-      <img src="https://mockoon.com/images/sponsors/light/localazy.png" alt="Localazy logo" />
-      </picture>
-  </a>
-</div>
+### Cloud Features Removed:
 
-### Silver
+- Auto subdomain creation for each instance
+- AI powered features
+- Template service
+- Telemetry
 
-<div align="center" style="margin-top:20px;margin-bottom:20px;">  
-  <a href="https://www.emqx.io/">  
-      <img src="https://mockoon.com/images/sponsors/emqx.png" alt="emqx logo" />
-  </a>
-</div>
+## Docker Deployment
 
-Mockoon is an open-source project built by volunteer maintainers. If you like our application, please consider sponsoring us and join all the [Sponsors and Backers](https://github.com/mockoon/mockoon/blob/main/backers.md) who helped this project over time!
+KPC-Mockoon can be easily deployed using Docker. Below are the Dockerfile and docker-compose configurations for deployment.
 
-<div align="center" style="margin-top:20px;margin-bottom:20px;">
-<a href="https://github.com/sponsors/mockoon"><img src="https://mockoon.com/images/sponsor-btn.png?" width="250" alt="sponsor button" /></a>
-</div>
+## Environment Variables
 
----
+KPC-Mockoon supports the following environment variables for configuration:
 
-## Download the desktop application
+| Variable                  | Description                                              |
+| ------------------------- | -------------------------------------------------------- |
+| AUTH_PROVIDER             | Authentication provider (keycloak, supabase, disabled)   |
+| SUPABASE_URL              | Supabase URL for authentication                          |
+| SUPABASE_ANON_KEY         | Supabase anonymous key                                   |
+| SUPABASE_SERVICE_ROLE_KEY | Supabase service role key                                |
+| KEYCLOAK_URL              | KeyCloak server URL                                      |
+| KEYCLOAK_CLIENT_ID        | KeyCloak client ID                                       |
+| KEYCLOAK_REALM            | KeyCloak realm                                           |
+| API_PORT                  | Port for the API server (default: 8080)                  |
+| WS_PORT                   | Port for WebSocket connections (default: 8081)           |
+| WS_FULL_URL               | Full WebSocket URL Excluding /socket.io suffix           |
+| WEB_FULL_URL              | Web deployment URL                                       |
+| INSTANCE_PATTERN          | URL pattern for mock instances with placeholder {{PORT}} |
+| DB_DRIVER                 | database driver (sqlite/postgres) default to sqlite      |
+| DB_HOST                   | PostgreSQL host                                          |
+| DB_PORT                   | PostgreSQL port                                          |
+| DB_NAME                   | PostgreSQL database name                                 |
+| DB_USER                   | PostgreSQL username                                      |
+| DB_PASSWORD               | PostgreSQL password                                      |
+| DB_PATH_SQLITE            | path for sqlite default to `./data`                      |
 
-You can get Mockoon desktop's [latest release](https://github.com/mockoon/mockoon/releases/latest) directly from this repository or on the official [website](https://mockoon.com/download/). Mockoon desktop is also available through:
+## Documentation
 
-MacOS:
-
-- [_Homebrew_](https://formulae.brew.sh/cask/mockoon): `brew install --cask mockoon`.
-
-Windows:
-
-- _winget_: `winget install mockoon`.
-- [_Chocolatey_](https://community.chocolatey.org/packages/mockoon): `choco install mockoon`.
-- [_Windows Store_](https://www.microsoft.com/en-us/p/mockoon/9pk8dmsn00jj)
-
-Linux:
-
-- [_Snap store_](https://snapcraft.io/mockoon): `snap install mockoon`.
-- [_AUR_](https://aur.archlinux.org/packages/mockoon-bin): `yay -S mockoon-bin`.
-
-## Install the CLI
-
-Mockoon CLI is available as an [NPM package](https://www.npmjs.com/package/@mockoon/cli). Please check our [dedicated documentation](https://github.com/mockoon/mockoon/blob/main/packages/cli/README.md) to learn how to install and use it.
-
-## Use in cloud functions and serverless environments
-
-Mockoon's Serverless [NPM package](https://www.npmjs.com/package/@mockoon/serverless) provides an easy way to run Mockoon's mock APIs in cloud functions and serverless environments: AWS Lambda, GCP Functions, Firebase Functions, etc.
-
-Please check our [dedicated documentation](https://github.com/mockoon/mockoon/blob/main/packages/serverless/README.md) to learn how to use it.
-
-## Subscribe to Mockoon Cloud
-
-With advanced features for solo developers and teams, Mockoon Cloud supercharges your API development:
-
-- ☁️ [cloud deployments](https://mockoon.com/docs/latest/mockoon-cloud/api-mock-cloud-deployments/)
-- 🔄️ [data synchronization and real-time collaboration](https://mockoon.com/docs/latest/mockoon-cloud/data-synchronization-team-collaboration/)
-- 🤖 [AI powered API mocking](https://mockoon.com/ai-powered-api-mocking/)
-- 📃 Access to dozens of [ready-to-use JSON templates](https://mockoon.com/templates/).
-- 💬 Priority support and training.
-
-Upgrade today and take your API development to the next level.
-
-<div align="center" style="margin-top:20px;margin-bottom:20px;">
-<a href="https://mockoon.com/cloud/"><img src="https://mockoon.com/images/cloud-btn.png?" width="250" alt="cloud button" /></a>
-</div>
-
-## Mockoon's documentation
-
-You will find Mockoon's [documentation](https://mockoon.com/docs/latest/about/) on the official website. It covers Mockoon's most complex features. Feel free to contribute or ask for new topics to be covered.
-
-## Changelogs
-
-You will find Mockoon applications [changelogs](https://mockoon.com/releases/) on the official website.
-
-## Support/feedback
-
-You can discuss all things related to Mockoon and ask for help on the [official community](https://github.com/mockoon/mockoon/discussions). It's also a good place to discuss bugs and feature requests before opening an issue on this repository.
+You will find KPC-Mockoon's documentation in our repository. It covers all features, including KPC-specific modifications and additions.
 
 ## Contributing
 
-If you are interested in contributing to Mockoon, please take a look at the [contributing guidelines](https://github.com/mockoon/mockoon/blob/main/CONTRIBUTING.md).
+If you are interested in contributing to KPC-Mockoon, please take a look at the contributing guidelines.
 
-Please also take a look at our [Code of Conduct](https://github.com/mockoon/mockoon/blob/main/CODE_OF_CONDUCT.md).
+## License
 
-## Roadmap
+KPC-Mockoon is open-source under the MIT License, maintaining the same license as the original Mockoon project.
 
-If you want to know what will be coming in the next release you can check the global [Roadmap](https://mockoon.com/public-roadmap/) or [subscribe to our newsletter](https://mockoon.com/newsletter/).
+---
+
+_KPC-Mockoon is a fork of the original [Mockoon](https://mockoon.com) project. We thank the original creators for developing such an awesome tool._
