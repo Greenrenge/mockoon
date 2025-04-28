@@ -8,7 +8,7 @@ import {
 	User,
 } from '@mockoon/cloud'
 import SocketIOService from 'moleculer-io'
-import { Server, Socket } from 'socket.io'
+import { Server, ServerOptions, Socket } from 'socket.io'
 import config from '../config'
 import { AppService, AppServiceSchema, SyncEnv } from '../types/common'
 
@@ -57,6 +57,9 @@ const SyncService: AppServiceSchema = {
 		//@ts-ignore
 		port: config.configuration.wsPort,
 		io: {
+			options: {
+				maxHttpBufferSize: 1e8, //
+			} as Partial<ServerOptions>,
 			namespaces: {
 				'/': {
 					authorization: true, // add authorization middleware (socketAuthorize method)
