@@ -19,8 +19,12 @@ FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build:libs
 RUN pnpm run build:web:prod
-
 RUN cp -r ./packages/app/dist/renderer/* ./packages/api-server/src/public
+
+RUN pnpm run --filter=next-web build 
+RUN mkdir -p ./packages/api-server/src/assets/tools
+RUN cp -r ./packages/next-web/out/* ./packages/api-server/src/assets/tools
+
 RUN pnpm run build:api-server
 
 # Final image

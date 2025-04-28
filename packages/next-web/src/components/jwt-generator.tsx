@@ -27,7 +27,7 @@ type SavedToken = {
 
 export function JwtGenerator() {
   const { toast } = useToast()
-  const [keySource, setKeySource] = useState<"generated" | "manual">("generated")
+  const [keySource, setKeySource] = useState<"generated" | "manual" | "saved">("generated")
   const [privateKey, setPrivateKey] = useState<string>("")
   const [generatedPrivateKey, setGeneratedPrivateKey] = useState<string>("")
   const [payloadFields, setPayloadFields] = useState<PayloadField[]>([
@@ -38,12 +38,36 @@ export function JwtGenerator() {
   const [token, setToken] = useState<string>("")
   const [remark, setRemark] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
+  const [selectedJwks, setSelectedJwks] = useState<any>(null)
 
   useEffect(() => {
     // Load generated key if available
     const storedKey = localStorage.getItem("jwks_private_key")
     if (storedKey) {
       setGeneratedPrivateKey(storedKey)
+    }
+
+    // Listen for JWKS selection
+    const handleJwksSelected = () => {
+      const selectedJwksJson = localStorage.getItem("selected_jwks")
+      if (selectedJwksJson) {
+        const jwks = JSON.parse(selectedJwksJson)
+        setSelectedJwks(jwks)
+        setKeySource("saved")
+      }
+    }
+
+    window.addEventListener("jwksSelected", handleJwksSelected)
+
+    // Check if there's already a selected JWKS
+    const selectedJwksJson = localStorage.getItem("selected_jwks")
+    if (selectedJwksJson) {
+      setSelectedJwks(JSON.parse(selectedJwksJson))
+      setKeySource("saved")
+    }
+
+    return () => {
+      window.removeEventListener("jwksSelected", handleJwksSelected)
     }
   }, [])
 
@@ -98,11 +122,33 @@ export function JwtGenerator() {
       // In a real implementation, we would use the jose library to sign the JWT
       // For this demo, we'll simulate JWT generation
       setTimeout(() => {
+        // Determine which key to use
+        let keyToUse
+        let keyId = "mock-key-id"
+        let alg = "RS256"
+
+        if (keySource === "generated" && generatedPrivateKey) {
+          keyToUse = generatedPrivateKey
+        } else if (keySource === "saved" && selectedJwks) {
+          keyToUse = selectedJwks.privateKey
+          keyId = selectedJwks.keyId
+          alg = selectedJwks.algorithm
+        } else if (keySource === "manual" && privateKey) {
+          try {
+            const parsedKey = JSON.parse(privateKey)
+            keyToUse = privateKey
+            keyId = parsedKey.kid || "manual-key"
+            alg = parsedKey.alg || "RS256"
+          } catch (e) {
+            keyToUse = privateKey
+          }
+        }
+
         // Create a mock JWT
         const header = {
-          alg: "RS256",
+          alg,
           typ: "JWT",
-          kid: "mock-key-id",
+          kid: keyId,
         }
 
         const encodedHeader = btoa(JSON.stringify(header))
@@ -184,10 +230,11 @@ export function JwtGenerator() {
         <CardDescription>Create a JWT using a private key and custom payload</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Tabs value={keySource} onValueChange={(v) => setKeySource(v as "generated" | "manual")}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="generated">Use Generated Key</TabsTrigger>
-            <TabsTrigger value="manual">Manual Key Input</TabsTrigger>
+        <Tabs value={keySource} onValueChange={(v) => setKeySource(v as "generated" | "manual" | "saved")}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="generated">Generated Key</TabsTrigger>
+            <TabsTrigger value="saved">Saved JWKS</TabsTrigger>
+            <TabsTrigger value="manual">Manual Input</TabsTrigger>
           </TabsList>
           <TabsContent value="generated" className="space-y-4 pt-4">
             {generatedPrivateKey ? (
@@ -201,6 +248,30 @@ export function JwtGenerator() {
               <div className="bg-muted p-4 rounded-md text-center">
                 <p className="text-muted-foreground">
                   No generated key found. Please generate a key in the JWKS Generator tab.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="saved" className="space-y-4 pt-4">
+            {selectedJwks ? (
+              <div className="space-y-2">
+                <Label>Using Saved JWKS: {selectedJwks.label}</Label>
+                <div className="bg-muted p-2 rounded-md text-xs">
+                  <p>
+                    <strong>Algorithm:</strong> {selectedJwks.algorithm}
+                  </p>
+                  <p>
+                    <strong>Key ID:</strong> {selectedJwks.keyId}
+                  </p>
+                  <p className="font-mono text-xs truncate">
+                    <strong>Private Key:</strong> {selectedJwks.privateKey.substring(0, 40)}...
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-muted p-4 rounded-md text-center">
+                <p className="text-muted-foreground">
+                  No saved JWKS selected. Please select a JWKS from the saved list.
                 </p>
               </div>
             )}
@@ -301,6 +372,7 @@ export function JwtGenerator() {
           disabled={
             isGenerating ||
             (keySource === "generated" && !generatedPrivateKey) ||
+            (keySource === "saved" && !selectedJwks) ||
             (keySource === "manual" && !privateKey)
           }
           className="w-full"
