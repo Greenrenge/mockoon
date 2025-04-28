@@ -5,21 +5,21 @@ on:
   push:
     branches:
       - gh-action
-  workflow_dispatch:
-    inputs:
-      namespace:
-      type: choice
-      required: true
-      description: 'Environment to deploy'  
-      options:
-        - dev
-        - pd1
-        - pd2
-        - pd3
-        - pd4
-        - pd5
-        - pd6
-        - uat
+  # workflow_dispatch:
+  #   inputs:
+  #     namespace:
+  #     type: choice
+  #     required: true
+  #     description: 'Environment to deploy'  
+  #     options:
+  #       - dev
+  #       - pd1
+  #       - pd2
+  #       - pd3
+  #       - pd4
+  #       - pd5
+  #       - pd6
+  #       - uat
 
 env:
   DOCKER_IMAGE: ${{ github.repository }}
