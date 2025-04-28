@@ -51,7 +51,7 @@ jobs:
         run: |
           echo "Docker image: ${{ env.DOCKER_IMAGE }}"  && \
           echo "Docker tag: ${{ steps.meta.outputs.tags }}"  && \
-          docker build --cache-from ${{ steps.meta.outputs.tags }} --build-arg API_URL=https://dev-mockoon.firster.kpc-dev.com/api/ --build-arg WEB_URL=https://dev-mockoon.firster.kpc-dev.com/  --build-arg APP_COMMIT_ID=$(echo ${GITHUB_SHA} | cut -c1-7) -t ${{ steps.meta.outputs.tags }} .
+          docker build --cache-from ${{ steps.meta.outputs.tags }} --build-arg APP_COMMIT_ID=$(echo ${GITHUB_SHA} | cut -c1-7) -t ${{ steps.meta.outputs.tags }} .
       - name: push docker image
         run: |
           echo "Docker image: ${{ inputs.DOCKER_IMAGE }}"  && \
