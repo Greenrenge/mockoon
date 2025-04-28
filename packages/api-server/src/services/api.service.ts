@@ -41,7 +41,9 @@ export default {
 			{
 				path: '/public',
 				bodyParsers: {
-					json: true,
+					json: {
+						limit: '20mb',
+					},
 					urlencoded: { extended: true },
 				},
 				mappingPolicy: 'restrict',
@@ -59,7 +61,9 @@ export default {
 			{
 				path: '/api',
 				bodyParsers: {
-					json: true,
+					json: {
+						limit: '20mb',
+					},
 					urlencoded: { extended: true },
 				},
 				mappingPolicy: 'restrict',
