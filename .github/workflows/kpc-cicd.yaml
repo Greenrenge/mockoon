@@ -30,12 +30,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ inputs.DOCKER_IMAGE }}
+          images: ${{ env.DOCKER_IMAGE }}
           flavor: |
             latest=false
       - name: Build Docker Image
         run: |
-          echo "Docker image: ${{ inputs.DOCKER_IMAGE }}"  && \
+          echo "Docker image: ${{ env.DOCKER_IMAGE }}"  && \
           echo "Docker tag: ${{ steps.meta.outputs.tags }}"  && \
           docker build --cache-from ${{ steps.meta.outputs.tags }} --build-arg APP_COMMIT_ID=$(echo ${GITHUB_SHA} | cut -c1-7) -t ${{ steps.meta.outputs.tags }} .
         with:
