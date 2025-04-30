@@ -1,0 +1,37 @@
+diff --git a/src/service.js b/src/service.js
+index 19ce1d99d17277093fb176e72b4b692dbbefd6c6..9fda55e01dc52e8f01e4b4d9cb9e8b8eddef1906 100644
+--- a/src/service.js
++++ b/src/service.js
+@@ -63,7 +63,7 @@ module.exports = function (mixinOptions) {
+ 			},
+ 			[mixinOptions.subscriptionEventName](event) {
+ 				if (this.pubsub) {
+-					this.pubsub.publish(event.tag, event.payload);
++					this.pubsub.publish(event.params.tag, event.params.payload);
+ 				}
+ 			},
+ 		},
+@@ -348,7 +348,7 @@ module.exports = function (mixinOptions) {
+ 									payload !== undefined
+ 										? ctx.call(filter, { ...params, payload })
+ 										: false
+-						  )
++							)
+ 						: () => this.pubsub.asyncIterator(tags),
+ 					resolve: (payload, params, { ctx }) =>
+ 						ctx.call(actionName, { ...params, payload }),
+@@ -664,12 +664,12 @@ module.exports = function (mixinOptions) {
+ 											ctx: req.$ctx,
+ 											service: req.$service,
+ 											params: req.$params,
+-									  }
++										}
+ 									: {
+ 											ctx: connection.context.$ctx,
+ 											service: connection.context.$service,
+ 											params: connection.context.$params,
+-									  }),
++										}),
+ 								dataLoaders: new Map(), // create an empty map to load DataLoader instances into
+ 							}),
+ 							subscriptions: {

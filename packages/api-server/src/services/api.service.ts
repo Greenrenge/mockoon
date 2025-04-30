@@ -1,9 +1,12 @@
 import { User } from '@mockoon/cloud'
 import cookieParser from 'cookie-parser'
+import { Kind } from 'graphql'
+import GraphQLJSON from 'graphql-type-json'
 import helmet from 'helmet'
 import type { ClientRequest, ServerResponse } from 'http'
 import { pick } from 'lodash'
 import { Context, Errors, ServiceBroker } from 'moleculer'
+import moleculerApolloServer from 'moleculer-apollo-server'
 import ApiGateway, {
 	Alias,
 	ApiSettingsSchema,
@@ -13,11 +16,178 @@ import ApiGateway, {
 } from 'moleculer-web'
 import config from '../config'
 import { buildStaticRoute } from '../static-assets-serve/route-builder'
-import { AuthContextMeta } from '../types/common'
+import { AccountInfo, AppService, AuthContextMeta } from '../types/common'
+
+const { ApolloService, moleculerGql: gql } = moleculerApolloServer
+
+const typeDefs = gql`
+	scalar Date
+	scalar Timestamp
+	scalar JSON
+	scalar Upload
+
+	type Pagination {
+		total: Int
+		skip: Int
+		limit: Int
+	}
+
+	type PaginationCursor {
+		hasNextPage: Boolean!
+		nextCursor: String
+	}
+
+	type Response {
+		message: String
+	}
+`
 export default {
 	name: 'api',
-	mixins: [ApiGateway],
+	mixins: [
+		ApiGateway,
+		ApolloService({
+			// Global GraphQL typeDefs
+			typeDefs,
+			// Global resolvers
+			resolvers: {
+				JSON: GraphQLJSON,
+				Date: {
+					__parseValue(value: any) {
+						return new Date(value) // value from the client
+					},
+					__serialize(value: any) {
+						return new Date(value) //  value sent to the client
+					},
+					__parseLiteral(ast: any) {
+						if (ast.kind === Kind.INT) {
+							return parseInt(ast.value, 10) // ast value is always in string format
+						}
+
+						return null
+					},
+				},
+				Timestamp: {
+					__parseValue(value: any) {
+						return new Date(value) // value from the client
+					},
+					__serialize(value: any) {
+						return new Date(value).toISOString() // value sent to the client
+					},
+					__parseLiteral(ast: any) {
+						if (ast.kind === Kind.INT) {
+							return parseInt(ast.value, 10) // ast value is always in string format
+						}
+
+						return null
+					},
+				},
+			},
+			// API Gateway route options
+			routeOptions: {
+				path: '/graphql',
+				authentication: true,
+				cors: {
+					origin: '*',
+				},
+				mappingPolicy: 'restrict',
+				bodyParsers: {
+					json: true,
+					urlencoded: { extended: true, limit: '5MB' },
+				},
+				use: [],
+				onBeforeCall(ctx: Context, route: any, req: any, res: any) {
+					if (req.$params.$serviceInterchange !== undefined) {
+						delete req.$params.$serviceInterchange
+					}
+
+					// set $graphql flag to true for later return null rather than throwing at the afterHook level
+					// @ts-expect-error
+					ctx.meta.$graphql = true
+					return Promise.resolve()
+				},
+			},
+			serverOptions: {
+				subscriptions: {
+					keepAlive: 5000,
+					// @ts-expect-error
+					onDisconnect(
+						webSocket: WebSocket,
+						// @ts-expect-error
+						context: { initPromise: Promise<any>; isLegacy; socket; request; operations },
+					) {
+						// initPromise will call onConnect again
+						// eslint-disable-next-line @typescript-eslint/no-floating-promises
+						context.initPromise
+							.catch((err) => {
+								// eslint-disable-next-line no-console
+								console.error(':::::WebSocket Closed:', err?.message)
+							})
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							.then(({ $ctx, $socket, $service, $params } = {}) => {})
+					},
+
+					// @ts-expect-error
+					async onConnect(
+						this: AppService,
+						connectionParams: any,
+						socket: WebSocket,
+						context,
+					): Promise<any> {
+						const { Authorization, authorization } = connectionParams || {}
+						const token =
+							(authorization && authorization.startsWith('Bearer ') && authorization.slice(7)) ||
+							(Authorization && Authorization.startsWith('Bearer ') && Authorization.slice(7))
+
+						if (!token) throw new Errors.MoleculerClientError('Unauthorized', 401, 'UNAUTHORIZED')
+
+						const accountInfo = await this.broker.call<AccountInfo, any>('auth.validateToken', {
+							token,
+						})
+
+						const originalSend = socket.send
+						if (!accountInfo) {
+							throw new Errors.MoleculerClientError('Unauthorized', 401, 'UNAUTHORIZED')
+						}
+
+						const { $ctx, $socket, $service, $params } = await this.actions.ws({
+							connectionParams,
+							socket,
+						})
+
+						socket.send = function (...data: any[]) {
+							// @ts-expect-error
+							originalSend.call(socket, ...data)
+						}
+
+						$ctx.meta.accessToken = token
+						$ctx.meta.accountId = accountInfo.id
+						$ctx.meta.accountInfo = accountInfo
+
+						$ctx.meta.user = await this.broker.call<User, {}>(
+							'saas.me',
+							{},
+							{
+								ctx: $ctx,
+							},
+						)
+						$ctx.meta.$graphql = true
+						$ctx.meta.$socket = $socket
+
+						return {
+							$ctx,
+							$socket,
+							$service,
+							$params,
+						}
+					},
+				},
+			},
+		}),
+	],
 	settings: {
+		openapi: {
+			cacheOpenApi: false,
+		},
 		rest: '/_api-gateway', // turns /api/v1/api to "/api/_internal/list-aliases",
 		cors: {
 			origin: '*',
@@ -67,7 +237,7 @@ export default {
 					urlencoded: { extended: true },
 				},
 				mappingPolicy: 'restrict',
-				whitelist: ['api.listAliases', 'mockoon.*', 'deployments.*'],
+				whitelist: ['api.listAliases', 'mockoon.*', 'deployments.*', 'saas.*'],
 				aliases: {},
 				autoAliases: true, // allow api.* to be called directly with rest: config
 				authentication: true, // allow request authorization header to ctx.meta.accessToken/accountId
@@ -142,6 +312,18 @@ export default {
 			...(process.env.NODE_ENV === 'production'
 				? []
 				: [
+						{
+							path: '/openapi',
+							openapi: {
+								// Define an OpenAPI specification that will apply to all aliases within this route
+							},
+							aliases: {
+								'GET /openapi.json': 'openapi.generateDocs',
+								'GET /ui': 'openapi.ui',
+								'GET /assets/:file': 'openapi.assets',
+								'GET /oauth2-redirect': 'openapi.oauth2Redirect',
+							},
+						},
 						{
 							// for moleculer-web API Gateway UI
 							path: '/$moleculer',
@@ -286,24 +468,28 @@ export default {
 				req.headers.authorization.startsWith('Bearer ') &&
 				req.headers.authorization.slice(7)
 
-			if (token) {
-				if (token === config.supabase.serviceRoleKey) {
+			if (token || config.configuration.authProvider === 'disabled') {
+				if (
+					config.configuration.authProvider === 'supabase' &&
+					config.supabase.serviceRoleKey &&
+					token === config.supabase.serviceRoleKey
+				) {
 					ctx.meta.accountId = 'service-role'
 					ctx.meta.accessToken = token
-					return ctx.call<User>('auth.getServiceRoleUser')
+					return ctx.call<User>('auth.getServiceRoleUser') // TODO: change service role fixed to F1 to be the admin of the tenant / team
 				}
 
 				try {
 					// Verify the token by getting the user session
-					const user = await ctx.call<User, any>('auth.validateToken', {
+					const accountInfo = await ctx.call<AccountInfo, any>('auth.validateToken', {
 						token,
 					})
-					if (user) {
-						// Include user info in the request context
-						ctx.meta.accountId = user.uid
+					if (accountInfo) {
+						ctx.meta.accountId = accountInfo.id
 						ctx.meta.accessToken = token
+						ctx.meta.accountInfo = accountInfo
 					}
-					return user // saved to ctx.meta.user
+					return await ctx.call<User, {}>('saas.me', {}, { ctx })
 				} catch (err) {
 					this.logger.error('Error authenticating user:', err)
 					return null

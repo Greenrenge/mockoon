@@ -7,11 +7,21 @@ settings:
 overrides:
   extract-files: ^11.0.0
   '@supabase/supabase-js>@supabase/auth-js': 2.61.0
+  '@apollographql/graphql-playground-html': ^1.6.29
 
 patchedDependencies:
+  '@apollographql/graphql-playground-html':
+    hash: ba4a9d85ec246e963076a172dfa7284b8c298b8ece3c55216354f58b4f8448e6
+    path: patches/@apollographql__graphql-playground-html.patch
+  '@spailybot/moleculer-auto-openapi':
+    hash: ada58dcaf73f10a676e514b2cea40a6d65dc4c58ce6d4c7d87e8a50d121d6dc0
+    path: patches/@spailybot__moleculer-auto-openapi.patch
   extract-files@11.0.0:
     hash: 273a954ff3e3e017627cd78ce0ad8dac1aa4125d455866d65126dc7fc3d090c6
     path: patches/extract-files@11.0.0.patch
+  moleculer-apollo-server:
+    hash: 0e6976e3ae9456ceba6f9eeabe0cedfd10be9fa19a59b29487d06b6f5fb1a24d
+    path: patches/moleculer-apollo-server.patch
 
 importers:
 
@@ -74,6 +84,9 @@ importers:
       '@moleculer/lab':
         specifier: ^0.6.4
         version: 0.6.4
+      '@spailybot/moleculer-auto-openapi':
+        specifier: ^1.3.1
+        version: 1.3.2(patch_hash=ada58dcaf73f10a676e514b2cea40a6d65dc4c58ce6d4c7d87e8a50d121d6dc0)(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))
       '@supabase/supabase-js':
         specifier: 2.49.4
         version: 2.49.4
@@ -130,7 +143,7 @@ importers:
         version: 0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0)
       moleculer-apollo-server:
         specifier: ^0.3.8
-        version: 0.3.8(@types/node@22.13.10)(encoding@0.1.13)(graphql@14.7.0)(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))(subscriptions-transport-ws@0.9.19(graphql@14.7.0))
+        version: 0.3.8(patch_hash=0e6976e3ae9456ceba6f9eeabe0cedfd10be9fa19a59b29487d06b6f5fb1a24d)(@types/node@22.13.10)(encoding@0.1.13)(graphql@14.7.0)(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))(subscriptions-transport-ws@0.9.19(graphql@14.7.0))
       moleculer-db:
         specifier: ^0.8.28
         version: 0.8.28(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))
@@ -934,9 +947,6 @@ packages:
     engines: {node: '>=8', npm: '>=6'}
     peerDependencies:
       graphql: ^14.2.1 || ^15.0.0 || ^16.0.0
-
-  '@apollographql/graphql-playground-html@1.6.27':
-    resolution: {integrity: sha512-tea2LweZvn6y6xFV11K0KC8ETjmm52mQrW+ezgB2O/aTQf8JGyFmMcRPFgUaQZeHbWdm8iisDC6EjOKsXu0nfw==}
 
   '@apollographql/graphql-playground-html@1.6.29':
     resolution: {integrity: sha512-xCcXpoz52rI4ksJSdOCxeOCn2DLocxwHf9dVT/Q90Pte1LX+LY+91SFtJF3KXVHH8kEin+g1KKCQPKBjZJfWNA==}
@@ -3450,6 +3460,9 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
+  '@scarf/scarf@1.4.0':
+    resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
+
   '@schematics/angular@19.2.1':
     resolution: {integrity: sha512-QYYGVR2n+YtLzqo0IsQq7OUnBMeP6OjyuVlGdjsAnSDCKQ9kUcqZDwjxxh5NUj25R4vvu+5aVaa6W6iTxfHadQ==}
     engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
@@ -3760,6 +3773,12 @@ packages:
 
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
+
+  '@spailybot/moleculer-auto-openapi@1.3.2':
+    resolution: {integrity: sha512-6h/IYWLSu4/7r0NzdyaWOwEAq9XFc2iPPKdwbLHX7qD00YyrQ9rYN0urcvHKupQyjPncvKMbNq6a5J1+rplVgw==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      moleculer: ^0.14.31
 
   '@stylistic/eslint-plugin-js@4.2.0':
     resolution: {integrity: sha512-MiJr6wvyzMYl/wElmj8Jns8zH7Q1w8XoVtm+WM6yDaTrfxryMyb8n0CMxt82fo42RoLIfxAEtM6tmQVxqhk0/A==}
@@ -11048,6 +11067,9 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  swagger-ui-dist@5.21.0:
+    resolution: {integrity: sha512-E0K3AB6HvQd8yQNSMR7eE5bk+323AUxjtCz/4ZNKiahOlPhPJxqn3UPIGs00cyY/dhrTDJ61L7C/a8u6zhGrZg==}
+
   symbol-observable@1.2.0:
     resolution: {integrity: sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==}
     engines: {node: '>=0.10.0'}
@@ -12555,11 +12577,7 @@ snapshots:
     dependencies:
       graphql: 14.7.0
 
-  '@apollographql/graphql-playground-html@1.6.27':
-    dependencies:
-      xss: 1.0.15
-
-  '@apollographql/graphql-playground-html@1.6.29':
+  '@apollographql/graphql-playground-html@1.6.29(patch_hash=ba4a9d85ec246e963076a172dfa7284b8c298b8ece3c55216354f58b4f8448e6)':
     dependencies:
       xss: 1.0.15
 
@@ -16015,6 +16033,9 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
+  '@scarf/scarf@1.4.0':
+    optional: true
+
   '@schematics/angular@19.2.1(chokidar@3.6.0)':
     dependencies:
       '@angular-devkit/core': 19.2.1(chokidar@3.6.0)
@@ -16462,6 +16483,12 @@ snapshots:
       tslib: 2.8.1
 
   '@socket.io/component-emitter@3.1.2': {}
+
+  '@spailybot/moleculer-auto-openapi@1.3.2(patch_hash=ada58dcaf73f10a676e514b2cea40a6d65dc4c58ce6d4c7d87e8a50d121d6dc0)(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))':
+    dependencies:
+      moleculer: 0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0)
+    optionalDependencies:
+      swagger-ui-dist: 5.21.0
 
   '@stylistic/eslint-plugin-js@4.2.0(eslint@9.22.0)':
     dependencies:
@@ -18032,7 +18059,7 @@ snapshots:
   apollo-server-core@2.26.2(encoding@0.1.13)(graphql@14.7.0):
     dependencies:
       '@apollographql/apollo-tools': 0.5.4(graphql@14.7.0)
-      '@apollographql/graphql-playground-html': 1.6.27
+      '@apollographql/graphql-playground-html': 1.6.29(patch_hash=ba4a9d85ec246e963076a172dfa7284b8c298b8ece3c55216354f58b4f8448e6)
       '@apollographql/graphql-upload-8-fork': 8.1.4(graphql@14.7.0)
       '@josephg/resolvable': 1.0.1
       '@types/ws': 7.4.7
@@ -23586,9 +23613,9 @@ snapshots:
 
   module-alias@2.2.3: {}
 
-  moleculer-apollo-server@0.3.8(@types/node@22.13.10)(encoding@0.1.13)(graphql@14.7.0)(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))(subscriptions-transport-ws@0.9.19(graphql@14.7.0)):
+  moleculer-apollo-server@0.3.8(patch_hash=0e6976e3ae9456ceba6f9eeabe0cedfd10be9fa19a59b29487d06b6f5fb1a24d)(@types/node@22.13.10)(encoding@0.1.13)(graphql@14.7.0)(moleculer@0.15.0-beta1(debug@4.4.0)(ioredis@5.6.1)(nats@2.29.3)(winston@3.17.0))(subscriptions-transport-ws@0.9.19(graphql@14.7.0)):
     dependencies:
-      '@apollographql/graphql-playground-html': 1.6.29
+      '@apollographql/graphql-playground-html': 1.6.29(patch_hash=ba4a9d85ec246e963076a172dfa7284b8c298b8ece3c55216354f58b4f8448e6)
       '@hapi/accept': 3.2.4
       '@types/graphql-upload': 8.0.12
       apollo-server-core: 2.26.2(encoding@0.1.13)(graphql@14.7.0)
@@ -26006,6 +26033,11 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  swagger-ui-dist@5.21.0:
+    dependencies:
+      '@scarf/scarf': 1.4.0
+    optional: true
 
   symbol-observable@1.2.0: {}
 

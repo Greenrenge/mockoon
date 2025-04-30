@@ -89,16 +89,21 @@
   },
   "overrides": {
     "extract-files": "^13.0.0",
-    "@supabase/supabase-js>@supabase/auth-js": "2.61.0"
+    "@supabase/supabase-js>@supabase/auth-js": "2.61.0",
+    "@apollographql/graphql-playground-html": "^1.6.29"
   },
   "resolutions": {
     "extract-files": "^11.0.0",
-    "@supabase/supabase-js>@supabase/auth-js": "2.61.0"
+    "@supabase/supabase-js>@supabase/auth-js": "2.61.0",
+    "@apollographql/graphql-playground-html": "^1.6.29"
   },
   "packageManager": "pnpm@10.4.1",
   "pnpm": {
     "patchedDependencies": {
-      "extract-files@11.0.0": "patches/extract-files@11.0.0.patch"
+      "extract-files@11.0.0": "patches/extract-files@11.0.0.patch",
+      "@apollographql/graphql-playground-html": "patches/@apollographql__graphql-playground-html.patch",
+      "moleculer-apollo-server": "patches/moleculer-apollo-server.patch",
+      "@spailybot/moleculer-auto-openapi": "patches/@spailybot__moleculer-auto-openapi.patch"
     }
   }
 }

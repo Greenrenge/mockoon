@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
 import config from '../config'
 import { verifyJWT } from '../libs/keycloak-jwks'
+import { SERVICE_ROLE } from '../libs/saas-plan'
 import supabase from '../supabase'
 import { AppServiceSchema, AuthContextMeta } from '../types/common'
 
@@ -10,35 +11,8 @@ const AuthService: AppServiceSchema = {
 		getServiceRoleUser: {
 			visibility: 'public',
 			handler(ctx: AuthContextMeta) {
-				return {
-					id: 'service-role',
-					uid: 'service-role',
-					email: 'service-role',
-					plan: 'ENTERPRISE',
-					teamId: 'F1',
-					teamRole: 'owner',
-					deployInstancesQuota: 10,
-					deployInstancesQuotaUsed: 0,
-					cloudSyncItemsQuota: 999,
-					cloudSyncItemsQuotaUsed: 0,
-					cloudSyncSizeQuota: 100000000, // 100MB
-					cloudSyncHighestMajorVersion: 1,
-					templatesQuota: 999,
-					templatesQuotaUsed: 0,
-					nextQuotaResetOn: 1,
-					subscription: {
-						trial: false,
-						provider: 'manual',
-						frequency: 'YEARLY',
-						createdOn: 1744777380227,
-						renewOn: 4079996600352,
-						portalEnabled: true,
-						cancellationScheduled: false,
-						pastDue: false,
-						subscriptionId: 'F1',
-					},
-					displayName: 'Admin Service Role',
-				}
+				//TODO: call saas service to get the service role user
+				return SERVICE_ROLE
 			},
 		},
 		/**
@@ -67,31 +41,7 @@ const AuthService: AppServiceSchema = {
 						// Get user from database
 						return {
 							id: res.data.user.id,
-							uid: res.data.user.id,
 							email: res.data.user.email,
-							plan: 'ENTERPRISE',
-							teamId: 'F1',
-							teamRole: 'owner',
-							deployInstancesQuota: 10,
-							deployInstancesQuotaUsed: 0,
-							cloudSyncItemsQuota: 999,
-							cloudSyncItemsQuotaUsed: 0,
-							cloudSyncSizeQuota: 100000000, // 100MB
-							cloudSyncHighestMajorVersion: 1,
-							templatesQuota: 999,
-							templatesQuotaUsed: 0,
-							nextQuotaResetOn: 1,
-							subscription: {
-								trial: false,
-								provider: 'manual',
-								frequency: 'YEARLY',
-								createdOn: 1744777380227,
-								renewOn: 4079996600352,
-								portalEnabled: true,
-								cancellationScheduled: false,
-								pastDue: false,
-								subscriptionId: 'F1',
-							},
 							displayName:
 								res.data.user.user_metadata?.preferred_username ||
 								res.data.user.user_metadata?.full_name,
@@ -113,29 +63,6 @@ const AuthService: AppServiceSchema = {
 							id: payload.sub,
 							uid: payload.sub,
 							email: payload.email,
-							plan: 'ENTERPRISE',
-							teamId: 'F1',
-							teamRole: 'owner',
-							deployInstancesQuota: 10,
-							deployInstancesQuotaUsed: 0,
-							cloudSyncItemsQuota: 999,
-							cloudSyncItemsQuotaUsed: 0,
-							cloudSyncSizeQuota: 100000000, // 100MB
-							cloudSyncHighestMajorVersion: 1,
-							templatesQuota: 999,
-							templatesQuotaUsed: 0,
-							nextQuotaResetOn: 1,
-							subscription: {
-								trial: false,
-								provider: 'manual',
-								frequency: 'YEARLY',
-								createdOn: 1744777380227,
-								renewOn: 4079996600352,
-								portalEnabled: true,
-								cancellationScheduled: false,
-								pastDue: false,
-								subscriptionId: 'F1',
-							},
 							displayName: payload.preferred_username || payload.name || payload.email,
 						}
 					} catch (err) {
@@ -148,30 +75,7 @@ const AuthService: AppServiceSchema = {
 					return {
 						id: id,
 						uid: id,
-						email: 'anonymous',
-						plan: 'ENTERPRISE',
-						teamId: 'F1',
-						teamRole: 'owner',
-						deployInstancesQuota: 10,
-						deployInstancesQuotaUsed: 0,
-						cloudSyncItemsQuota: 999,
-						cloudSyncItemsQuotaUsed: 0,
-						cloudSyncSizeQuota: 100000000, // 100MB
-						cloudSyncHighestMajorVersion: 1,
-						templatesQuota: 999,
-						templatesQuotaUsed: 0,
-						nextQuotaResetOn: 1,
-						subscription: {
-							trial: false,
-							provider: 'manual',
-							frequency: 'YEARLY',
-							createdOn: 1744777380227,
-							renewOn: 4079996600352,
-							portalEnabled: true,
-							cancellationScheduled: false,
-							pastDue: false,
-							subscriptionId: 'F1',
-						},
+						email: 'anonymous@any.com',
 						displayName: 'Anonymous',
 					}
 				}

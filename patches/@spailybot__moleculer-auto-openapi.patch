@@ -1,0 +1,3264 @@
+diff --git a/lib/cjs/index.cjs b/lib/cjs/index.cjs
+index c13fe0086a7a1b7516e6f97cda28099b40987915..5d72fd76531aaa5d0802400af435ff15eb09e970 100644
+--- a/lib/cjs/index.cjs
++++ b/lib/cjs/index.cjs
+@@ -1,3 +1,1710 @@
+-"use strict";var Ne=Object.create;var D=Object.defineProperty;var ke=Object.getOwnPropertyDescriptor;var He=Object.getOwnPropertyNames;var Be=Object.getPrototypeOf,qe=Object.prototype.hasOwnProperty;var Ge=(a,t)=>{for(var e in t)D(a,e,{get:t[e],enumerable:!0})},Ee=(a,t,e,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let s of He(t))!qe.call(a,s)&&s!==e&&D(a,s,{get:()=>t[s],enumerable:!(r=ke(t,s))||r.enumerable});return a};var R=(a,t,e)=>(e=a!=null?Ne(Be(a)):{},Ee(t||!a||!a.__esModule?D(e,"default",{value:a,enumerable:!0}):e,a)),We=a=>Ee(D({},"__esModule",{value:!0}),a);var lt={};Ge(lt,{Alias:()=>E,ECacheMode:()=>Me,HTTP_METHODS:()=>x,JOKER_METHOD:()=>y,OPENAPI_VERSIONS_SUPPORTED:()=>Te,OpenApiMixin:()=>mt,PathAction:()=>w,Route:()=>$,default:()=>ct,mixin:()=>J});module.exports=We(lt);var Re="unknown-action",Ye={server:"x-moleculer-web-server"},ze={optional:"x-fastest-optional",description:"x-fastest-description",summary:"x-fastest-summary",deprecated:"x-fastest-deprecated"},A={...Ye,...ze},x=(l=>(l.GET="get",l.PUT="put",l.POST="post",l.DELETE="delete",l.OPTIONS="options",l.HEAD="head",l.PATCH="patch",l.TRACE="trace",l))(x||{}),Te=["3.1"],_e="3.1",K=Object.values(x),Z=a=>K.includes(a==null?void 0:a.toLowerCase()),y="*",U="rest",X=["oneOf","allOf","anyOf"],Q=["put","post","patch"],dt=Object.values(x).filter(a=>!Q.includes(a)),j="application/json",N="file",xe=`{{summary}}
+-            ({{action}}){{autoAlias}}`,Ie="//unpkg.com/swagger-ui-dist",ee=/^[a-zA-Z0-9._-]+$/,k={json:["application/json"],urlencoded:["application/x-www-form-urlencoded"],text:["text/plain"],multipart:["multipart/form-data"],stream:["application/octet-stream"]};var Le=R(require("moleculer"),1);var Me=(r=>(r.NEXT_CALL="next-call",r.REFRESH="refresh",r.TIMEOUT="timeout",r))(Me||{});var Je={type:"object",properties:{rows:{type:"array",items:{type:"object"}},totalCount:{type:"number"}}},Ke={type:"array",items:{type:"object"}},Ze={type:"object"},Xe={type:"object",properties:{name:{examples:["InternalServerError"],type:"string",description:"The name of the error"},message:{examples:["Example"],type:"string",description:"an helping message"},code:{type:"number",description:"the status code of the error (can be different of the HTTP status code)"},type:{type:"string",description:"additional information for the error"},data:{type:"object"}},required:["name","message","code"]},Qe={description:"Server errors: 500, 501, 400, 404 and etc...",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{examples:[{name:"InternalServerError",message:"Internal Server Error",code:500}]}]}}}},et={description:"Need auth",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"UnAuthorizedError",message:"Unauthorized",code:401}]}]}}}},tt={description:"Fields invalid",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"MoleculerClientError",message:"Error message",code:422,data:[{name:"fieldName",message:"Field invalid"},{name:"arrayField[0].fieldName",message:"Whats wrong"},{name:"object.fieldName",message:"Whats wrong"}]}]}]}}}},rt={description:"",content:{"application/json":{schema:{oneOf:[{$ref:"#/components/schemas/DbMixinList"},{$ref:"#/components/schemas/DbMixinFindList"},{$ref:"#/components/schemas/Item"}]}}}},st={description:"File not exist",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"MoleculerClientError",message:"File missing in the request",code:400}]}]}}}},nt={description:"File too big",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"PayloadTooLarge",message:"Payload too large",code:413,type:"PAYLOAD_TOO_LARGE",data:{fieldname:"file",filename:"4b2005c0b8.png",encoding:"7bit",mimetype:"image/png"}}]}]}}}},at={DbMixinList:Je,DbMixinFindList:Ke,Item:Ze,Error:Xe},it={ServerError:Qe,UnauthorizedError:et,ValidationError:tt,ReturnedData:rt,FileNotExist:st,FileTooBig:nt},te={schemas:at,responses:it};var re=R(require("path/posix"),1);var ve=a=>{var t;return a.fullName?a.fullName:a.version!=null&&((t=a.settings)==null?void 0:t.$noVersionPrefix)!==!0?(typeof a.version=="number"?"v"+a.version:a.version)+"."+a.name:a.name},je=(a,t)=>{let e=[],r;for(;(r=a.exec(t))!==null;)r.index===a.lastIndex&&a.lastIndex++,e.push([...r.slice(1)]);return e},P=(a="")=>re.default.resolve("/",re.default.normalize(a)),we=a=>a===y||a===U||Z(a),$e=a=>a===y||Z(a);function se(a){return a?(t,e)=>{var r;return((r=t[a])==null?void 0:r.localeCompare(e[a],"en",{sensitivity:"base"}))??-1}:(t,e)=>t.localeCompare(e,"en",{sensitivity:"base"})}var Ce=R(require("path/posix"),1);var w=class{actionType;path;method;action;actionName;get fullPath(){return this.alias.fullPath}alias;constructor(t,e,r){this.alias=t,this.actionType=t.type,this.path=t.path,this.method=e,r&&this.setAction(r)}setAction(t){this.action=t}};var Ve=R(require("path/posix"),1);var E=class{fullPath;get path(){return this._path}set path(t){this._path=P(t)}get method(){return this._method}set method(t){if(!$e(t))throw new Error(`"${t}" is not a valid method`);this._method=t.toLowerCase()}route;type;_method="*";_path="";action;actionSchema;service;openapi;skipped=!1;busboyConfig;constructor(t,e){this.route=e,this.type=t.type,this.busboyConfig=t.busboyConfig,this.method=t.method??y,this.path=t.path??"/",this.fullPath=Ve.default.join((e==null?void 0:e.path)??"/",t.path??"/"),this.action=t.action,t.openapi===!1?this.skipped=!0:this.openapi=t.openapi}isJokerAlias(){return this.method===y}getMethods(){return(this.method===y?K:[this.method])??[]}toJSON(){return{method:this.method,type:this.type,path:this.path,action:this.action,openapi:this.openapi}}getPaths(){return this.getMethods().map(t=>new w(this,t,this.actionSchema))}};var H=class{constructor(t,e,r={},s=!0){this.logger=t;this.route=e;this.aliases=r;this.skipUnresolvedActions=s}getAliases(){return Object.entries(this.aliases??{}).flatMap(([t,e])=>{let r=this.extractAliasInformation(t,e),s=this.getSubAliases(r??{}).map(n=>{let o=new E(n,this.route);return o.skipped=!0,o});return r?r.action&&!r.action.match(ee)?(this.logger.error(`alias "${t}" from route "${this.route.path}" can't be added ton openapi . because the name "${r.action}" need to match pattern ${ee.toString()}`),s):this.getSubAliases(r).map(n=>new E(n,this.route)):(this.logger.warn(`alias "${t}" from route "${this.route.path}" is skipped`),s)})}extractAliasSubInformations(t){if((r=>!!r&&["action","handler"].some(s=>!!r[s]))(t))return t;if(Array.isArray(t)){let r=t.reduce((s,n)=>!n||typeof n!="string"?s:n,void 0);return!r&&this.skipUnresolvedActions?void 0:{action:r}}else return typeof t!="string"?this.skipUnresolvedActions?void 0:{action:void 0}:{action:t}}extractAliasInformation(t,e){var n;let r=this.extractAliasSubInformations(e);if(!r)return;let s=t.split(/\s+/);if(s.length===1&&(r.path=r.path??s[0]),s.length>1&&(r.path=r.path??s[1],r.method=r.method??s[0]),!r.actionType&&((n=r.action)!=null&&n.includes(":"))){let[o,i]=r.action.split(":");r.type=o,r.action=i}if(r.method?r.method=r.method.toLowerCase():r.method=y,!we(r.method)){this.logger.warn(`"${r.method}" is not a valid http method`);return}return r}getSubAliases(t){if(t.method!==U)return[t];let e=t.action,r={list:{method:"get",action:`${e}.list`,path:`${t.path}`},get:{method:"get",action:`${e}.get`,path:`${t.path}/:id`},create:{method:"post",action:`${e}.create`,path:`${t.path}`},update:{method:"put",action:`${e}.update`,path:`${t.path}/:id`},patch:{method:"patch",action:`${e}.patch`,path:`${t.path}/:id`},remove:{method:"delete",action:`${e}.remove`,path:`${t.path}/:id`}};return Object.entries(r).filter(([s])=>(t.only?t.only.includes(s):!0)&&(t.except?!t.except.includes(s):!0)).map(([,s])=>({...t,...s}))}};var $=class a{constructor(t,e,r,s,n=!0){this.logger=t;this.skipUnresolvedActions=n;this.path=a.formatPath(e==null?void 0:e.path,r),this.bodyParsers=e.bodyParsers,this.busboyConfig=e.busboyConfig,this.autoAliases=e.autoAliases??!1,this.openapi=e.openapi,this.openApiService=s,this.apiService=r,this.aliases=new H(this.logger,this,e.aliases,this.skipUnresolvedActions).getAliases()}aliases;path;bodyParsers;autoAliases;openapi;openApiService;apiService;busboyConfig;static formatPath(t,e){var r;return P(Ce.default.join(((r=e==null?void 0:e.settings)==null?void 0:r.path)??"/",t??"/"))}searchAlias(t){return this.aliases.find(e=>{var r,s,n,o;return(e.method.toLowerCase()===y||((r=e.method)==null?void 0:r.toLowerCase())===((s=t.methods)==null?void 0:s.toLowerCase()))&&P((n=e.path)==null?void 0:n.toLowerCase())===P((o=t.path)==null?void 0:o.toLowerCase())})}};var B=class{constructor(t){this.logger=t;this.logger.debug("RoutesParser.constructor()")}async parse(t,e,r,s){var f;this.logger.debug("RoutesParser.parse()");let n=new Map,o=new Map;s.forEach(p=>Object.values(p.actions??{}).forEach(c=>{typeof c=="boolean"||typeof c=="function"||!c.name||n.set(c.name,{service:p,action:c})}));let i=ve(e);return(((f=e.settings)==null?void 0:f.routes)||[]).forEach(p=>{var h;if(this.logger.debug(`RoutesParser.parse() - check route ${p.name??p.path}`),(p==null?void 0:p.openapi)===!1){this.logger.debug(`RoutesParser.parse() - skip route ${p.name??p.path} because openapi = false`);return}let c=new $(this.logger,p,e,(h=t.service)==null?void 0:h.schema,r);o.set(`${i}-${c.path}`,c)}),(await this.fetchAliasesForService(t,i)??[]).filter((p,c,h)=>c===h.findIndex(u=>u.fullPath===p.fullPath&&u.methods===p.methods)).flatMap(p=>{this.logger.debug(`RoutesParser.parse() - checking alias ${p.path} for path ${p.fullPath}`);let c=o.get(`${i}-${P(p.routePath)}`);if(!c){this.logger.debug(`RoutesParser.parse() - alias ${p.fullPath} is skipped because not linked to a route (can be normal if route use openapi = false)`);return}let h=c==null?void 0:c.searchAlias(p);if(!h){if(c&&!c.autoAliases){this.logger.error(`fail to get alias configuration for alias ${p.methods} "${p.fullPath}"`);return}this.logger.debug(`RoutesParser.parse() - alias ${p.fullPath} seems to use autoAliases`);let u=new E({path:p.path,method:p.methods,action:p.actionName??void 0,openapi:c==null?void 0:c.openapi},c);return p.fullPath&&(u.fullPath=p.fullPath),u}if(h.skipped){this.logger.debug(`RoutesParser.parse() - skip alias ${h.fullPath} because openapi = false`);return}return h}).filter(Boolean).map(p=>{if(!p.action)return p;let c=n.get(p.action);if(!c)return this.logger.warn(`fail to get details about action "${p.action}"`),r?void 0:p;if(c.action.openapi!==!1)return p.actionSchema=c.action,p.service=c.service,p}).filter(Boolean)}fetchAliasesForService(t,e){return t.call(`${e}.listAliases`,{withActionSchema:!1,grouping:!1})}};var Fe=a=>{let t=typeof a;if(["boolean","object","number","string","integer","array"].includes(t))return t};var q=class{constructor(t,e){this.validator=t;this.additionalMappersFn=e;this.mappers=ot(this.getMapperFn()),this.load()}mappers;getMapperFn(){return{getSchemaObjectFromSchema:(...t)=>this.getSchemaObjectFromSchema(...t),getSchemaObjectFromRule:(...t)=>this.getSchemaObjectFromRule(...t)}}_loadingPromise;async load(){if(this._loadingPromise)return this._loadingPromise;this._loadingPromise=new Promise(async(t,e)=>{var r;try{let s=this.getMapperFn();Object.entries(await((r=this.additionalMappersFn)==null?void 0:r.call(this,s.getSchemaObjectFromRule,s.getSchemaObjectFromSchema))??{}).forEach(([n,o])=>{this.mappers[n]=o}),t()}catch(s){e(s)}}),await this._loadingPromise}getValidationRules(t){return Object.fromEntries(Object.entries(t).filter(([e])=>!e.startsWith("$$")))}getMetas(t){return Object.fromEntries(Object.entries(t).filter(([e])=>e.startsWith("$$")))}getSchemaObjectFromSchema(t){return Object.fromEntries(Object.entries(this.getValidationRules(t)).map(([e,r])=>[e,this.getSchemaObjectFromRule(r,void 0,t)]).filter(Boolean))}getSchemaObjectFromRootSchema(t){if(t.$$root!==!0)throw new Error("this function only support $$root objects");return delete t.$$root,this.getSchemaObjectFromRule(t)}getSchemaObjectFromRule(t,e,r){var f,p,c;if(!this.validator||!((f=this.mappers)!=null&&f.string))throw new Error(`bad initialisation . validator ? ${!!this.validator} | string mapper ${!!((p=this.mappers)!=null&&p.string)}`);let s=typeof t=="object"?Array.isArray(t)?[...t]:{...t}:t,n=Array.isArray(s)||typeof s!="object"||!s.$$oa?[]:[{property:"description",extension:A.description},{property:"summary",extension:A.summary},{property:"deprecated",extension:A.deprecated}].map(({property:h,extension:u})=>{var g;return[u,(g=s.$$oa)==null?void 0:g[h]]}),o=(c=this.validator.getRuleFromSchema(s))==null?void 0:c.schema,i={...e,...o},m=(this.mappers[i.type]||this.mappers.string)(i,r);if(m)return i.optional&&(m[A.optional]=!0),n.forEach(([h,u])=>{m[h]=u}),m}},ot=({getSchemaObjectFromRule:a,getSchemaObjectFromSchema:t})=>({any:e=>({default:e.default,examples:e.default?[e.default]:void 0}),array:e=>{let r=(e.items?a(e.items,{enum:e.enum}):void 0)??{},s={type:"array",examples:e.default?[e.default]:void 0,uniqueItems:e.unique,default:e.default,items:r};return e.length?(s.maxItems=e.length,s.minItems=e.length):(s.maxItems=e.max,s.minItems=e.min),s},boolean:e=>({type:"boolean",default:e.default,examples:e.default!==void 0?[e.default]:[!0,!1]}),class:()=>{},currency:e=>{let r;if(e.customRegex)r=e.customRegex.toString();else{let s=e.currencySymbol||null,n=e.thousandSeparator||",",o=e.decimalSeparator||".",i=s?`\\${s}${e.symbolOptional?"?":""}`:"",l="(?=.*\\d)^(-?~1|~1-?)(([0-9]\\d{0,2}(~2\\d{3})*)|0)?(\\~3\\d{1,2})?$".replace(/~1/g,i).replace("~2",n).replace("~3",o);r=new RegExp(l).source}return{type:"string",pattern:r,default:e.default,examples:e.default?[e.default]:void 0,format:"currency"}},date:e=>{if(!e.convert)return;let r=new Date(e.default??Date.now()),s=[r.toISOString(),r.getTime()];return{type:"string",default:e.default,format:"date-time",examples:s}},email:e=>{let r=/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,s=/^\S+@\S+\.\S+$/,n=e.mode=="precise"?r:s;return{type:"string",format:"email",default:e.default,pattern:new RegExp(n).source,maxLength:e.max,minLength:e.min,examples:[e.default??"foo@bar.com"]}},enum:e=>a({type:"string",enum:e.values}),equal:(e,r)=>e.field&&(r!=null&&r[e.field])?a(r==null?void 0:r[e.field]):{type:e.strict?Fe(e.value):"string",default:e.default,examples:e.default?[e.default]:void 0,enum:e.value?[e.value]:void 0},forbidden:()=>{},function:()=>{},luhn:e=>({type:"string",default:e.default,pattern:"^(\\d{1,4} ){3}\\d{1,4}$",examples:e.default?[e.default]:void 0,format:"luhn"}),mac:e=>{let r=/^((([a-f0-9][a-f0-9]+-){5}|([a-f0-9][a-f0-9]+:){5})([a-f0-9][a-f0-9])$)|(^([a-f0-9][a-f0-9][a-f0-9][a-f0-9]+[.]){2}([a-f0-9][a-f0-9][a-f0-9][a-f0-9]))$/i;return{type:"string",default:e.default,pattern:new RegExp(r).source,examples:e.default?[e.default]:["01:C8:95:4B:65:FE","01C8.954B.65FE","01-C8-95-4B-65-FE"],format:"mac"}},multi:e=>Array.isArray(e.rules)?{oneOf:e.rules.map(s=>a(s)).filter(Boolean),default:e.default,examples:e.default?[e.default]:void 0}:void 0,number:e=>{var n;let r=e.default??((n=e.enum)==null?void 0:n[0])??e.min??e.max,s={type:"number",default:e.default,examples:r?[r]:void 0};return e.positive&&(s.minimum=0),e.negative&&(s.maximum=0),e.max&&(s.maximum=e.max),e.min&&(s.minimum=e.min),e.equal&&(s.maximum=e.equal,s.minimum=e.equal),s},object:e=>{let r=e.props??e.properties,s=r?t(r):void 0;return{type:"object",minProperties:e.minProps,maxProperties:e.maxProps,default:e.default,properties:s,examples:e.default?[e.default]:void 0}},record:e=>{let r=e.value?a(e.value):void 0;return{type:"object",default:e.default,additionalProperties:r}},string:e=>{var o;let r={default:e.default,type:"string"};e.length?(r.maxLength=e.length,r.minLength=e.length):(r.maxLength=e.max,r.minLength=e.min);let s;e.pattern?r.pattern=new RegExp(e.pattern).source:e.contains?(r.pattern=`.*${e.contains}.*`,s=e.contains):e.numeric?(r.pattern="^[0-9]+$",r.format="numeric",s="12345"):e.alpha?(r.pattern="^[a-zA-Z]+$",r.format="alpha",s="abcdef"):e.alphanum?(r.pattern="^[a-zA-Z0-9]+$",r.format="alphanum",s="abc123"):e.alphadash?(r.pattern="^[a-zA-Z0-9_-]+$",r.format="alphadash",s="abc-123"):e.singleLine?(r.pattern="^[^\\r\\n]*$",r.format="single-line",s="abc 123"):e.hex?(r.pattern="^([0-9A-Fa-f]{2})+$",r.format="hex",s="48656c6c6f20576f726c64"):e.base64&&(r.pattern="^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",r.format="byte",s="aGVsbG8gd29ybGQ="),r.enum=e.enum;let n=e.default??((o=e.enum)==null?void 0:o[0])??s;return n&&(r.examples=[n]),r},tuple:e=>{let r=a({type:"array",default:e.default,length:2});return e.items&&(r.items={oneOf:e.items.map(s=>a(s)).filter(Boolean)}),e.default&&(r.examples=[e.default]),r},url:e=>({type:"string",format:"url",default:e.default,examples:[e.default??"https://foobar.com"]}),uuid:e=>{let r;switch(e.version){case 0:r="00000000-0000-0000-0000-000000000000";break;case 1:r="45745c60-7b1a-11e8-9c9c-2d42b21b1a3e";break;case 2:r="9a7b330a-a736-21e5-af7f-feaf819cdc9f";break;case 3:r="9125a8dc-52ee-365b-a5aa-81b0b3681cf6";break;case 4:default:r="10ba038e-48da-487b-96e8-8d3b99b6d18a";break;case 5:r="fdda765f-fc57-5604-a269-52a7df8164ec";break;case 6:r="a9030619-8514-6970-e0f9-81b9ceb08a5f";break}return{type:"string",format:"uuid",default:e.default,examples:e.default?[e.default]:[r]}},objectID:e=>{let r="507f1f77bcf86cd799439011";return{type:"string",format:"ObjectId",default:e.default,minLength:r.length,maxLength:r.length,examples:e.default?[e.default]:[r]}},custom:()=>{}});var G=class{static generateResponses(t,e){var n;let r=t.responses??{},s="200";if(t.response){let o={description:""};if(t.response.description===void 0)o.content={[e]:t.response};else{let i=t.response;o.description=i.description,o.headers=i.headers,o.links=i.links,s=((n=i.statusCode)==null?void 0:n.toString())??s,i.content&&(o.content={[i.type??e]:i.content})}r[s]=o}return r}static mergeObjects(t,e={}){if(!e)throw new Error("need an input object to apply merge");return Object.entries(e).forEach(([r,s])=>{if(s===!1){delete t[r];return}t[r]=s}),t}static mergeCommons(t,e=[]){return e.reduce((r,s)=>{let n=r??{components:{}};return n!=null&&n.components||(n.components={}),s&&Object.keys(s).forEach(o=>{let i=o;if(i==="components"){Object.keys(s.components??{}).forEach(l=>{var f;let m=l;n.components||(n.components={}),n.components[m]||(n.components[m]={}),this.mergeObjects(n.components[m],(f=s==null?void 0:s.components)==null?void 0:f[m])});return}if(i==="responses"){n!=null&&n[i]||(n[i]={}),this.mergeObjects(n[i],s==null?void 0:s[i]);return}if(i==="tags"){n.tags=(s.tags??[]).reduce((l=[],m)=>m===null?[]:typeof m!="string"?(m.name&&t.set(m.name,{...t.get(m.name)??{},...m}),l):(t.set(m,{...t.get(m)??{},name:m}),[...l,m]),n.tags);return}if(s[i]===!1&&typeof n[i]!="boolean"){delete n[i];return}n[i]=s[i]}),n},{})}static merge(t,e,r,s,n,o){var i,l,m,f,p,c;return[r==null?void 0:r.openapi,(i=n==null?void 0:n.settings)!=null&&i.addServiceNameToTags&&((l=r==null?void 0:r.service)!=null&&l.name)?{tags:[r.service.name]}:void 0,(f=(m=r==null?void 0:r.service)==null?void 0:m.settings)==null?void 0:f.openapi,s==null?void 0:s.openapi].reduce((h,u)=>{var g;return u&&(u.responses=this.generateResponses(u,((g=n==null?void 0:n.settings)==null?void 0:g.defaultResponseContentType)??j),h=this.mergeCommons(t,[h,u]),h.summary=u.summary??h.summary,h.security=u.security??h.security),h},this.mergeCommons(t,[(p=n==null?void 0:n.settings)==null?void 0:p.openapi,(c=o==null?void 0:o.settings)==null?void 0:c.openapi,e.openapi]))}};var W=class{constructor(t,e,r,s){this.logger=t;this.converter=new q(e,s),this.document=r}components={schemas:{},responses:{},parameters:{},examples:{},requestBodies:{},headers:{},securitySchemes:{},links:{},callbacks:{},pathItems:{}};document;converter;isLoaded;async load(){await this.converter.load(),this.isLoaded=!0}generate(t,e){var o;this.isLoaded||this.logger.warn("generator : converter is not loaded, custom mapper can be not be enabled");let r=new Map;this.document.openapi&&(this.logger.warn("setting manually the openapi version is not supported"),delete this.document.openapi);let s={openapi:`${t}.0`,...this.document,servers:[],tags:[],components:this.cleanComponents(this.document.components)};s.responses&&delete s.responses;let n=new Map;return e.sort(se("fullPath")),e.forEach(i=>{var h,u,g,S,F;s.paths||(s.paths={});let l=i.route,{apiService:m,openApiService:f}=l,p=this.formatParamUrl(P(i.fullPath)),c=((h=s.paths)==null?void 0:h[p])??{};i.isJokerAlias()&&(c.description=(g=(u=i.actionSchema)==null?void 0:u.openapi)==null?void 0:g.description,c.summary=(F=(S=i.actionSchema)==null?void 0:S.openapi)==null?void 0:F.summary),i.getPaths().forEach(I=>{var ce,me,le,he,de,ue,fe,ge,Ae,Oe,ye,Se;let O=I.method,ie=`${p}.${O}`,b=c[O];if(b){if((b[A.server]||(ce=b.servers)!=null&&ce.length)&&((he=(le=(me=i.route.apiService.settings)==null?void 0:me.openapi)==null?void 0:le.server)!=null&&he.url)&&!((de=b.servers)!=null&&de.find(v=>{var _,Pe,be;return v.url===((be=(Pe=(_=i.route.apiService.settings)==null?void 0:_.openapi)==null?void 0:Pe.server)==null?void 0:be.url)}))){let v=i.route.apiService.settings.openapi.server;if(!((ue=b.servers)!=null&&ue.length)){b.servers=[];let _=b[A.server];_&&b.servers.push(_)}b.servers.push(v),this.addServerToDocument(s,v);return}let M=n.get(ie);this.logger.warn(`${O.toUpperCase()} ${p} is already register by action ${M??"<unamedAction>"} skip`);return}n.set(ie,(fe=I.action)==null?void 0:fe.name);let d=G.merge(r,l,i,I.action,f,m),{parameters:oe,requestBody:Ue}=this.extractParameters(O,p,i)??{};d!=null&&d.parameters&&oe.push(...d.parameters),this.components=this.mergeComponents(this.components,this.cleanComponents(d.components));let L={summary:i.isJokerAlias()||d==null?void 0:d.summary,description:i.isJokerAlias()||d==null?void 0:d.description,deprecated:d.deprecated,operationId:d==null?void 0:d.operationId,externalDocs:d==null?void 0:d.externalDocs,security:d==null?void 0:d.security,tags:this.handleTags(s,r,d==null?void 0:d.tags),parameters:oe,requestBody:Ue,responses:d==null?void 0:d.responses};if((Ae=(ge=i.route.apiService.settings)==null?void 0:ge.openapi)!=null&&Ae.server){let M=i.route.apiService.settings.openapi.server;L[A.server]=M,this.addServerToDocument(s,M)}let pe={summary:(d==null?void 0:d.summary)??"",action:i.action??Re,autoAlias:i.route.autoAliases?"[autoAlias]":""},V=(Se=(ye=(Oe=i.route)==null?void 0:Oe.openApiService)==null?void 0:ye.settings)==null?void 0:Se.summaryTemplate;(typeof V=="string"||V===void 0)&&(L.summary=Object.entries(pe).reduce((M,[v,_])=>M.replace(new RegExp(`{{${v}}}`,"g"),_??""),V??xe).trim()),typeof V=="function"&&(L.summary=V(pe)),c[O]=L}),s.paths[p]=c}),(o=s.tags)==null||o.sort(se("name")),s.components=this.mergeComponents(s.components,this.components),this.removeExtensions(s)}addServerToDocument(t,e){t.servers||(t.servers=[]),t.servers.some(r=>r.url===e.url)||t.servers.push(e)}mergeComponents(t,e){return Object.keys(e).reduce((r,s)=>Object.keys(e==null?void 0:e[s]).length?{...r,[s]:{...t[s],...e[s]}}:r,{...t})}addQueryParameters(t,e,r,s){var o;if((o=e.openapi)!=null&&o.queryParameters)return e.openapi.queryParameters.map(i=>({...i,in:"query"}));let n=this.getParameters(r,s,!1);return Object.entries(n).forEach(([i,l])=>{let m=this.converter.getSchemaObjectFromRule(l);if(!m)return;let f=this.getComponent(m),p={name:i,in:"query",style:m.type==="object"?"deepObject":void 0,explode:m.type==="object"?!0:void 0,required:f[A.optional]!==!0||void 0,schema:m};if(!t.some(c=>c.name===i)){t.push(p);return}t=t.map(c=>c.name!==i?c:{...p,in:"path",required:!0})}),t}getRequestBody(t,e,r,s,n=[]){var l,m,f,p,c,h;if((l=t.openapi)!=null&&l.requestBody)return(m=t.openapi)==null?void 0:m.requestBody;if(!t.action)return;let o=(s==null?void 0:s.$$oa)??{},i=this.getParameters(e,r,!0);if(Object.keys(i).length>0){let u={...s,...i},g=this.createRequestBodyFromParams(t.action,u,n),S=Object.entries(((f=t.route)==null?void 0:f.bodyParsers)||{}).filter(([,O])=>!!O).flatMap(([O])=>k[O]??[]),F=(S!=null&&S.length?S:[(h=(c=(p=t.route)==null?void 0:p.openApiService)==null?void 0:c.settings)==null?void 0:h.defaultResponseContentType])??[j],I=!1;if(this.isReferenceObject(g)){let O=this.getComponentByRef(g.$ref);if(!O)throw new Error(`fail to get schema from path ${g.$ref}`);I=(O.required??[]).length>0}return{description:o.description,summary:o.summary,required:I,content:Object.fromEntries(F.map(O=>[O,{schema:g}]))}}}extractParameters(t,e,r){var p,c,h,u;let s=((p=r==null?void 0:r.actionSchema)==null?void 0:p.params)??{},n=this.converter.getMetas(s),o=["multipart","stream"].includes(r.type??""),i=(c=r.openapi)!=null&&c.pathParameters?r.openapi.pathParameters.map(g=>({...g,in:"path"})):this.extractParamsFromUrl(e),m={parameters:this.addQueryParameters(i,r,o?"get":t,s)},f=i.map(g=>g.name);return o?m.requestBody=(h=r.openapi)!=null&&h.requestBody?(u=r.openapi)==null?void 0:u.requestBody:this.generateFileUploadBody(r,f):m.requestBody=this.getRequestBody(r,t,s,n,f),m}getParameters(t,e,r){let s=Q.includes(t);return Object.fromEntries(Object.entries(this.converter.getValidationRules(e)).map(([n,o])=>{var m;let i=(m=o==null?void 0:o.$$oa)==null?void 0:m.in;if((i?i==="body":s)===r)return[n,o]}).filter(Boolean))}generateFileUploadBody(t,e){var o,i,l,m,f,p,c,h,u;let r=t.type?k[t.type]:k.multipart,s={},n={type:"string",format:"binary"};if(t.type==="stream")s.type=n.type,s.format=n.format;else{if(((i=(o=t.actionSchema)==null?void 0:o.params)==null?void 0:i.$$root)===!0)throw new Error("$$root parameters is not supported on multipart");let g=((m=(l=t.busboyConfig)==null?void 0:l.limits)==null?void 0:m.files)??((c=(p=(f=t==null?void 0:t.route)==null?void 0:f.busboyConfig)==null?void 0:p.limits)==null?void 0:c.files),S=((u=(h=t.route.openApiService)==null?void 0:h.settings)==null?void 0:u.multiPartFileFieldName)??N;s.allOf=[{type:"object",properties:{[S]:g===1?n:{type:"array",items:n,maxItems:g}},required:[S]}]}return{required:!0,content:{[r[0]]:{schema:s}}}}isReferenceObject(t){return!!(t!=null&&t.$ref)}getComponent(t){if(!this.isReferenceObject(t))return t;let e=this.getComponentByRef(t.$ref);if(!e)throw new Error(`fail to get component "${t.$ref}`);return e}getComponentByRef(t){let e=t.split("/").filter(r=>r!=="");if(!(e.length<4||e[0]!=="#"||e[1]!=="components"||!Object.keys(this.components).includes(e[2])))return e.slice(2).reduce((r,s)=>r&&r.hasOwnProperty(s)?r[s]:void 0,this.components)}createRequestBodyFromParams(t,e,r=[],s={}){if(e.$$root===!0)return this.converter.getSchemaObjectFromRootSchema(e);let n=this.converter.getSchemaObjectFromSchema(e),o=Object.fromEntries(Object.entries(n).filter(([i,l])=>!r.includes(i)&&l));return this._createSchemaComponentFromObject(t,o,s)}extractParamsFromUrl(t=""){return[...je(/{(\w+)}/g,t).flat()].map(e=>({name:e,in:"path",required:!0,schema:{type:"string"}}))}_createSchemaComponentFromObject(t,e,r={}){this.components.schemas||(this.components.schemas={});let s=[],n=Object.fromEntries(Object.entries(e).map(([o,i])=>{let l=`${t}.${o}`;return i[A.optional]!=!0&&s.push(o),[o,this._createSchemaPartFromRule(l,i)]}));return this.components.schemas[t]&&this.logger.warn(`Generator - schema ${t} already exist and will be overwrite`),this.components.schemas[t]={type:"object",properties:n,required:s.length>0?s:void 0,default:r.default},{$ref:`#/components/schemas/${t}`}}formatParamUrl(t=""){let e=t.indexOf("/:");if(e===-1)return t;let r=t.indexOf("/",++e);return r===-1?t.slice(0,e)+"{"+t.slice(++e)+"}":this.formatParamUrl(t.slice(0,e)+"{"+t.slice(++e,r)+"}"+t.slice(r))}_createSchemaPartFromRule(t,e){let r=this.extractSystemParams(e);if(e.description=r.description,e.title=r.summary,e.deprecated=r.deprecated,e.type=="object"&&e.properties)return{summary:e.title,deprecated:e.deprecated,description:e.description,...this._createSchemaComponentFromObject(t,e.properties,{default:e.default})};if(e.type==="array"&&e.items)return{...e,items:this._createSchemaPartFromRule(t,e.items)};if(X.some(s=>e[s])){let s=0;X.forEach(n=>{e[n]&&(e[n]=e[n].map(o=>{if(o.type!=="object")return o;let i=`${t}.${s++}`;return this._createSchemaPartFromRule(i,o)}))})}return e}extractSystemParams(t={}){return{optional:t==null?void 0:t[A.optional],description:t==null?void 0:t[A.description],summary:t==null?void 0:t[A.summary],deprecated:t==null?void 0:t[A.deprecated]}}removeExtensions(t){return Array.isArray(t)?t.map(e=>this.removeExtensions(e)):typeof t=="object"?(Object.values(A).forEach(e=>{delete t[e]}),Object.fromEntries(Object.entries(t).map(([e,r])=>[e,this.removeExtensions(r)]))):t}cleanComponents(t={}){return Object.fromEntries(Object.entries(t).map(([e,r])=>[e,Object.fromEntries(Object.entries(r).map(([s,n])=>n===!1?void 0:[s,n]).filter(Boolean))]))}handleTags(t,e,r=[]){let s=Array.from(new Set(r));return t.tags||(t.tags=[]),s.forEach(n=>{let o=e.get(n);!t.tags.some(({name:i})=>i===n)&&o&&t.tags.push(o)}),s}};var pt=Le.default.Errors.MoleculerError,ne={onlyLocal:!1,openapi:{info:{description:"",version:"0.0.1",title:"Api docs"},tags:[],paths:{},components:{schemas:te.schemas,securitySchemes:{},responses:te.responses},responses:{200:{$ref:"#/components/responses/ReturnedData"},401:{$ref:"#/components/responses/UnauthorizedError"},422:{$ref:"#/components/responses/ValidationError"},default:{$ref:"#/components/responses/ServerError"}}},cacheOpenApi:!0,skipUnresolvedActions:!0,cacheMode:"next-call",summaryTemplate:`{{summary}}
+-            ({{action}}) {{autoAlias}}`,returnAssetsAsStream:!0,defaultResponseContentType:j,multiPartFileFieldName:N,addServiceNameToTags:!1,UIOptions:{}},Y=class{broker;settings;logger;validator;constructor(t,e){this.broker=t;let r=this.broker.validator;if(r.constructor.name!="FastestValidator"&&r.validator)throw new Error("only fastest validator is allowed");this.logger=this.broker.getLogger("moleculer-openapi-generator"),this.validator=r.validator,this.settings={...ne,...e}}fetchServicesWithActions(t,e=!0,r=this.settings.onlyLocal){return t.call("$node.services",{withActions:e,onlyLocal:r??!1})}async mapAliases(t,e){this.logger.debug("mapAliases()");let r=e.filter(n=>{var o;return(o=n==null?void 0:n.settings)==null?void 0:o.routes});if(this.logger.debug(`mapAliases() : ${(r==null?void 0:r.length)??0} moleculer-web services found`),!(r!=null&&r.length))throw new pt("fail to identify service hosting moleculer-web");let s=new B(this.logger);return(await Promise.all(r.map(async n=>await s.parse(t,n,this.settings.skipUnresolvedActions??!0,e)))).flat()}async getAliases(t){let e=await this.fetchServicesWithActions(t);return this.mapAliases(t,e)}async generateSchema(t,{filterAliasesFn:e,addMappers:r}){let s="3.1",n=await e(t,await this.getAliases(t)),o=new W(this.logger,this.validator,JSON.parse(JSON.stringify(this.settings.openapi)),r);return await o.load(),o.generate(s,n)}};var De=R(require("moleculer"),1),z=R(require("fs"),1);var C=R(require("path/posix"),1),ae=De.default.Errors.MoleculerError,T={},J={name:"openapi",settings:ne,events:{async"$api.aliases.regenerated"(){let a="generateDocs",{cacheMode:t}=this.settings;if(t!=="timeout"&&this.broker.cacher&&this.actions[a]){let e=this.broker.cacher.getCacheKey(`${this.fullName}.${a}`,{},{},[]);await this.broker.cacher.clean(`${e}*`)}this.actions.regenerateOpenApiPaths().catch(e=>{this.logger.error(`regenerateOpenApiPaths failed with error : ${e.toString()}`)}),t==="refresh"&&await this.actions[a]()}},actions:{generateDocs:{rest:{path:"/openapi.json",method:"GET"},cache:{enabled(){return this.settings.cacheOpenApi??!0},keygen:(a,t)=>t.version?`${a}|${(t==null?void 0:t.version)||_e}`:a,ttl:600},openapi:{tags:["OpenApi"]},handler(a){return this.getGenerator().generateSchema(a,{filterAliasesFn:this.filterAliases,addMappers:this.addMappers})}},assets:{rest:{path:"/assets/:file",method:"GET"},openapi:{summary:"OpenAPI assets",description:"Return files from swagger-ui-dist folder",tags:["OpenApi"]},params:{file:{type:"enum",values:["swagger-ui.css","swagger-ui.css.map","swagger-ui-bundle.js","swagger-ui-bundle.js.map","swagger-ui-standalone-preset.js","swagger-ui-standalone-preset.js.map"]}},async handler(a){let{file:t}=a.params;t.indexOf(".css")>-1?a.meta.$responseType="text/css":t.indexOf(".js")>-1?a.meta.$responseType="text/javascript":a.meta.$responseType="application/octet-stream";let e=`${await this.getSwaggerPath()}/${t}`;return this.settings.returnAssetsAsStream?z.default.createReadStream(e):z.default.promises.readFile(e)}},ui:{rest:{path:"/ui",method:"GET"},openapi:{summary:"OpenAPI ui",description:"You can provide any schema file in query param",tags:["OpenApi"]},params:{url:{$$oa:{summary:"Schema file"},type:"string",optional:!0}},async handler(a){a.meta.$responseType="text/html; charset=utf-8";let t=await this.getOpenApiPaths(),e=t.assetsPath,r={swaggerSettings:{deepLinking:!0,showExtensions:!0,layout:"StandaloneLayout",...this.settings.UIOptions,url:a.params.url||t.schemaPath,dom_id:"#swagger-ui",oauth2RedirectUrl:t.oauth2RedirectPath},oauth:this.settings.UIOauthOptions};return`<html lang="en"><head><title>OpenAPI UI</title><style>body{ margin: 0;} </style></head><body><div id="swagger-ui"><p>Loading...</p><noscript>If you see json, you need to update your dependencies</noscript></div><script type="application/json" id="__SWAGGER_SETTINGS__">${JSON.stringify(r)} </script><script>var assetsURL="${e}"; var configElement=document.getElementById("__SWAGGER_SETTINGS__"); if (!configElement){ throw new Error("fail to load configurations");} var settings=JSON.parse(configElement.textContent); window.onload=function (){ var cssLink=document.createElement("link"); cssLink.rel="stylesheet"; cssLink.href=assetsURL + "/swagger-ui.css"; document.head.appendChild(cssLink); function initSwaggerUIDependentCode(){ var ui=SwaggerUIBundle( Object.assign(settings.swaggerSettings,{ presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset], plugins: [SwaggerUIBundle.plugins.DownloadUrl],}) ); if(settings.oauth){ ui.initOAuth(settings.oauth)}} var scripts=[assetsURL + "/swagger-ui-bundle.js", assetsURL + "/swagger-ui-standalone-preset.js"]; var scriptsLoaded=0; function loadScript(script, callback){ var scriptElement=document.createElement("script"); scriptElement.src=script; scriptElement.onload=()=>{ scriptsLoaded++; if (scriptsLoaded===scripts.length){ callback();}}; document.body.appendChild(scriptElement);} for (var i=0; i < scripts.length; i++){ loadScript(scripts[i], initSwaggerUIDependentCode);}}; </script></body></html>`}},oauth2Redirect:{rest:{path:"/oauth2-redirect",method:"GET"},openapi:{summary:"OpenAPI OAuth2 redirect",description:"This fill will handle the OAuth2",tags:["OpenApi"]},cache:!1,async handler(a){if(!this)throw new ae("unknown error");return a.meta.$responseType="text/html; charset=utf-8",z.default.promises.readFile(`${await(this==null?void 0:this.getSwaggerPath())}/oauth2-redirect.html`)}},regenerateOpenApiPaths:{visibility:"private",throttle:1e4,async handler(a){(await this.getGenerator().getAliases(a)).filter(e=>{var r;return((r=e.service)==null?void 0:r.name)===this.name}).forEach(e=>{var r;e.action===`${this.name}.ui`&&(T.uiPath=e.fullPath),e.action===`${this.name}.assets`&&(T.assetsPath=(r=e.fullPath)==null?void 0:r.replace("/:file","")),e.action===`${this.name}.oauth2Redirect`&&(T.oauth2RedirectPath=e.fullPath),e.action===`${this.name}.generateDocs`&&(T.schemaPath=e.fullPath)}),this.getOpenApiPaths()}}},methods:{getOpenApiPaths(){var t,e,r,s;this.settings.schemaPath&&this.logger.warn("settings.schemaPath is deprecated, use settings.openApiPaths.schemaPath instead"),this.settings.assetsPath&&this.logger.warn("settings.assetsPath is deprecated, use settings.openApiPaths.assetsPath instead"),typeof this.settings.openApiPaths=="string"&&(this.settings.openApiPaths={schemaPath:C.default.join(this.settings.openApiPaths,"openapi.json"),uiPath:C.default.join(this.settings.openApiPaths,"ui"),oauth2RedirectPath:C.default.join(this.settings.openApiPaths,"oauth2-redirect"),assetsPath:C.default.join(this.settings.openApiPaths,"assets")});let a={assetsPath:this.settings.assetsPath??((t=this.settings.openApiPaths)==null?void 0:t.assetsPath)??T.assetsPath??Ie,schemaPath:this.settings.schemaPath??((e=this.settings.openApiPaths)==null?void 0:e.schemaPath)??T.schemaPath,uiPath:((r=this.settings.openApiPaths)==null?void 0:r.uiPath)??T.uiPath,oauth2RedirectPath:((s=this.settings.openApiPaths)==null?void 0:s.oauth2RedirectPath)??T.oauth2RedirectPath};return["assetsPath","schemaPath","uiPath","oauth2RedirectPath"].forEach(n=>{if(!a[n])throw new ae(`fail to get path for settings ${n}`)}),a},getSwaggerPath:async()=>{try{return(await import("swagger-ui-dist")).getAbsoluteFSPath()}catch{throw new ae("fail to load swagger ui")}},getGenerator(){if(!this.generator)throw new Error("no generator, bad initialization");return this.generator},filterAliases:(a,t)=>t,addMappers:(a,t)=>({})},created(){this.generator=new Y(this.broker,this.settings)},async started(){this.logger.info("\u{1F4DC} OpenAPI Docs server is available")}};var ct=J;var mt=J;0&&(module.exports={Alias,ECacheMode,HTTP_METHODS,JOKER_METHOD,OPENAPI_VERSIONS_SUPPORTED,OpenApiMixin,PathAction,Route,mixin});
++'use strict'
++var Ne = Object.create
++var D = Object.defineProperty
++var ke = Object.getOwnPropertyDescriptor
++var He = Object.getOwnPropertyNames
++var Be = Object.getPrototypeOf,
++	qe = Object.prototype.hasOwnProperty
++var Ge = (a, t) => {
++		for (var e in t) D(a, e, { get: t[e], enumerable: !0 })
++	},
++	Ee = (a, t, e, r) => {
++		if ((t && typeof t == 'object') || typeof t == 'function')
++			for (let s of He(t))
++				!qe.call(a, s) &&
++					s !== e &&
++					D(a, s, { get: () => t[s], enumerable: !(r = ke(t, s)) || r.enumerable })
++		return a
++	}
++var R = (a, t, e) => (
++		(e = a != null ? Ne(Be(a)) : {}),
++		Ee(t || !a || !a.__esModule ? D(e, 'default', { value: a, enumerable: !0 }) : e, a)
++	),
++	We = (a) => Ee(D({}, '__esModule', { value: !0 }), a)
++var lt = {}
++Ge(lt, {
++	Alias: () => E,
++	ECacheMode: () => Me,
++	HTTP_METHODS: () => x,
++	JOKER_METHOD: () => y,
++	OPENAPI_VERSIONS_SUPPORTED: () => Te,
++	OpenApiMixin: () => mt,
++	PathAction: () => w,
++	Route: () => $,
++	default: () => ct,
++	mixin: () => J,
++})
++module.exports = We(lt)
++var Re = 'unknown-action',
++	Ye = { server: 'x-moleculer-web-server' },
++	ze = {
++		optional: 'x-fastest-optional',
++		description: 'x-fastest-description',
++		summary: 'x-fastest-summary',
++		deprecated: 'x-fastest-deprecated',
++	},
++	A = { ...Ye, ...ze },
++	x = ((l) => (
++		(l.GET = 'get'),
++		(l.PUT = 'put'),
++		(l.POST = 'post'),
++		(l.DELETE = 'delete'),
++		(l.OPTIONS = 'options'),
++		(l.HEAD = 'head'),
++		(l.PATCH = 'patch'),
++		(l.TRACE = 'trace'),
++		l
++	))(x || {}),
++	Te = ['3.1'],
++	_e = '3.1',
++	K = Object.values(x),
++	Z = (a) => K.includes(a == null ? void 0 : a.toLowerCase()),
++	y = '*',
++	U = 'rest',
++	X = ['oneOf', 'allOf', 'anyOf'],
++	Q = ['put', 'post', 'patch'],
++	dt = Object.values(x).filter((a) => !Q.includes(a)),
++	j = 'application/json',
++	N = 'file',
++	xe = `{{summary}}
++            ({{action}}){{autoAlias}}`,
++	Ie = '//unpkg.com/swagger-ui-dist',
++	ee = /^[a-zA-Z0-9._-]+$/,
++	k = {
++		json: ['application/json'],
++		urlencoded: ['application/x-www-form-urlencoded'],
++		text: ['text/plain'],
++		multipart: ['multipart/form-data'],
++		stream: ['application/octet-stream'],
++	}
++var Le = R(require('moleculer'), 1)
++var Me = ((r) => (
++	(r.NEXT_CALL = 'next-call'), (r.REFRESH = 'refresh'), (r.TIMEOUT = 'timeout'), r
++))(Me || {})
++var Je = {
++		type: 'object',
++		properties: {
++			rows: { type: 'array', items: { type: 'object' } },
++			totalCount: { type: 'number' },
++		},
++	},
++	Ke = { type: 'array', items: { type: 'object' } },
++	Ze = { type: 'object' },
++	Xe = {
++		type: 'object',
++		properties: {
++			name: {
++				examples: ['InternalServerError'],
++				type: 'string',
++				description: 'The name of the error',
++			},
++			message: { examples: ['Example'], type: 'string', description: 'an helping message' },
++			code: {
++				type: 'number',
++				description: 'the status code of the error (can be different of the HTTP status code)',
++			},
++			type: { type: 'string', description: 'additional information for the error' },
++			data: { type: 'object' },
++		},
++		required: ['name', 'message', 'code'],
++	},
++	Qe = {
++		description: 'Server errors: 500, 501, 400, 404 and etc...',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							examples: [
++								{ name: 'InternalServerError', message: 'Internal Server Error', code: 500 },
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	et = {
++		description: 'Need auth',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [{ name: 'UnAuthorizedError', message: 'Unauthorized', code: 401 }],
++						},
++					],
++				},
++			},
++		},
++	},
++	tt = {
++		description: 'Fields invalid',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [
++								{
++									name: 'MoleculerClientError',
++									message: 'Error message',
++									code: 422,
++									data: [
++										{ name: 'fieldName', message: 'Field invalid' },
++										{ name: 'arrayField[0].fieldName', message: 'Whats wrong' },
++										{ name: 'object.fieldName', message: 'Whats wrong' },
++									],
++								},
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	rt = {
++		description: '',
++		content: {
++			'application/json': {
++				schema: {
++					oneOf: [
++						{ $ref: '#/components/schemas/DbMixinList' },
++						{ $ref: '#/components/schemas/DbMixinFindList' },
++						{ $ref: '#/components/schemas/Item' },
++					],
++				},
++			},
++		},
++	},
++	st = {
++		description: 'File not exist',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [
++								{ name: 'MoleculerClientError', message: 'File missing in the request', code: 400 },
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	nt = {
++		description: 'File too big',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [
++								{
++									name: 'PayloadTooLarge',
++									message: 'Payload too large',
++									code: 413,
++									type: 'PAYLOAD_TOO_LARGE',
++									data: {
++										fieldname: 'file',
++										filename: '4b2005c0b8.png',
++										encoding: '7bit',
++										mimetype: 'image/png',
++									},
++								},
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	at = { DbMixinList: Je, DbMixinFindList: Ke, Item: Ze, Error: Xe },
++	it = {
++		ServerError: Qe,
++		UnauthorizedError: et,
++		ValidationError: tt,
++		ReturnedData: rt,
++		FileNotExist: st,
++		FileTooBig: nt,
++	},
++	te = { schemas: at, responses: it }
++var re = R(require('path/posix'), 1)
++var ve = (a) => {
++		var t
++		return a.fullName
++			? a.fullName
++			: a.version != null && ((t = a.settings) == null ? void 0 : t.$noVersionPrefix) !== !0
++				? (typeof a.version == 'number' ? 'v' + a.version : a.version) + '.' + a.name
++				: a.name
++	},
++	je = (a, t) => {
++		let e = [],
++			r
++		for (; (r = a.exec(t)) !== null; )
++			r.index === a.lastIndex && a.lastIndex++, e.push([...r.slice(1)])
++		return e
++	},
++	P = (a = '') => re.default.resolve('/', re.default.normalize(a)),
++	we = (a) => a === y || a === U || Z(a),
++	$e = (a) => a === y || Z(a)
++function se(a) {
++	return a
++		? (t, e) => {
++				var r
++				return (
++					((r = t[a]) == null ? void 0 : r.localeCompare(e[a], 'en', { sensitivity: 'base' })) ?? -1
++				)
++			}
++		: (t, e) => t.localeCompare(e, 'en', { sensitivity: 'base' })
++}
++var Ce = R(require('path/posix'), 1)
++var w = class {
++	actionType
++	path
++	method
++	action
++	actionName
++	get fullPath() {
++		return this.alias.fullPath
++	}
++	alias
++	constructor(t, e, r) {
++		;(this.alias = t),
++			(this.actionType = t.type),
++			(this.path = t.path),
++			(this.method = e),
++			r && this.setAction(r)
++	}
++	setAction(t) {
++		this.action = t
++	}
++}
++var Ve = R(require('path/posix'), 1)
++var E = class {
++	fullPath
++	get path() {
++		return this._path
++	}
++	set path(t) {
++		this._path = P(t)
++	}
++	get method() {
++		return this._method
++	}
++	set method(t) {
++		if (!$e(t)) throw new Error(`"${t}" is not a valid method`)
++		this._method = t.toLowerCase()
++	}
++	route
++	type
++	_method = '*'
++	_path = ''
++	action
++	actionSchema
++	service
++	openapi
++	skipped = !1
++	busboyConfig
++	constructor(t, e) {
++		;(this.route = e),
++			(this.type = t.type),
++			(this.busboyConfig = t.busboyConfig),
++			(this.method = t.method ?? y),
++			(this.path = t.path ?? '/'),
++			(this.fullPath = Ve.default.join((e == null ? void 0 : e.path) ?? '/', t.path ?? '/')),
++			(this.action = t.action),
++			t.openapi === !1 ? (this.skipped = !0) : (this.openapi = t.openapi)
++	}
++	isJokerAlias() {
++		return this.method === y
++	}
++	getMethods() {
++		return (this.method === y ? K : [this.method]) ?? []
++	}
++	toJSON() {
++		return {
++			method: this.method,
++			type: this.type,
++			path: this.path,
++			action: this.action,
++			openapi: this.openapi,
++		}
++	}
++	getPaths() {
++		return this.getMethods().map((t) => new w(this, t, this.actionSchema))
++	}
++}
++var H = class {
++	constructor(t, e, r = {}, s = !0) {
++		this.logger = t
++		this.route = e
++		this.aliases = r
++		this.skipUnresolvedActions = s
++	}
++	getAliases() {
++		return Object.entries(this.aliases ?? {}).flatMap(([t, e]) => {
++			let r = this.extractAliasInformation(t, e),
++				s = this.getSubAliases(r ?? {}).map((n) => {
++					let o = new E(n, this.route)
++					return (o.skipped = !0), o
++				})
++			return r
++				? r.action && !r.action.match(ee)
++					? (this.logger.error(
++							`alias "${t}" from route "${this.route.path}" can't be added ton openapi . because the name "${r.action}" need to match pattern ${ee.toString()}`,
++						),
++						s)
++					: this.getSubAliases(r).map((n) => new E(n, this.route))
++				: (this.logger.warn(`alias "${t}" from route "${this.route.path}" is skipped`), s)
++		})
++	}
++	extractAliasSubInformations(t) {
++		if (((r) => !!r && ['action', 'handler'].some((s) => !!r[s]))(t)) return t
++		if (Array.isArray(t)) {
++			let r = t.reduce((s, n) => (!n || typeof n != 'string' ? s : n), void 0)
++			return !r && this.skipUnresolvedActions ? void 0 : { action: r }
++		} else
++			return typeof t != 'string'
++				? this.skipUnresolvedActions
++					? void 0
++					: { action: void 0 }
++				: { action: t }
++	}
++	extractAliasInformation(t, e) {
++		var n
++		let r = this.extractAliasSubInformations(e)
++		if (!r) return
++		let s = t.split(/\s+/)
++		if (
++			(s.length === 1 && (r.path = r.path ?? s[0]),
++			s.length > 1 && ((r.path = r.path ?? s[1]), (r.method = r.method ?? s[0])),
++			!r.actionType && (n = r.action) != null && n.includes(':'))
++		) {
++			let [o, i] = r.action.split(':')
++			;(r.type = o), (r.action = i)
++		}
++		if ((r.method ? (r.method = r.method.toLowerCase()) : (r.method = y), !we(r.method))) {
++			this.logger.warn(`"${r.method}" is not a valid http method`)
++			return
++		}
++		return r
++	}
++	getSubAliases(t) {
++		if (t.method !== U) return [t]
++		let e = t.action,
++			r = {
++				list: { method: 'get', action: `${e}.list`, path: `${t.path}` },
++				get: { method: 'get', action: `${e}.get`, path: `${t.path}/:id` },
++				create: { method: 'post', action: `${e}.create`, path: `${t.path}` },
++				update: { method: 'put', action: `${e}.update`, path: `${t.path}/:id` },
++				patch: { method: 'patch', action: `${e}.patch`, path: `${t.path}/:id` },
++				remove: { method: 'delete', action: `${e}.remove`, path: `${t.path}/:id` },
++			}
++		return Object.entries(r)
++			.filter(
++				([s]) => (t.only ? t.only.includes(s) : !0) && (t.except ? !t.except.includes(s) : !0),
++			)
++			.map(([, s]) => ({ ...t, ...s }))
++	}
++}
++var $ = class a {
++	constructor(t, e, r, s, n = !0) {
++		this.logger = t
++		this.skipUnresolvedActions = n
++		;(this.path = a.formatPath(e == null ? void 0 : e.path, r)),
++			(this.bodyParsers = e.bodyParsers),
++			(this.busboyConfig = e.busboyConfig),
++			(this.autoAliases = e.autoAliases ?? !1),
++			(this.openapi = e.openapi),
++			(this.openApiService = s),
++			(this.apiService = r),
++			(this.aliases = new H(this.logger, this, e.aliases, this.skipUnresolvedActions).getAliases())
++	}
++	aliases
++	path
++	bodyParsers
++	autoAliases
++	openapi
++	openApiService
++	apiService
++	busboyConfig
++	static formatPath(t, e) {
++		var r
++		return P(
++			Ce.default.join(
++				((r = e == null ? void 0 : e.settings) == null ? void 0 : r.path) ?? '/',
++				t ?? '/',
++			),
++		)
++	}
++	searchAlias(t) {
++		return this.aliases.find((e) => {
++			var r, s, n, o
++			return (
++				(e.method.toLowerCase() === y ||
++					((r = e.method) == null ? void 0 : r.toLowerCase()) ===
++						((s = t.methods) == null ? void 0 : s.toLowerCase())) &&
++				P((n = e.path) == null ? void 0 : n.toLowerCase()) ===
++					P((o = t.path) == null ? void 0 : o.toLowerCase())
++			)
++		})
++	}
++}
++var B = class {
++	constructor(t) {
++		this.logger = t
++		this.logger.debug('RoutesParser.constructor()')
++	}
++	async parse(t, e, r, s) {
++		var f
++		this.logger.debug('RoutesParser.parse()')
++		let n = new Map(),
++			o = new Map()
++		s.forEach((p) =>
++			Object.values(p.actions ?? {}).forEach((c) => {
++				typeof c == 'boolean' ||
++					typeof c == 'function' ||
++					!c.name ||
++					n.set(c.name, { service: p, action: c })
++			}),
++		)
++		let i = ve(e)
++		return (
++			(((f = e.settings) == null ? void 0 : f.routes) || []).forEach((p) => {
++				var h
++				if (
++					(this.logger.debug(`RoutesParser.parse() - check route ${p.name ?? p.path}`),
++					(p == null ? void 0 : p.openapi) === !1)
++				) {
++					this.logger.debug(
++						`RoutesParser.parse() - skip route ${p.name ?? p.path} because openapi = false`,
++					)
++					return
++				}
++				let c = new $(this.logger, p, e, (h = t.service) == null ? void 0 : h.schema, r)
++				o.set(`${i}-${c.path}`, c)
++			}),
++			((await this.fetchAliasesForService(t, i)) ?? [])
++				.filter(
++					(p, c, h) =>
++						c === h.findIndex((u) => u.fullPath === p.fullPath && u.methods === p.methods),
++				)
++				.flatMap((p) => {
++					this.logger.debug(
++						`RoutesParser.parse() - checking alias ${p.path} for path ${p.fullPath}`,
++					)
++					let c = o.get(`${i}-${P(p.routePath)}`)
++					if (!c) {
++						this.logger.debug(
++							`RoutesParser.parse() - alias ${p.fullPath} is skipped because not linked to a route (can be normal if route use openapi = false)`,
++						)
++						return
++					}
++					let h = c == null ? void 0 : c.searchAlias(p)
++					if (!h) {
++						if (c && !c.autoAliases) {
++							this.logger.error(
++								`fail to get alias configuration for alias ${p.methods} "${p.fullPath}"`,
++							)
++							return
++						}
++						this.logger.debug(`RoutesParser.parse() - alias ${p.fullPath} seems to use autoAliases`)
++						let u = new E(
++							{
++								path: p.path,
++								method: p.methods,
++								action: p.actionName ?? void 0,
++								openapi: c == null ? void 0 : c.openapi,
++							},
++							c,
++						)
++						return p.fullPath && (u.fullPath = p.fullPath), u
++					}
++					if (h.skipped) {
++						this.logger.debug(
++							`RoutesParser.parse() - skip alias ${h.fullPath} because openapi = false`,
++						)
++						return
++					}
++					return h
++				})
++				.filter(Boolean)
++				.map((p) => {
++					if (!p.action) return p
++					let c = n.get(p.action)
++					if (!c)
++						return (
++							this.logger.warn(`fail to get details about action "${p.action}"`), r ? void 0 : p
++						)
++					if (c.action.openapi !== !1)
++						return (p.actionSchema = c.action), (p.service = c.service), p
++				})
++				.filter(Boolean)
++		)
++	}
++	fetchAliasesForService(t, e) {
++		return t.call(`${e}.listAliases`, { withActionSchema: !1, grouping: !1 })
++	}
++}
++var Fe = (a) => {
++	let t = typeof a
++	if (['boolean', 'object', 'number', 'string', 'integer', 'array'].includes(t)) return t
++}
++var q = class {
++		constructor(t, e) {
++			this.validator = t
++			this.additionalMappersFn = e
++			;(this.mappers = ot(this.getMapperFn())), this.load()
++		}
++		mappers
++		getMapperFn() {
++			return {
++				getSchemaObjectFromSchema: (...t) => this.getSchemaObjectFromSchema(...t),
++				getSchemaObjectFromRule: (...t) => this.getSchemaObjectFromRule(...t),
++			}
++		}
++		_loadingPromise
++		async load() {
++			if (this._loadingPromise) return this._loadingPromise
++			;(this._loadingPromise = new Promise(async (t, e) => {
++				var r
++				try {
++					let s = this.getMapperFn()
++					Object.entries(
++						(await ((r = this.additionalMappersFn) == null
++							? void 0
++							: r.call(this, s.getSchemaObjectFromRule, s.getSchemaObjectFromSchema))) ?? {},
++					).forEach(([n, o]) => {
++						this.mappers[n] = o
++					}),
++						t()
++				} catch (s) {
++					e(s)
++				}
++			})),
++				await this._loadingPromise
++		}
++		getValidationRules(t) {
++			return Object.fromEntries(Object.entries(t).filter(([e]) => !e.startsWith('$$')))
++		}
++		getMetas(t) {
++			return Object.fromEntries(Object.entries(t).filter(([e]) => e.startsWith('$$')))
++		}
++		getSchemaObjectFromSchema(t) {
++			return Object.fromEntries(
++				Object.entries(this.getValidationRules(t))
++					.map(([e, r]) => [e, this.getSchemaObjectFromRule(r, void 0, t)])
++					.filter(Boolean),
++			)
++		}
++		getSchemaObjectFromRootSchema(t) {
++			if (t.$$root !== !0) throw new Error('this function only support $$root objects')
++			return delete t.$$root, this.getSchemaObjectFromRule(t)
++		}
++		getSchemaObjectFromRule(t, e, r) {
++			var f, p, c
++			if (!this.validator || !((f = this.mappers) != null && f.string))
++				throw new Error(
++					`bad initialisation . validator ? ${!!this.validator} | string mapper ${!!((p = this.mappers) != null && p.string)}`,
++				)
++			let s = typeof t == 'object' ? (Array.isArray(t) ? [...t] : { ...t }) : t,
++				n =
++					Array.isArray(s) || typeof s != 'object' || !s.$$oa
++						? []
++						: [
++								{ property: 'description', extension: A.description },
++								{ property: 'summary', extension: A.summary },
++								{ property: 'deprecated', extension: A.deprecated },
++							].map(({ property: h, extension: u }) => {
++								var g
++								return [u, (g = s.$$oa) == null ? void 0 : g[h]]
++							}),
++				o = (c = this.validator.getRuleFromSchema(s)) == null ? void 0 : c.schema,
++				i = { ...e, ...o },
++				m = (this.mappers[i.type] || this.mappers.string)(i, r)
++			if (m)
++				return (
++					i.optional && (m[A.optional] = !0),
++					n.forEach(([h, u]) => {
++						m[h] = u
++					}),
++					m
++				)
++		}
++	},
++	ot = ({ getSchemaObjectFromRule: a, getSchemaObjectFromSchema: t }) => ({
++		any: (e) => ({ default: e.default, examples: e.default ? [e.default] : void 0 }),
++		array: (e) => {
++			let r = (e.items ? a(e.items, { enum: e.enum }) : void 0) ?? {},
++				s = {
++					type: 'array',
++					examples: e.default ? [e.default] : void 0,
++					uniqueItems: e.unique,
++					default: e.default,
++					items: r,
++				}
++			return (
++				e.length
++					? ((s.maxItems = e.length), (s.minItems = e.length))
++					: ((s.maxItems = e.max), (s.minItems = e.min)),
++				s
++			)
++		},
++		boolean: (e) => ({
++			type: 'boolean',
++			default: e.default,
++			examples: e.default !== void 0 ? [e.default] : [!0, !1],
++		}),
++		class: () => {},
++		currency: (e) => {
++			let r
++			if (e.customRegex) r = e.customRegex.toString()
++			else {
++				let s = e.currencySymbol || null,
++					n = e.thousandSeparator || ',',
++					o = e.decimalSeparator || '.',
++					i = s ? `\\${s}${e.symbolOptional ? '?' : ''}` : '',
++					l = '(?=.*\\d)^(-?~1|~1-?)(([0-9]\\d{0,2}(~2\\d{3})*)|0)?(\\~3\\d{1,2})?$'
++						.replace(/~1/g, i)
++						.replace('~2', n)
++						.replace('~3', o)
++				r = new RegExp(l).source
++			}
++			return {
++				type: 'string',
++				pattern: r,
++				default: e.default,
++				examples: e.default ? [e.default] : void 0,
++				format: 'currency',
++			}
++		},
++		date: (e) => {
++			if (!e.convert) return
++			let r = new Date(e.default ?? Date.now()),
++				s = [r.toISOString(), r.getTime()]
++			return { type: 'string', default: e.default, format: 'date-time', examples: s }
++		},
++		email: (e) => {
++			let r =
++					/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
++				s = /^\S+@\S+\.\S+$/,
++				n = e.mode == 'precise' ? r : s
++			return {
++				type: 'string',
++				format: 'email',
++				default: e.default,
++				pattern: new RegExp(n).source,
++				maxLength: e.max,
++				minLength: e.min,
++				examples: [e.default ?? 'foo@bar.com'],
++			}
++		},
++		enum: (e) => a({ type: 'string', enum: e.values }),
++		equal: (e, r) =>
++			e.field && r != null && r[e.field]
++				? a(r == null ? void 0 : r[e.field])
++				: {
++						type: e.strict ? Fe(e.value) : 'string',
++						default: e.default,
++						examples: e.default ? [e.default] : void 0,
++						enum: e.value ? [e.value] : void 0,
++					},
++		forbidden: () => {},
++		function: () => {},
++		luhn: (e) => ({
++			type: 'string',
++			default: e.default,
++			pattern: '^(\\d{1,4} ){3}\\d{1,4}$',
++			examples: e.default ? [e.default] : void 0,
++			format: 'luhn',
++		}),
++		mac: (e) => {
++			let r =
++				/^((([a-f0-9][a-f0-9]+-){5}|([a-f0-9][a-f0-9]+:){5})([a-f0-9][a-f0-9])$)|(^([a-f0-9][a-f0-9][a-f0-9][a-f0-9]+[.]){2}([a-f0-9][a-f0-9][a-f0-9][a-f0-9]))$/i
++			return {
++				type: 'string',
++				default: e.default,
++				pattern: new RegExp(r).source,
++				examples: e.default
++					? [e.default]
++					: ['01:C8:95:4B:65:FE', '01C8.954B.65FE', '01-C8-95-4B-65-FE'],
++				format: 'mac',
++			}
++		},
++		multi: (e) =>
++			Array.isArray(e.rules)
++				? {
++						oneOf: e.rules.map((s) => a(s)).filter(Boolean),
++						default: e.default,
++						examples: e.default ? [e.default] : void 0,
++					}
++				: void 0,
++		number: (e) => {
++			var n
++			let r = e.default ?? ((n = e.enum) == null ? void 0 : n[0]) ?? e.min ?? e.max,
++				s = { type: 'number', default: e.default, examples: r ? [r] : void 0 }
++			return (
++				e.positive && (s.minimum = 0),
++				e.negative && (s.maximum = 0),
++				e.max && (s.maximum = e.max),
++				e.min && (s.minimum = e.min),
++				e.equal && ((s.maximum = e.equal), (s.minimum = e.equal)),
++				s
++			)
++		},
++		object: (e) => {
++			let r = e.props ?? e.properties,
++				s = r ? t(r) : void 0
++			return {
++				type: 'object',
++				minProperties: e.minProps,
++				maxProperties: e.maxProps,
++				default: e.default,
++				properties: s,
++				examples: e.default ? [e.default] : void 0,
++			}
++		},
++		record: (e) => {
++			let r = e.value ? a(e.value) : void 0
++			return { type: 'object', default: e.default, additionalProperties: r }
++		},
++		string: (e) => {
++			var o
++			let r = { default: e.default, type: 'string' }
++			e.length
++				? ((r.maxLength = e.length), (r.minLength = e.length))
++				: ((r.maxLength = e.max), (r.minLength = e.min))
++			let s
++			e.pattern
++				? (r.pattern = new RegExp(e.pattern).source)
++				: e.contains
++					? ((r.pattern = `.*${e.contains}.*`), (s = e.contains))
++					: e.numeric
++						? ((r.pattern = '^[0-9]+$'), (r.format = 'numeric'), (s = '12345'))
++						: e.alpha
++							? ((r.pattern = '^[a-zA-Z]+$'), (r.format = 'alpha'), (s = 'abcdef'))
++							: e.alphanum
++								? ((r.pattern = '^[a-zA-Z0-9]+$'), (r.format = 'alphanum'), (s = 'abc123'))
++								: e.alphadash
++									? ((r.pattern = '^[a-zA-Z0-9_-]+$'), (r.format = 'alphadash'), (s = 'abc-123'))
++									: e.singleLine
++										? ((r.pattern = '^[^\\r\\n]*$'), (r.format = 'single-line'), (s = 'abc 123'))
++										: e.hex
++											? ((r.pattern = '^([0-9A-Fa-f]{2})+$'),
++												(r.format = 'hex'),
++												(s = '48656c6c6f20576f726c64'))
++											: e.base64 &&
++												((r.pattern =
++													'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'),
++												(r.format = 'byte'),
++												(s = 'aGVsbG8gd29ybGQ=')),
++				(r.enum = e.enum)
++			let n = e.default ?? ((o = e.enum) == null ? void 0 : o[0]) ?? s
++			return n && (r.examples = [n]), r
++		},
++		tuple: (e) => {
++			let r = a({ type: 'array', default: e.default, length: 2 })
++			return (
++				e.items && (r.items = { oneOf: e.items.map((s) => a(s)).filter(Boolean) }),
++				e.default && (r.examples = [e.default]),
++				r
++			)
++		},
++		url: (e) => ({
++			type: 'string',
++			format: 'url',
++			default: e.default,
++			examples: [e.default ?? 'https://foobar.com'],
++		}),
++		uuid: (e) => {
++			let r
++			switch (e.version) {
++				case 0:
++					r = '00000000-0000-0000-0000-000000000000'
++					break
++				case 1:
++					r = '45745c60-7b1a-11e8-9c9c-2d42b21b1a3e'
++					break
++				case 2:
++					r = '9a7b330a-a736-21e5-af7f-feaf819cdc9f'
++					break
++				case 3:
++					r = '9125a8dc-52ee-365b-a5aa-81b0b3681cf6'
++					break
++				case 4:
++				default:
++					r = '10ba038e-48da-487b-96e8-8d3b99b6d18a'
++					break
++				case 5:
++					r = 'fdda765f-fc57-5604-a269-52a7df8164ec'
++					break
++				case 6:
++					r = 'a9030619-8514-6970-e0f9-81b9ceb08a5f'
++					break
++			}
++			return {
++				type: 'string',
++				format: 'uuid',
++				default: e.default,
++				examples: e.default ? [e.default] : [r],
++			}
++		},
++		objectID: (e) => {
++			let r = '507f1f77bcf86cd799439011'
++			return {
++				type: 'string',
++				format: 'ObjectId',
++				default: e.default,
++				minLength: r.length,
++				maxLength: r.length,
++				examples: e.default ? [e.default] : [r],
++			}
++		},
++		custom: () => {},
++	})
++var G = class {
++	static generateResponses(t, e) {
++		var n
++		let r = t.responses ?? {},
++			s = '200'
++		if (t.response) {
++			let o = { description: '' }
++			if (t.response.description === void 0) o.content = { [e]: t.response }
++			else {
++				let i = t.response
++				;(o.description = i.description),
++					(o.headers = i.headers),
++					(o.links = i.links),
++					(s = ((n = i.statusCode) == null ? void 0 : n.toString()) ?? s),
++					i.content && (o.content = { [i.type ?? e]: i.content })
++			}
++			r[s] = o
++		}
++		return r
++	}
++	static mergeObjects(t, e = {}) {
++		if (!e) throw new Error('need an input object to apply merge')
++		return (
++			Object.entries(e).forEach(([r, s]) => {
++				if (s === !1) {
++					delete t[r]
++					return
++				}
++				t[r] = s
++			}),
++			t
++		)
++	}
++	static mergeCommons(t, e = []) {
++		return e.reduce((r, s) => {
++			let n = r ?? { components: {} }
++			return (
++				(n != null && n.components) || (n.components = {}),
++				s &&
++					Object.keys(s).forEach((o) => {
++						let i = o
++						if (i === 'components') {
++							Object.keys(s.components ?? {}).forEach((l) => {
++								var f
++								let m = l
++								n.components || (n.components = {}),
++									n.components[m] || (n.components[m] = {}),
++									this.mergeObjects(
++										n.components[m],
++										(f = s == null ? void 0 : s.components) == null ? void 0 : f[m],
++									)
++							})
++							return
++						}
++						if (i === 'responses') {
++							;(n != null && n[i]) || (n[i] = {}),
++								this.mergeObjects(n[i], s == null ? void 0 : s[i])
++							return
++						}
++						if (i === 'tags') {
++							n.tags = (s.tags ?? []).reduce(
++								(l = [], m) =>
++									m === null
++										? []
++										: typeof m != 'string'
++											? (m.name && t.set(m.name, { ...(t.get(m.name) ?? {}), ...m }), l)
++											: (t.set(m, { ...(t.get(m) ?? {}), name: m }), [...l, m]),
++								n.tags,
++							)
++							return
++						}
++						if (s[i] === !1 && typeof n[i] != 'boolean') {
++							delete n[i]
++							return
++						}
++						n[i] = s[i]
++					}),
++				n
++			)
++		}, {})
++	}
++	static merge(t, e, r, s, n, o) {
++		var i, l, m, f, p, c
++		return [
++			r == null ? void 0 : r.openapi,
++			(i = n == null ? void 0 : n.settings) != null &&
++			i.addServiceNameToTags &&
++			(l = r == null ? void 0 : r.service) != null &&
++			l.name
++				? { tags: [r.service.name] }
++				: void 0,
++			(f = (m = r == null ? void 0 : r.service) == null ? void 0 : m.settings) == null
++				? void 0
++				: f.openapi,
++			s == null ? void 0 : s.openapi,
++		].reduce(
++			(h, u) => {
++				var g
++				return (
++					u &&
++						((u.responses = this.generateResponses(
++							u,
++							((g = n == null ? void 0 : n.settings) == null
++								? void 0
++								: g.defaultResponseContentType) ?? j,
++						)),
++						(h = this.mergeCommons(t, [h, u])),
++						(h.summary = u.summary ?? h.summary),
++						(h.security = u.security ?? h.security)),
++					h
++				)
++			},
++			this.mergeCommons(t, [
++				(p = n == null ? void 0 : n.settings) == null ? void 0 : p.openapi,
++				(c = o == null ? void 0 : o.settings) == null ? void 0 : c.openapi,
++				e.openapi,
++			]),
++		)
++	}
++}
++var W = class {
++	constructor(t, e, r, s) {
++		this.logger = t
++		;(this.converter = new q(e, s)), (this.document = r)
++	}
++	components = {
++		schemas: {},
++		responses: {},
++		parameters: {},
++		examples: {},
++		requestBodies: {},
++		headers: {},
++		securitySchemes: {},
++		links: {},
++		callbacks: {},
++		pathItems: {},
++	}
++	document
++	converter
++	isLoaded
++	async load() {
++		await this.converter.load(), (this.isLoaded = !0)
++	}
++	generate(t, e) {
++		var o
++		this.isLoaded ||
++			this.logger.warn('generator : converter is not loaded, custom mapper can be not be enabled')
++		let r = new Map()
++		this.document.openapi &&
++			(this.logger.warn('setting manually the openapi version is not supported'),
++			delete this.document.openapi)
++		let s = {
++			openapi: `${t}.0`,
++			...this.document,
++			servers: [],
++			tags: [],
++			components: this.cleanComponents(this.document.components),
++		}
++		s.responses && delete s.responses
++		let n = new Map()
++		return (
++			e.sort(se('fullPath')),
++			e.forEach((i) => {
++				var h, u, g, S, F
++				s.paths || (s.paths = {})
++				let l = i.route,
++					{ apiService: m, openApiService: f } = l,
++					p = this.formatParamUrl(P(i.fullPath)),
++					c = ((h = s.paths) == null ? void 0 : h[p]) ?? {}
++				i.isJokerAlias() &&
++					((c.description =
++						(g = (u = i.actionSchema) == null ? void 0 : u.openapi) == null
++							? void 0
++							: g.description),
++					(c.summary =
++						(F = (S = i.actionSchema) == null ? void 0 : S.openapi) == null ? void 0 : F.summary)),
++					i.getPaths().forEach((I) => {
++						var ce, me, le, he, de, ue, fe, ge, Ae, Oe, ye, Se
++						let O = I.method,
++							ie = `${p}.${O}`,
++							b = c[O]
++						if (b) {
++							if (
++								(b[A.server] || ((ce = b.servers) != null && ce.length)) &&
++								(he =
++									(le = (me = i.route.apiService.settings) == null ? void 0 : me.openapi) == null
++										? void 0
++										: le.server) != null &&
++								he.url &&
++								!(
++									(de = b.servers) != null &&
++									de.find((v) => {
++										var _, Pe, be
++										return (
++											v.url ===
++											((be =
++												(Pe = (_ = i.route.apiService.settings) == null ? void 0 : _.openapi) ==
++												null
++													? void 0
++													: Pe.server) == null
++												? void 0
++												: be.url)
++										)
++									})
++								)
++							) {
++								let v = i.route.apiService.settings.openapi.server
++								if (!((ue = b.servers) != null && ue.length)) {
++									b.servers = []
++									let _ = b[A.server]
++									_ && b.servers.push(_)
++								}
++								b.servers.push(v), this.addServerToDocument(s, v)
++								return
++							}
++							let M = n.get(ie)
++							this.logger.warn(
++								`${O.toUpperCase()} ${p} is already register by action ${M ?? '<unamedAction>'} skip`,
++							)
++							return
++						}
++						n.set(ie, (fe = I.action) == null ? void 0 : fe.name)
++						let d = G.merge(r, l, i, I.action, f, m),
++							{ parameters: oe, requestBody: Ue } = this.extractParameters(O, p, i) ?? {}
++						d != null && d.parameters && oe.push(...d.parameters),
++							(this.components = this.mergeComponents(
++								this.components,
++								this.cleanComponents(d.components),
++							))
++						let L = {
++							summary: i.isJokerAlias() || d == null ? void 0 : d.summary,
++							description: i.isJokerAlias() || d == null ? void 0 : d.description,
++							deprecated: d.deprecated,
++							operationId: d == null ? void 0 : d.operationId,
++							externalDocs: d == null ? void 0 : d.externalDocs,
++							security: d == null ? void 0 : d.security,
++							tags: this.handleTags(s, r, d == null ? void 0 : d.tags),
++							parameters: oe,
++							requestBody: Ue,
++							responses: d == null ? void 0 : d.responses,
++						}
++						if (
++							(Ae = (ge = i.route.apiService.settings) == null ? void 0 : ge.openapi) != null &&
++							Ae.server
++						) {
++							let M = i.route.apiService.settings.openapi.server
++							;(L[A.server] = M), this.addServerToDocument(s, M)
++						}
++						let pe = {
++								summary: (d == null ? void 0 : d.summary) ?? '',
++								action: i.action ?? Re,
++								autoAlias: i.route.autoAliases ? '[autoAlias]' : '',
++							},
++							V =
++								(Se =
++									(ye = (Oe = i.route) == null ? void 0 : Oe.openApiService) == null
++										? void 0
++										: ye.settings) == null
++									? void 0
++									: Se.summaryTemplate
++						;(typeof V == 'string' || V === void 0) &&
++							(L.summary = Object.entries(pe)
++								.reduce((M, [v, _]) => M.replace(new RegExp(`{{${v}}}`, 'g'), _ ?? ''), V ?? xe)
++								.trim()),
++							typeof V == 'function' && (L.summary = V(pe)),
++							(c[O] = L)
++					}),
++					(s.paths[p] = c)
++			}),
++			(o = s.tags) == null || o.sort(se('name')),
++			(s.components = this.mergeComponents(s.components, this.components)),
++			this.removeExtensions(s)
++		)
++	}
++	addServerToDocument(t, e) {
++		t.servers || (t.servers = []), t.servers.some((r) => r.url === e.url) || t.servers.push(e)
++	}
++	mergeComponents(t, e) {
++		return Object.keys(e).reduce(
++			(r, s) =>
++				Object.keys(e == null ? void 0 : e[s]).length ? { ...r, [s]: { ...t[s], ...e[s] } } : r,
++			{ ...t },
++		)
++	}
++	addQueryParameters(t, e, r, s) {
++		var o
++		if ((o = e.openapi) != null && o.queryParameters)
++			return e.openapi.queryParameters.map((i) => ({ ...i, in: 'query' }))
++		let n = this.getParameters(r, s, !1)
++		return (
++			Object.entries(n).forEach(([i, l]) => {
++				let m = this.converter.getSchemaObjectFromRule(l)
++				if (!m) return
++				let f = this.getComponent(m),
++					p = {
++						name: i,
++						in: 'query',
++						style: m.type === 'object' ? 'deepObject' : void 0,
++						explode: m.type === 'object' ? !0 : void 0,
++						required: f[A.optional] !== !0 || void 0,
++						schema: m,
++					}
++				if (!t.some((c) => c.name === i)) {
++					t.push(p)
++					return
++				}
++				t = t.map((c) => (c.name !== i ? c : { ...p, in: 'path', required: !0 }))
++			}),
++			t
++		)
++	}
++	getRequestBody(t, e, r, s, n = []) {
++		var l, m, f, p, c, h
++		if ((l = t.openapi) != null && l.requestBody)
++			return (m = t.openapi) == null ? void 0 : m.requestBody
++		if (!t.action) return
++		let o = (s == null ? void 0 : s.$$oa) ?? {},
++			i = this.getParameters(e, r, !0)
++		if (Object.keys(i).length > 0) {
++			let u = { ...s, ...i },
++				g = this.createRequestBodyFromParams(t.action, u, n),
++				S = Object.entries(((f = t.route) == null ? void 0 : f.bodyParsers) || {})
++					.filter(([, O]) => !!O)
++					.flatMap(([O]) => k[O] ?? []),
++				F = (S != null && S.length
++					? S
++					: [
++							(h =
++								(c = (p = t.route) == null ? void 0 : p.openApiService) == null
++									? void 0
++									: c.settings) == null
++								? void 0
++								: h.defaultResponseContentType,
++						]) ?? [j],
++				I = !1
++			if (this.isReferenceObject(g)) {
++				let O = this.getComponentByRef(g.$ref)
++				if (!O) throw new Error(`fail to get schema from path ${g.$ref}`)
++				I = (O.required ?? []).length > 0
++			}
++			return {
++				description: o.description,
++				summary: o.summary,
++				required: I,
++				content: Object.fromEntries(F.map((O) => [O, { schema: g }])),
++			}
++		}
++	}
++	extractParameters(t, e, r) {
++		var p, c, h, u
++		let s = ((p = r == null ? void 0 : r.actionSchema) == null ? void 0 : p.params) ?? {},
++			n = this.converter.getMetas(s),
++			o = ['multipart', 'stream'].includes(r.type ?? ''),
++			i =
++				(c = r.openapi) != null && c.pathParameters
++					? r.openapi.pathParameters.map((g) => ({ ...g, in: 'path' }))
++					: this.extractParamsFromUrl(e),
++			m = { parameters: this.addQueryParameters(i, r, o ? 'get' : t, s) },
++			f = i.map((g) => g.name)
++		return (
++			o
++				? (m.requestBody =
++						(h = r.openapi) != null && h.requestBody
++							? (u = r.openapi) == null
++								? void 0
++								: u.requestBody
++							: this.generateFileUploadBody(r, f))
++				: (m.requestBody = this.getRequestBody(r, t, s, n, f)),
++			m
++		)
++	}
++	getParameters(t, e, r) {
++		let s = Q.includes(t)
++		return Object.fromEntries(
++			Object.entries(this.converter.getValidationRules(e))
++				.map(([n, o]) => {
++					var m
++					let i = (m = o == null ? void 0 : o.$$oa) == null ? void 0 : m.in
++					if ((i ? i === 'body' : s) === r) return [n, o]
++				})
++				.filter(Boolean),
++		)
++	}
++	generateFileUploadBody(t, e) {
++		var o, i, l, m, f, p, c, h, u
++		let r = t.type ? k[t.type] : k.multipart,
++			s = {},
++			n = { type: 'string', format: 'binary' }
++		if (t.type === 'stream') (s.type = n.type), (s.format = n.format)
++		else {
++			if (
++				((i = (o = t.actionSchema) == null ? void 0 : o.params) == null ? void 0 : i.$$root) === !0
++			)
++				throw new Error('$$root parameters is not supported on multipart')
++			let g =
++					((m = (l = t.busboyConfig) == null ? void 0 : l.limits) == null ? void 0 : m.files) ??
++					((c =
++						(p = (f = t == null ? void 0 : t.route) == null ? void 0 : f.busboyConfig) == null
++							? void 0
++							: p.limits) == null
++						? void 0
++						: c.files),
++				S =
++					((u = (h = t.route.openApiService) == null ? void 0 : h.settings) == null
++						? void 0
++						: u.multiPartFileFieldName) ?? N
++			s.allOf = [
++				{
++					type: 'object',
++					properties: { [S]: g === 1 ? n : { type: 'array', items: n, maxItems: g } },
++					required: [S],
++				},
++			]
++		}
++		return { required: !0, content: { [r[0]]: { schema: s } } }
++	}
++	isReferenceObject(t) {
++		return !!(t != null && t.$ref)
++	}
++	getComponent(t) {
++		if (!this.isReferenceObject(t)) return t
++		let e = this.getComponentByRef(t.$ref)
++		if (!e) throw new Error(`fail to get component "${t.$ref}`)
++		return e
++	}
++	getComponentByRef(t) {
++		let e = t.split('/').filter((r) => r !== '')
++		if (
++			!(
++				e.length < 4 ||
++				e[0] !== '#' ||
++				e[1] !== 'components' ||
++				!Object.keys(this.components).includes(e[2])
++			)
++		)
++			return e
++				.slice(2)
++				.reduce((r, s) => (r && r.hasOwnProperty(s) ? r[s] : void 0), this.components)
++	}
++	createRequestBodyFromParams(t, e, r = [], s = {}) {
++		if (e.$$root === !0) return this.converter.getSchemaObjectFromRootSchema(e)
++		let n = this.converter.getSchemaObjectFromSchema(e),
++			o = Object.fromEntries(Object.entries(n).filter(([i, l]) => !r.includes(i) && l))
++		return this._createSchemaComponentFromObject(t, o, s)
++	}
++	extractParamsFromUrl(t = '') {
++		return [...je(/{(\w+)}/g, t).flat()].map((e) => ({
++			name: e,
++			in: 'path',
++			required: !0,
++			schema: { type: 'string' },
++		}))
++	}
++	_createSchemaComponentFromObject(t, e, r = {}) {
++		this.components.schemas || (this.components.schemas = {})
++		let s = [],
++			n = Object.fromEntries(
++				Object.entries(e).map(([o, i]) => {
++					let l = `${t}.${o}`
++					return i[A.optional] != !0 && s.push(o), [o, this._createSchemaPartFromRule(l, i)]
++				}),
++			)
++		return (
++			this.components.schemas[t] &&
++				this.logger.warn(`Generator - schema ${t} already exist and will be overwrite`),
++			(this.components.schemas[t] = {
++				type: 'object',
++				properties: n,
++				required: s.length > 0 ? s : void 0,
++				default: r.default,
++			}),
++			{ $ref: `#/components/schemas/${t}` }
++		)
++	}
++	formatParamUrl(t = '') {
++		let e = t.indexOf('/:')
++		if (e === -1) return t
++		let r = t.indexOf('/', ++e)
++		return r === -1
++			? t.slice(0, e) + '{' + t.slice(++e) + '}'
++			: this.formatParamUrl(t.slice(0, e) + '{' + t.slice(++e, r) + '}' + t.slice(r))
++	}
++	_createSchemaPartFromRule(t, e) {
++		let r = this.extractSystemParams(e)
++		if (
++			((e.description = r.description),
++			(e.title = r.summary),
++			(e.deprecated = r.deprecated),
++			e.type == 'object' && e.properties)
++		)
++			return {
++				summary: e.title,
++				deprecated: e.deprecated,
++				description: e.description,
++				...this._createSchemaComponentFromObject(t, e.properties, { default: e.default }),
++			}
++		if (e.type === 'array' && e.items)
++			return { ...e, items: this._createSchemaPartFromRule(t, e.items) }
++		if (X.some((s) => e[s])) {
++			let s = 0
++			X.forEach((n) => {
++				e[n] &&
++					(e[n] = e[n].map((o) => {
++						if (o.type !== 'object') return o
++						let i = `${t}.${s++}`
++						return this._createSchemaPartFromRule(i, o)
++					}))
++			})
++		}
++		return e
++	}
++	extractSystemParams(t = {}) {
++		return {
++			optional: t == null ? void 0 : t[A.optional],
++			description: t == null ? void 0 : t[A.description],
++			summary: t == null ? void 0 : t[A.summary],
++			deprecated: t == null ? void 0 : t[A.deprecated],
++		}
++	}
++	removeExtensions(t) {
++		return Array.isArray(t)
++			? t.map((e) => this.removeExtensions(e))
++			: typeof t == 'object'
++				? (Object.values(A).forEach((e) => {
++						delete t[e]
++					}),
++					Object.fromEntries(Object.entries(t).map(([e, r]) => [e, this.removeExtensions(r)])))
++				: t
++	}
++	cleanComponents(t = {}) {
++		return Object.fromEntries(
++			Object.entries(t).map(([e, r]) => [
++				e,
++				Object.fromEntries(
++					Object.entries(r)
++						.map(([s, n]) => (n === !1 ? void 0 : [s, n]))
++						.filter(Boolean),
++				),
++			]),
++		)
++	}
++	handleTags(t, e, r = []) {
++		let s = Array.from(new Set(r))
++		return (
++			t.tags || (t.tags = []),
++			s.forEach((n) => {
++				let o = e.get(n)
++				!t.tags.some(({ name: i }) => i === n) && o && t.tags.push(o)
++			}),
++			s
++		)
++	}
++}
++var pt = Le.default.Errors.MoleculerError,
++	ne = {
++		onlyLocal: !1,
++		openapi: {
++			info: { description: '', version: '0.0.1', title: 'Api docs' },
++			tags: [],
++			paths: {},
++			components: { schemas: te.schemas, securitySchemes: {}, responses: te.responses },
++			responses: {
++				200: { $ref: '#/components/responses/ReturnedData' },
++				401: { $ref: '#/components/responses/UnauthorizedError' },
++				422: { $ref: '#/components/responses/ValidationError' },
++				default: { $ref: '#/components/responses/ServerError' },
++			},
++		},
++		cacheOpenApi: !0,
++		skipUnresolvedActions: !0,
++		cacheMode: 'next-call',
++		summaryTemplate: `{{summary}}
++            ({{action}}) {{autoAlias}}`,
++		returnAssetsAsStream: !0,
++		defaultResponseContentType: j,
++		multiPartFileFieldName: N,
++		addServiceNameToTags: !1,
++		UIOptions: {},
++	},
++	Y = class {
++		broker
++		settings
++		logger
++		validator
++		constructor(t, e) {
++			this.broker = t
++			let r = this.broker.validator
++			if (r.constructor.name != 'FastestValidator' && r.validator)
++				throw new Error('only fastest validator is allowed')
++			;(this.logger = this.broker.getLogger('moleculer-openapi-generator')),
++				(this.validator = r.validator),
++				(this.settings = { ...ne, ...e })
++		}
++		fetchServicesWithActions(t, e = !0, r = this.settings.onlyLocal) {
++			return t.call('$node.services', { withActions: e, onlyLocal: r ?? !1 })
++		}
++		async mapAliases(t, e) {
++			this.logger.debug('mapAliases()')
++			let r = e.filter((n) => {
++				var o
++				return (o = n == null ? void 0 : n.settings) == null ? void 0 : o.routes
++			})
++			if (
++				(this.logger.debug(
++					`mapAliases() : ${(r == null ? void 0 : r.length) ?? 0} moleculer-web services found`,
++				),
++				!(r != null && r.length))
++			)
++				throw new pt('fail to identify service hosting moleculer-web')
++			let s = new B(this.logger)
++			return (
++				await Promise.all(
++					r.map(async (n) => await s.parse(t, n, this.settings.skipUnresolvedActions ?? !0, e)),
++				)
++			).flat()
++		}
++		async getAliases(t) {
++			let e = await this.fetchServicesWithActions(t)
++			return this.mapAliases(t, e)
++		}
++		async generateSchema(t, { filterAliasesFn: e, addMappers: r }) {
++			let s = '3.1',
++				n = await e(t, await this.getAliases(t)),
++				o = new W(this.logger, this.validator, JSON.parse(JSON.stringify(this.settings.openapi)), r)
++			return await o.load(), o.generate(s, n)
++		}
++	}
++var De = R(require('moleculer'), 1),
++	z = R(require('fs'), 1)
++var C = R(require('path/posix'), 1),
++	ae = De.default.Errors.MoleculerError,
++	T = {},
++	J = {
++		name: 'openapi',
++		settings: ne,
++		events: {
++			async '$api.aliases.regenerated'() {
++				let a = 'generateDocs',
++					{ cacheMode: t } = this.settings
++				if (t !== 'timeout' && this.broker.cacher && this.actions[a]) {
++					let e = this.broker.cacher.getCacheKey(`${this.fullName}.${a}`, {}, {}, [])
++					await this.broker.cacher.clean(`${e}*`)
++				}
++				this.actions.regenerateOpenApiPaths().catch((e) => {
++					this.logger.error(`regenerateOpenApiPaths failed with error : ${e.toString()}`)
++				}),
++					t === 'refresh' && (await this.actions[a]())
++			},
++		},
++		actions: {
++			generateDocs: {
++				rest: { path: '/openapi.json', method: 'GET' },
++				cache: !1,
++				openapi: { tags: ['OpenApi'] },
++				handler(a) {
++					return this.getGenerator().generateSchema(a, {
++						filterAliasesFn: this.filterAliases,
++						addMappers: this.addMappers,
++					})
++				},
++			},
++			assets: {
++				rest: { path: '/assets/:file', method: 'GET' },
++				openapi: {
++					summary: 'OpenAPI assets',
++					description: 'Return files from swagger-ui-dist folder',
++					tags: ['OpenApi'],
++				},
++				params: {
++					file: {
++						type: 'enum',
++						values: [
++							'swagger-ui.css',
++							'swagger-ui.css.map',
++							'swagger-ui-bundle.js',
++							'swagger-ui-bundle.js.map',
++							'swagger-ui-standalone-preset.js',
++							'swagger-ui-standalone-preset.js.map',
++						],
++					},
++				},
++				async handler(a) {
++					let { file: t } = a.params
++					t.indexOf('.css') > -1
++						? (a.meta.$responseType = 'text/css')
++						: t.indexOf('.js') > -1
++							? (a.meta.$responseType = 'text/javascript')
++							: (a.meta.$responseType = 'application/octet-stream')
++					let e = `${await this.getSwaggerPath()}/${t}`
++					return this.settings.returnAssetsAsStream
++						? z.default.createReadStream(e)
++						: z.default.promises.readFile(e)
++				},
++			},
++			ui: {
++				rest: { path: '/ui', method: 'GET' },
++				openapi: {
++					summary: 'OpenAPI ui',
++					description: 'You can provide any schema file in query param',
++					tags: ['OpenApi'],
++				},
++				params: { url: { $$oa: { summary: 'Schema file' }, type: 'string', optional: !0 } },
++				async handler(a) {
++					a.meta.$responseType = 'text/html; charset=utf-8'
++					let t = await this.getOpenApiPaths(),
++						e = t.assetsPath,
++						r = {
++							swaggerSettings: {
++								deepLinking: !0,
++								showExtensions: !0,
++								layout: 'StandaloneLayout',
++								...this.settings.UIOptions,
++								url: a.params.url || t.schemaPath,
++								dom_id: '#swagger-ui',
++								oauth2RedirectUrl: t.oauth2RedirectPath,
++							},
++							oauth: this.settings.UIOauthOptions,
++						}
++					return `<html lang="en"><head><title>OpenAPI UI</title><style>body{ margin: 0;} </style></head><body><div id="swagger-ui"><p>Loading...</p><noscript>If you see json, you need to update your dependencies</noscript></div><script type="application/json" id="__SWAGGER_SETTINGS__">${JSON.stringify(r)} </script><script>var assetsURL="${e}"; var configElement=document.getElementById("__SWAGGER_SETTINGS__"); if (!configElement){ throw new Error("fail to load configurations");} var settings=JSON.parse(configElement.textContent); window.onload=function (){ var cssLink=document.createElement("link"); cssLink.rel="stylesheet"; cssLink.href=assetsURL + "/swagger-ui.css"; document.head.appendChild(cssLink); function initSwaggerUIDependentCode(){ var ui=SwaggerUIBundle( Object.assign(settings.swaggerSettings,{ presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset], plugins: [SwaggerUIBundle.plugins.DownloadUrl],}) ); if(settings.oauth){ ui.initOAuth(settings.oauth)}} var scripts=[assetsURL + "/swagger-ui-bundle.js", assetsURL + "/swagger-ui-standalone-preset.js"]; var scriptsLoaded=0; function loadScript(script, callback){ var scriptElement=document.createElement("script"); scriptElement.src=script; scriptElement.onload=()=>{ scriptsLoaded++; if (scriptsLoaded===scripts.length){ callback();}}; document.body.appendChild(scriptElement);} for (var i=0; i < scripts.length; i++){ loadScript(scripts[i], initSwaggerUIDependentCode);}}; </script></body></html>`
++				},
++			},
++			oauth2Redirect: {
++				rest: { path: '/oauth2-redirect', method: 'GET' },
++				openapi: {
++					summary: 'OpenAPI OAuth2 redirect',
++					description: 'This fill will handle the OAuth2',
++					tags: ['OpenApi'],
++				},
++				cache: !1,
++				async handler(a) {
++					if (!this) throw new ae('unknown error')
++					return (
++						(a.meta.$responseType = 'text/html; charset=utf-8'),
++						z.default.promises.readFile(
++							`${await (this == null ? void 0 : this.getSwaggerPath())}/oauth2-redirect.html`,
++						)
++					)
++				},
++			},
++			regenerateOpenApiPaths: {
++				visibility: 'private',
++				throttle: 1e4,
++				async handler(a) {
++					;(await this.getGenerator().getAliases(a))
++						.filter((e) => {
++							var r
++							return ((r = e.service) == null ? void 0 : r.name) === this.name
++						})
++						.forEach((e) => {
++							var r
++							e.action === `${this.name}.ui` && (T.uiPath = e.fullPath),
++								e.action === `${this.name}.assets` &&
++									(T.assetsPath = (r = e.fullPath) == null ? void 0 : r.replace('/:file', '')),
++								e.action === `${this.name}.oauth2Redirect` && (T.oauth2RedirectPath = e.fullPath),
++								e.action === `${this.name}.generateDocs` && (T.schemaPath = e.fullPath)
++						}),
++						this.getOpenApiPaths()
++				},
++			},
++		},
++		methods: {
++			getOpenApiPaths() {
++				var t, e, r, s
++				this.settings.schemaPath &&
++					this.logger.warn(
++						'settings.schemaPath is deprecated, use settings.openApiPaths.schemaPath instead',
++					),
++					this.settings.assetsPath &&
++						this.logger.warn(
++							'settings.assetsPath is deprecated, use settings.openApiPaths.assetsPath instead',
++						),
++					typeof this.settings.openApiPaths == 'string' &&
++						(this.settings.openApiPaths = {
++							schemaPath: C.default.join(this.settings.openApiPaths, 'openapi.json'),
++							uiPath: C.default.join(this.settings.openApiPaths, 'ui'),
++							oauth2RedirectPath: C.default.join(this.settings.openApiPaths, 'oauth2-redirect'),
++							assetsPath: C.default.join(this.settings.openApiPaths, 'assets'),
++						})
++				let a = {
++					assetsPath:
++						this.settings.assetsPath ??
++						((t = this.settings.openApiPaths) == null ? void 0 : t.assetsPath) ??
++						T.assetsPath ??
++						Ie,
++					schemaPath:
++						this.settings.schemaPath ??
++						((e = this.settings.openApiPaths) == null ? void 0 : e.schemaPath) ??
++						T.schemaPath,
++					uiPath: ((r = this.settings.openApiPaths) == null ? void 0 : r.uiPath) ?? T.uiPath,
++					oauth2RedirectPath:
++						((s = this.settings.openApiPaths) == null ? void 0 : s.oauth2RedirectPath) ??
++						T.oauth2RedirectPath,
++				}
++				return (
++					['assetsPath', 'schemaPath', 'uiPath', 'oauth2RedirectPath'].forEach((n) => {
++						if (!a[n]) throw new ae(`fail to get path for settings ${n}`)
++					}),
++					a
++				)
++			},
++			getSwaggerPath: async () => {
++				try {
++					return (await import('swagger-ui-dist')).getAbsoluteFSPath()
++				} catch {
++					throw new ae('fail to load swagger ui')
++				}
++			},
++			getGenerator() {
++				if (!this.generator) throw new Error('no generator, bad initialization')
++				return this.generator
++			},
++			filterAliases: (a, t) => t,
++			addMappers: (a, t) => ({}),
++		},
++		created() {
++			this.generator = new Y(this.broker, this.settings)
++		},
++		async started() {
++			this.logger.info('\u{1F4DC} OpenAPI Docs server is available')
++		},
++	}
++var ct = J
++var mt = J
++0 &&
++	(module.exports = {
++		Alias,
++		ECacheMode,
++		HTTP_METHODS,
++		JOKER_METHOD,
++		OPENAPI_VERSIONS_SUPPORTED,
++		OpenApiMixin,
++		PathAction,
++		Route,
++		mixin,
++	})
+diff --git a/lib/esm/index.mjs b/lib/esm/index.mjs
+index 713733b18a3e509a9175869b18c4283be3bc9b9a..10a2af35febb65069f4d430cde5f6fe8f4440d7e 100644
+--- a/lib/esm/index.mjs
++++ b/lib/esm/index.mjs
+@@ -1,3 +1,1538 @@
+-var ee="unknown-action",le={server:"x-moleculer-web-server"},he={optional:"x-fastest-optional",description:"x-fastest-description",summary:"x-fastest-summary",deprecated:"x-fastest-deprecated"},d={...le,...he},E=(m=>(m.GET="get",m.PUT="put",m.POST="post",m.DELETE="delete",m.OPTIONS="options",m.HEAD="head",m.PATCH="patch",m.TRACE="trace",m))(E||{}),de=["3.1"],te="3.1",N=Object.values(E),k=s=>N.includes(s?.toLowerCase()),g="*",j="rest",H=["oneOf","allOf","anyOf"],B=["put","post","patch"],Ve=Object.values(E).filter(s=>!B.includes(s)),R="application/json",M="file",re=`{{summary}}
+-            ({{action}}){{autoAlias}}`,ne="//unpkg.com/swagger-ui-dist",q=/^[a-zA-Z0-9._-]+$/,w={json:["application/json"],urlencoded:["application/x-www-form-urlencoded"],text:["text/plain"],multipart:["multipart/form-data"],stream:["application/octet-stream"]};import je from"moleculer";var ue=(r=>(r.NEXT_CALL="next-call",r.REFRESH="refresh",r.TIMEOUT="timeout",r))(ue||{});var fe={type:"object",properties:{rows:{type:"array",items:{type:"object"}},totalCount:{type:"number"}}},ge={type:"array",items:{type:"object"}},Ae={type:"object"},Oe={type:"object",properties:{name:{examples:["InternalServerError"],type:"string",description:"The name of the error"},message:{examples:["Example"],type:"string",description:"an helping message"},code:{type:"number",description:"the status code of the error (can be different of the HTTP status code)"},type:{type:"string",description:"additional information for the error"},data:{type:"object"}},required:["name","message","code"]},ye={description:"Server errors: 500, 501, 400, 404 and etc...",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{examples:[{name:"InternalServerError",message:"Internal Server Error",code:500}]}]}}}},Se={description:"Need auth",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"UnAuthorizedError",message:"Unauthorized",code:401}]}]}}}},be={description:"Fields invalid",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"MoleculerClientError",message:"Error message",code:422,data:[{name:"fieldName",message:"Field invalid"},{name:"arrayField[0].fieldName",message:"Whats wrong"},{name:"object.fieldName",message:"Whats wrong"}]}]}]}}}},Pe={description:"",content:{"application/json":{schema:{oneOf:[{$ref:"#/components/schemas/DbMixinList"},{$ref:"#/components/schemas/DbMixinFindList"},{$ref:"#/components/schemas/Item"}]}}}},Ee={description:"File not exist",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"MoleculerClientError",message:"File missing in the request",code:400}]}]}}}},Re={description:"File too big",content:{"application/json":{schema:{allOf:[{$ref:"#/components/schemas/Error"},{type:"object",examples:[{name:"PayloadTooLarge",message:"Payload too large",code:413,type:"PAYLOAD_TOO_LARGE",data:{fieldname:"file",filename:"4b2005c0b8.png",encoding:"7bit",mimetype:"image/png"}}]}]}}}},Te={DbMixinList:fe,DbMixinFindList:ge,Item:Ae,Error:Oe},_e={ServerError:ye,UnauthorizedError:Se,ValidationError:be,ReturnedData:Pe,FileNotExist:Ee,FileTooBig:Re},G={schemas:Te,responses:_e};import ae from"path/posix";var se=s=>s.fullName?s.fullName:s.version!=null&&s.settings?.$noVersionPrefix!==!0?(typeof s.version=="number"?"v"+s.version:s.version)+"."+s.name:s.name,ie=(s,t)=>{let e=[],r;for(;(r=s.exec(t))!==null;)r.index===s.lastIndex&&s.lastIndex++,e.push([...r.slice(1)]);return e},A=(s="")=>ae.resolve("/",ae.normalize(s)),oe=s=>s===g||s===j||k(s),pe=s=>s===g||k(s);function W(s){return s?(t,e)=>t[s]?.localeCompare(e[s],"en",{sensitivity:"base"})??-1:(t,e)=>t.localeCompare(e,"en",{sensitivity:"base"})}import ve from"path/posix";var _=class{actionType;path;method;action;actionName;get fullPath(){return this.alias.fullPath}alias;constructor(t,e,r){this.alias=t,this.actionType=t.type,this.path=t.path,this.method=e,r&&this.setAction(r)}setAction(t){this.action=t}};import xe from"path/posix";var y=class{fullPath;get path(){return this._path}set path(t){this._path=A(t)}get method(){return this._method}set method(t){if(!pe(t))throw new Error(`"${t}" is not a valid method`);this._method=t.toLowerCase()}route;type;_method="*";_path="";action;actionSchema;service;openapi;skipped=!1;busboyConfig;constructor(t,e){this.route=e,this.type=t.type,this.busboyConfig=t.busboyConfig,this.method=t.method??g,this.path=t.path??"/",this.fullPath=xe.join(e?.path??"/",t.path??"/"),this.action=t.action,t.openapi===!1?this.skipped=!0:this.openapi=t.openapi}isJokerAlias(){return this.method===g}getMethods(){return(this.method===g?N:[this.method])??[]}toJSON(){return{method:this.method,type:this.type,path:this.path,action:this.action,openapi:this.openapi}}getPaths(){return this.getMethods().map(t=>new _(this,t,this.actionSchema))}};var V=class{constructor(t,e,r={},n=!0){this.logger=t;this.route=e;this.aliases=r;this.skipUnresolvedActions=n}getAliases(){return Object.entries(this.aliases??{}).flatMap(([t,e])=>{let r=this.extractAliasInformation(t,e),n=this.getSubAliases(r??{}).map(a=>{let i=new y(a,this.route);return i.skipped=!0,i});return r?r.action&&!r.action.match(q)?(this.logger.error(`alias "${t}" from route "${this.route.path}" can't be added ton openapi . because the name "${r.action}" need to match pattern ${q.toString()}`),n):this.getSubAliases(r).map(a=>new y(a,this.route)):(this.logger.warn(`alias "${t}" from route "${this.route.path}" is skipped`),n)})}extractAliasSubInformations(t){if((r=>!!r&&["action","handler"].some(n=>!!r[n]))(t))return t;if(Array.isArray(t)){let r=t.reduce((n,a)=>!a||typeof a!="string"?n:a,void 0);return!r&&this.skipUnresolvedActions?void 0:{action:r}}else return typeof t!="string"?this.skipUnresolvedActions?void 0:{action:void 0}:{action:t}}extractAliasInformation(t,e){let r=this.extractAliasSubInformations(e);if(!r)return;let n=t.split(/\s+/);if(n.length===1&&(r.path=r.path??n[0]),n.length>1&&(r.path=r.path??n[1],r.method=r.method??n[0]),!r.actionType&&r.action?.includes(":")){let[a,i]=r.action.split(":");r.type=a,r.action=i}if(r.method?r.method=r.method.toLowerCase():r.method=g,!oe(r.method)){this.logger.warn(`"${r.method}" is not a valid http method`);return}return r}getSubAliases(t){if(t.method!==j)return[t];let e=t.action,r={list:{method:"get",action:`${e}.list`,path:`${t.path}`},get:{method:"get",action:`${e}.get`,path:`${t.path}/:id`},create:{method:"post",action:`${e}.create`,path:`${t.path}`},update:{method:"put",action:`${e}.update`,path:`${t.path}/:id`},patch:{method:"patch",action:`${e}.patch`,path:`${t.path}/:id`},remove:{method:"delete",action:`${e}.remove`,path:`${t.path}/:id`}};return Object.entries(r).filter(([n])=>(t.only?t.only.includes(n):!0)&&(t.except?!t.except.includes(n):!0)).map(([,n])=>({...t,...n}))}};var x=class s{constructor(t,e,r,n,a=!0){this.logger=t;this.skipUnresolvedActions=a;this.path=s.formatPath(e?.path,r),this.bodyParsers=e.bodyParsers,this.busboyConfig=e.busboyConfig,this.autoAliases=e.autoAliases??!1,this.openapi=e.openapi,this.openApiService=n,this.apiService=r,this.aliases=new V(this.logger,this,e.aliases,this.skipUnresolvedActions).getAliases()}aliases;path;bodyParsers;autoAliases;openapi;openApiService;apiService;busboyConfig;static formatPath(t,e){return A(ve.join(e?.settings?.path??"/",t??"/"))}searchAlias(t){return this.aliases.find(e=>(e.method.toLowerCase()===g||e.method?.toLowerCase()===t.methods?.toLowerCase())&&A(e.path?.toLowerCase())===A(t.path?.toLowerCase()))}};var $=class{constructor(t){this.logger=t;this.logger.debug("RoutesParser.constructor()")}async parse(t,e,r,n){this.logger.debug("RoutesParser.parse()");let a=new Map,i=new Map;n.forEach(p=>Object.values(p.actions??{}).forEach(c=>{typeof c=="boolean"||typeof c=="function"||!c.name||a.set(c.name,{service:p,action:c})}));let o=se(e);return(e.settings?.routes||[]).forEach(p=>{if(this.logger.debug(`RoutesParser.parse() - check route ${p.name??p.path}`),p?.openapi===!1){this.logger.debug(`RoutesParser.parse() - skip route ${p.name??p.path} because openapi = false`);return}let c=new x(this.logger,p,e,t.service?.schema,r);i.set(`${o}-${c.path}`,c)}),(await this.fetchAliasesForService(t,o)??[]).filter((p,c,u)=>c===u.findIndex(h=>h.fullPath===p.fullPath&&h.methods===p.methods)).flatMap(p=>{this.logger.debug(`RoutesParser.parse() - checking alias ${p.path} for path ${p.fullPath}`);let c=i.get(`${o}-${A(p.routePath)}`);if(!c){this.logger.debug(`RoutesParser.parse() - alias ${p.fullPath} is skipped because not linked to a route (can be normal if route use openapi = false)`);return}let u=c?.searchAlias(p);if(!u){if(c&&!c.autoAliases){this.logger.error(`fail to get alias configuration for alias ${p.methods} "${p.fullPath}"`);return}this.logger.debug(`RoutesParser.parse() - alias ${p.fullPath} seems to use autoAliases`);let h=new y({path:p.path,method:p.methods,action:p.actionName??void 0,openapi:c?.openapi},c);return p.fullPath&&(h.fullPath=p.fullPath),h}if(u.skipped){this.logger.debug(`RoutesParser.parse() - skip alias ${u.fullPath} because openapi = false`);return}return u}).filter(Boolean).map(p=>{if(!p.action)return p;let c=a.get(p.action);if(!c)return this.logger.warn(`fail to get details about action "${p.action}"`),r?void 0:p;if(c.action.openapi!==!1)return p.actionSchema=c.action,p.service=c.service,p}).filter(Boolean)}fetchAliasesForService(t,e){return t.call(`${e}.listAliases`,{withActionSchema:!1,grouping:!1})}};var ce=s=>{let t=typeof s;if(["boolean","object","number","string","integer","array"].includes(t))return t};var C=class{constructor(t,e){this.validator=t;this.additionalMappersFn=e;this.mappers=Ie(this.getMapperFn()),this.load()}mappers;getMapperFn(){return{getSchemaObjectFromSchema:(...t)=>this.getSchemaObjectFromSchema(...t),getSchemaObjectFromRule:(...t)=>this.getSchemaObjectFromRule(...t)}}_loadingPromise;async load(){if(this._loadingPromise)return this._loadingPromise;this._loadingPromise=new Promise(async(t,e)=>{try{let r=this.getMapperFn();Object.entries(await this.additionalMappersFn?.(r.getSchemaObjectFromRule,r.getSchemaObjectFromSchema)??{}).forEach(([n,a])=>{this.mappers[n]=a}),t()}catch(r){e(r)}}),await this._loadingPromise}getValidationRules(t){return Object.fromEntries(Object.entries(t).filter(([e])=>!e.startsWith("$$")))}getMetas(t){return Object.fromEntries(Object.entries(t).filter(([e])=>e.startsWith("$$")))}getSchemaObjectFromSchema(t){return Object.fromEntries(Object.entries(this.getValidationRules(t)).map(([e,r])=>[e,this.getSchemaObjectFromRule(r,void 0,t)]).filter(Boolean))}getSchemaObjectFromRootSchema(t){if(t.$$root!==!0)throw new Error("this function only support $$root objects");return delete t.$$root,this.getSchemaObjectFromRule(t)}getSchemaObjectFromRule(t,e,r){if(!this.validator||!this.mappers?.string)throw new Error(`bad initialisation . validator ? ${!!this.validator} | string mapper ${!!this.mappers?.string}`);let n=typeof t=="object"?Array.isArray(t)?[...t]:{...t}:t,a=Array.isArray(n)||typeof n!="object"||!n.$$oa?[]:[{property:"description",extension:d.description},{property:"summary",extension:d.summary},{property:"deprecated",extension:d.deprecated}].map(({property:p,extension:c})=>[c,n.$$oa?.[p]]),i=this.validator.getRuleFromSchema(n)?.schema,o={...e,...i},l=(this.mappers[o.type]||this.mappers.string)(o,r);if(l)return o.optional&&(l[d.optional]=!0),a.forEach(([p,c])=>{l[p]=c}),l}},Ie=({getSchemaObjectFromRule:s,getSchemaObjectFromSchema:t})=>({any:e=>({default:e.default,examples:e.default?[e.default]:void 0}),array:e=>{let r=(e.items?s(e.items,{enum:e.enum}):void 0)??{},n={type:"array",examples:e.default?[e.default]:void 0,uniqueItems:e.unique,default:e.default,items:r};return e.length?(n.maxItems=e.length,n.minItems=e.length):(n.maxItems=e.max,n.minItems=e.min),n},boolean:e=>({type:"boolean",default:e.default,examples:e.default!==void 0?[e.default]:[!0,!1]}),class:()=>{},currency:e=>{let r;if(e.customRegex)r=e.customRegex.toString();else{let n=e.currencySymbol||null,a=e.thousandSeparator||",",i=e.decimalSeparator||".",o=n?`\\${n}${e.symbolOptional?"?":""}`:"",m="(?=.*\\d)^(-?~1|~1-?)(([0-9]\\d{0,2}(~2\\d{3})*)|0)?(\\~3\\d{1,2})?$".replace(/~1/g,o).replace("~2",a).replace("~3",i);r=new RegExp(m).source}return{type:"string",pattern:r,default:e.default,examples:e.default?[e.default]:void 0,format:"currency"}},date:e=>{if(!e.convert)return;let r=new Date(e.default??Date.now()),n=[r.toISOString(),r.getTime()];return{type:"string",default:e.default,format:"date-time",examples:n}},email:e=>{let r=/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,n=/^\S+@\S+\.\S+$/,a=e.mode=="precise"?r:n;return{type:"string",format:"email",default:e.default,pattern:new RegExp(a).source,maxLength:e.max,minLength:e.min,examples:[e.default??"foo@bar.com"]}},enum:e=>s({type:"string",enum:e.values}),equal:(e,r)=>e.field&&r?.[e.field]?s(r?.[e.field]):{type:e.strict?ce(e.value):"string",default:e.default,examples:e.default?[e.default]:void 0,enum:e.value?[e.value]:void 0},forbidden:()=>{},function:()=>{},luhn:e=>({type:"string",default:e.default,pattern:"^(\\d{1,4} ){3}\\d{1,4}$",examples:e.default?[e.default]:void 0,format:"luhn"}),mac:e=>{let r=/^((([a-f0-9][a-f0-9]+-){5}|([a-f0-9][a-f0-9]+:){5})([a-f0-9][a-f0-9])$)|(^([a-f0-9][a-f0-9][a-f0-9][a-f0-9]+[.]){2}([a-f0-9][a-f0-9][a-f0-9][a-f0-9]))$/i;return{type:"string",default:e.default,pattern:new RegExp(r).source,examples:e.default?[e.default]:["01:C8:95:4B:65:FE","01C8.954B.65FE","01-C8-95-4B-65-FE"],format:"mac"}},multi:e=>Array.isArray(e.rules)?{oneOf:e.rules.map(n=>s(n)).filter(Boolean),default:e.default,examples:e.default?[e.default]:void 0}:void 0,number:e=>{let r=e.default??e.enum?.[0]??e.min??e.max,n={type:"number",default:e.default,examples:r?[r]:void 0};return e.positive&&(n.minimum=0),e.negative&&(n.maximum=0),e.max&&(n.maximum=e.max),e.min&&(n.minimum=e.min),e.equal&&(n.maximum=e.equal,n.minimum=e.equal),n},object:e=>{let r=e.props??e.properties,n=r?t(r):void 0;return{type:"object",minProperties:e.minProps,maxProperties:e.maxProps,default:e.default,properties:n,examples:e.default?[e.default]:void 0}},record:e=>{let r=e.value?s(e.value):void 0;return{type:"object",default:e.default,additionalProperties:r}},string:e=>{let r={default:e.default,type:"string"};e.length?(r.maxLength=e.length,r.minLength=e.length):(r.maxLength=e.max,r.minLength=e.min);let n;e.pattern?r.pattern=new RegExp(e.pattern).source:e.contains?(r.pattern=`.*${e.contains}.*`,n=e.contains):e.numeric?(r.pattern="^[0-9]+$",r.format="numeric",n="12345"):e.alpha?(r.pattern="^[a-zA-Z]+$",r.format="alpha",n="abcdef"):e.alphanum?(r.pattern="^[a-zA-Z0-9]+$",r.format="alphanum",n="abc123"):e.alphadash?(r.pattern="^[a-zA-Z0-9_-]+$",r.format="alphadash",n="abc-123"):e.singleLine?(r.pattern="^[^\\r\\n]*$",r.format="single-line",n="abc 123"):e.hex?(r.pattern="^([0-9A-Fa-f]{2})+$",r.format="hex",n="48656c6c6f20576f726c64"):e.base64&&(r.pattern="^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",r.format="byte",n="aGVsbG8gd29ybGQ="),r.enum=e.enum;let a=e.default??e.enum?.[0]??n;return a&&(r.examples=[a]),r},tuple:e=>{let r=s({type:"array",default:e.default,length:2});return e.items&&(r.items={oneOf:e.items.map(n=>s(n)).filter(Boolean)}),e.default&&(r.examples=[e.default]),r},url:e=>({type:"string",format:"url",default:e.default,examples:[e.default??"https://foobar.com"]}),uuid:e=>{let r;switch(e.version){case 0:r="00000000-0000-0000-0000-000000000000";break;case 1:r="45745c60-7b1a-11e8-9c9c-2d42b21b1a3e";break;case 2:r="9a7b330a-a736-21e5-af7f-feaf819cdc9f";break;case 3:r="9125a8dc-52ee-365b-a5aa-81b0b3681cf6";break;case 4:default:r="10ba038e-48da-487b-96e8-8d3b99b6d18a";break;case 5:r="fdda765f-fc57-5604-a269-52a7df8164ec";break;case 6:r="a9030619-8514-6970-e0f9-81b9ceb08a5f";break}return{type:"string",format:"uuid",default:e.default,examples:e.default?[e.default]:[r]}},objectID:e=>{let r="507f1f77bcf86cd799439011";return{type:"string",format:"ObjectId",default:e.default,minLength:r.length,maxLength:r.length,examples:e.default?[e.default]:[r]}},custom:()=>{}});var F=class{static generateResponses(t,e){let r=t.responses??{},n="200";if(t.response){let a={description:""};if(t.response.description===void 0)a.content={[e]:t.response};else{let i=t.response;a.description=i.description,a.headers=i.headers,a.links=i.links,n=i.statusCode?.toString()??n,i.content&&(a.content={[i.type??e]:i.content})}r[n]=a}return r}static mergeObjects(t,e={}){if(!e)throw new Error("need an input object to apply merge");return Object.entries(e).forEach(([r,n])=>{if(n===!1){delete t[r];return}t[r]=n}),t}static mergeCommons(t,e=[]){return e.reduce((r,n)=>{let a=r??{components:{}};return a?.components||(a.components={}),n&&Object.keys(n).forEach(i=>{let o=i;if(o==="components"){Object.keys(n.components??{}).forEach(m=>{let l=m;a.components||(a.components={}),a.components[l]||(a.components[l]={}),this.mergeObjects(a.components[l],n?.components?.[l])});return}if(o==="responses"){a?.[o]||(a[o]={}),this.mergeObjects(a[o],n?.[o]);return}if(o==="tags"){a.tags=(n.tags??[]).reduce((m=[],l)=>l===null?[]:typeof l!="string"?(l.name&&t.set(l.name,{...t.get(l.name)??{},...l}),m):(t.set(l,{...t.get(l)??{},name:l}),[...m,l]),a.tags);return}if(n[o]===!1&&typeof a[o]!="boolean"){delete a[o];return}a[o]=n[o]}),a},{})}static merge(t,e,r,n,a,i){return[r?.openapi,a?.settings?.addServiceNameToTags&&r?.service?.name?{tags:[r.service.name]}:void 0,r?.service?.settings?.openapi,n?.openapi].reduce((o,m)=>(m&&(m.responses=this.generateResponses(m,a?.settings?.defaultResponseContentType??R),o=this.mergeCommons(t,[o,m]),o.summary=m.summary??o.summary,o.security=m.security??o.security),o),this.mergeCommons(t,[a?.settings?.openapi,i?.settings?.openapi,e.openapi]))}};var L=class{constructor(t,e,r,n){this.logger=t;this.converter=new C(e,n),this.document=r}components={schemas:{},responses:{},parameters:{},examples:{},requestBodies:{},headers:{},securitySchemes:{},links:{},callbacks:{},pathItems:{}};document;converter;isLoaded;async load(){await this.converter.load(),this.isLoaded=!0}generate(t,e){this.isLoaded||this.logger.warn("generator : converter is not loaded, custom mapper can be not be enabled");let r=new Map;this.document.openapi&&(this.logger.warn("setting manually the openapi version is not supported"),delete this.document.openapi);let n={openapi:`${t}.0`,...this.document,servers:[],tags:[],components:this.cleanComponents(this.document.components)};n.responses&&delete n.responses;let a=new Map;return e.sort(W("fullPath")),e.forEach(i=>{n.paths||(n.paths={});let o=i.route,{apiService:m,openApiService:l}=o,p=this.formatParamUrl(A(i.fullPath)),c=n.paths?.[p]??{};i.isJokerAlias()&&(c.description=i.actionSchema?.openapi?.description,c.summary=i.actionSchema?.openapi?.summary),i.getPaths().forEach(u=>{let h=u.method,Z=`${p}.${h}`,O=c[h];if(O){if((O[d.server]||O.servers?.length)&&i.route.apiService.settings?.openapi?.server?.url&&!O.servers?.find(P=>P.url===i.route.apiService.settings?.openapi?.server?.url)){let P=i.route.apiService.settings.openapi.server;if(!O.servers?.length){O.servers=[];let I=O[d.server];I&&O.servers.push(I)}O.servers.push(P),this.addServerToDocument(n,P);return}let b=a.get(Z);this.logger.warn(`${h.toUpperCase()} ${p} is already register by action ${b??"<unamedAction>"} skip`);return}a.set(Z,u.action?.name);let f=F.merge(r,o,i,u.action,l,m),{parameters:X,requestBody:me}=this.extractParameters(h,p,i)??{};f?.parameters&&X.push(...f.parameters),this.components=this.mergeComponents(this.components,this.cleanComponents(f.components));let v={summary:i.isJokerAlias()?void 0:f?.summary,description:i.isJokerAlias()?void 0:f?.description,deprecated:f.deprecated,operationId:f?.operationId,externalDocs:f?.externalDocs,security:f?.security,tags:this.handleTags(n,r,f?.tags),parameters:X,requestBody:me,responses:f?.responses};if(i.route.apiService.settings?.openapi?.server){let b=i.route.apiService.settings.openapi.server;v[d.server]=b,this.addServerToDocument(n,b)}let Q={summary:f?.summary??"",action:i.action??ee,autoAlias:i.route.autoAliases?"[autoAlias]":""},T=i.route?.openApiService?.settings?.summaryTemplate;(typeof T=="string"||T===void 0)&&(v.summary=Object.entries(Q).reduce((b,[P,I])=>b.replace(new RegExp(`{{${P}}}`,"g"),I??""),T??re).trim()),typeof T=="function"&&(v.summary=T(Q)),c[h]=v}),n.paths[p]=c}),n.tags?.sort(W("name")),n.components=this.mergeComponents(n.components,this.components),this.removeExtensions(n)}addServerToDocument(t,e){t.servers||(t.servers=[]),t.servers.some(r=>r.url===e.url)||t.servers.push(e)}mergeComponents(t,e){return Object.keys(e).reduce((r,n)=>Object.keys(e?.[n]).length?{...r,[n]:{...t[n],...e[n]}}:r,{...t})}addQueryParameters(t,e,r,n){if(e.openapi?.queryParameters)return e.openapi.queryParameters.map(i=>({...i,in:"query"}));let a=this.getParameters(r,n,!1);return Object.entries(a).forEach(([i,o])=>{let m=this.converter.getSchemaObjectFromRule(o);if(!m)return;let l=this.getComponent(m),p={name:i,in:"query",style:m.type==="object"?"deepObject":void 0,explode:m.type==="object"?!0:void 0,required:l[d.optional]!==!0||void 0,schema:m};if(!t.some(c=>c.name===i)){t.push(p);return}t=t.map(c=>c.name!==i?c:{...p,in:"path",required:!0})}),t}getRequestBody(t,e,r,n,a=[]){if(t.openapi?.requestBody)return t.openapi?.requestBody;if(!t.action)return;let i=n?.$$oa??{},o=this.getParameters(e,r,!0);if(Object.keys(o).length>0){let m={...n,...o},l=this.createRequestBodyFromParams(t.action,m,a),p=Object.entries(t.route?.bodyParsers||{}).filter(([,h])=>!!h).flatMap(([h])=>w[h]??[]),c=(p?.length?p:[t.route?.openApiService?.settings?.defaultResponseContentType])??[R],u=!1;if(this.isReferenceObject(l)){let h=this.getComponentByRef(l.$ref);if(!h)throw new Error(`fail to get schema from path ${l.$ref}`);u=(h.required??[]).length>0}return{description:i.description,summary:i.summary,required:u,content:Object.fromEntries(c.map(h=>[h,{schema:l}]))}}}extractParameters(t,e,r){let n=r?.actionSchema?.params??{},a=this.converter.getMetas(n),i=["multipart","stream"].includes(r.type??""),o=r.openapi?.pathParameters?r.openapi.pathParameters.map(c=>({...c,in:"path"})):this.extractParamsFromUrl(e),l={parameters:this.addQueryParameters(o,r,i?"get":t,n)},p=o.map(c=>c.name);return i?l.requestBody=r.openapi?.requestBody?r.openapi?.requestBody:this.generateFileUploadBody(r,p):l.requestBody=this.getRequestBody(r,t,n,a,p),l}getParameters(t,e,r){let n=B.includes(t);return Object.fromEntries(Object.entries(this.converter.getValidationRules(e)).map(([a,i])=>{let o=i?.$$oa?.in;if((o?o==="body":n)===r)return[a,i]}).filter(Boolean))}generateFileUploadBody(t,e){let r=t.type?w[t.type]:w.multipart,n={},a={type:"string",format:"binary"};if(t.type==="stream")n.type=a.type,n.format=a.format;else{if(t.actionSchema?.params?.$$root===!0)throw new Error("$$root parameters is not supported on multipart");let i=t.busboyConfig?.limits?.files??t?.route?.busboyConfig?.limits?.files,o=t.route.openApiService?.settings?.multiPartFileFieldName??M;n.allOf=[{type:"object",properties:{[o]:i===1?a:{type:"array",items:a,maxItems:i}},required:[o]}]}return{required:!0,content:{[r[0]]:{schema:n}}}}isReferenceObject(t){return!!t?.$ref}getComponent(t){if(!this.isReferenceObject(t))return t;let e=this.getComponentByRef(t.$ref);if(!e)throw new Error(`fail to get component "${t.$ref}`);return e}getComponentByRef(t){let e=t.split("/").filter(r=>r!=="");if(!(e.length<4||e[0]!=="#"||e[1]!=="components"||!Object.keys(this.components).includes(e[2])))return e.slice(2).reduce((r,n)=>r&&r.hasOwnProperty(n)?r[n]:void 0,this.components)}createRequestBodyFromParams(t,e,r=[],n={}){if(e.$$root===!0)return this.converter.getSchemaObjectFromRootSchema(e);let a=this.converter.getSchemaObjectFromSchema(e),i=Object.fromEntries(Object.entries(a).filter(([o,m])=>!r.includes(o)&&m));return this._createSchemaComponentFromObject(t,i,n)}extractParamsFromUrl(t=""){return[...ie(/{(\w+)}/g,t).flat()].map(e=>({name:e,in:"path",required:!0,schema:{type:"string"}}))}_createSchemaComponentFromObject(t,e,r={}){this.components.schemas||(this.components.schemas={});let n=[],a=Object.fromEntries(Object.entries(e).map(([i,o])=>{let m=`${t}.${i}`;return o[d.optional]!=!0&&n.push(i),[i,this._createSchemaPartFromRule(m,o)]}));return this.components.schemas[t]&&this.logger.warn(`Generator - schema ${t} already exist and will be overwrite`),this.components.schemas[t]={type:"object",properties:a,required:n.length>0?n:void 0,default:r.default},{$ref:`#/components/schemas/${t}`}}formatParamUrl(t=""){let e=t.indexOf("/:");if(e===-1)return t;let r=t.indexOf("/",++e);return r===-1?t.slice(0,e)+"{"+t.slice(++e)+"}":this.formatParamUrl(t.slice(0,e)+"{"+t.slice(++e,r)+"}"+t.slice(r))}_createSchemaPartFromRule(t,e){let r=this.extractSystemParams(e);if(e.description=r.description,e.title=r.summary,e.deprecated=r.deprecated,e.type=="object"&&e.properties)return{summary:e.title,deprecated:e.deprecated,description:e.description,...this._createSchemaComponentFromObject(t,e.properties,{default:e.default})};if(e.type==="array"&&e.items)return{...e,items:this._createSchemaPartFromRule(t,e.items)};if(H.some(n=>e[n])){let n=0;H.forEach(a=>{e[a]&&(e[a]=e[a].map(i=>{if(i.type!=="object")return i;let o=`${t}.${n++}`;return this._createSchemaPartFromRule(o,i)}))})}return e}extractSystemParams(t={}){return{optional:t?.[d.optional],description:t?.[d.description],summary:t?.[d.summary],deprecated:t?.[d.deprecated]}}removeExtensions(t){return Array.isArray(t)?t.map(e=>this.removeExtensions(e)):typeof t=="object"?(Object.values(d).forEach(e=>{delete t[e]}),Object.fromEntries(Object.entries(t).map(([e,r])=>[e,this.removeExtensions(r)]))):t}cleanComponents(t={}){return Object.fromEntries(Object.entries(t).map(([e,r])=>[e,Object.fromEntries(Object.entries(r).map(([n,a])=>a===!1?void 0:[n,a]).filter(Boolean))]))}handleTags(t,e,r=[]){let n=Array.from(new Set(r));return t.tags||(t.tags=[]),n.forEach(a=>{let i=e.get(a);!t.tags.some(({name:o})=>o===a)&&i&&t.tags.push(i)}),n}};var Me=je.Errors.MoleculerError,Y={onlyLocal:!1,openapi:{info:{description:"",version:"0.0.1",title:"Api docs"},tags:[],paths:{},components:{schemas:G.schemas,securitySchemes:{},responses:G.responses},responses:{200:{$ref:"#/components/responses/ReturnedData"},401:{$ref:"#/components/responses/UnauthorizedError"},422:{$ref:"#/components/responses/ValidationError"},default:{$ref:"#/components/responses/ServerError"}}},cacheOpenApi:!0,skipUnresolvedActions:!0,cacheMode:"next-call",summaryTemplate:`{{summary}}
+-            ({{action}}) {{autoAlias}}`,returnAssetsAsStream:!0,defaultResponseContentType:R,multiPartFileFieldName:M,addServiceNameToTags:!1,UIOptions:{}},D=class{broker;settings;logger;validator;constructor(t,e){this.broker=t;let r=this.broker.validator;if(r.constructor.name!="FastestValidator"&&r.validator)throw new Error("only fastest validator is allowed");this.logger=this.broker.getLogger("moleculer-openapi-generator"),this.validator=r.validator,this.settings={...Y,...e}}fetchServicesWithActions(t,e=!0,r=this.settings.onlyLocal){return t.call("$node.services",{withActions:e,onlyLocal:r??!1})}async mapAliases(t,e){this.logger.debug("mapAliases()");let r=e.filter(a=>a?.settings?.routes);if(this.logger.debug(`mapAliases() : ${r?.length??0} moleculer-web services found`),!r?.length)throw new Me("fail to identify service hosting moleculer-web");let n=new $(this.logger);return(await Promise.all(r.map(async a=>await n.parse(t,a,this.settings.skipUnresolvedActions??!0,e)))).flat()}async getAliases(t){let e=await this.fetchServicesWithActions(t);return this.mapAliases(t,e)}async generateSchema(t,{filterAliasesFn:e,addMappers:r}){let n="3.1",a=await e(t,await this.getAliases(t)),i=new L(this.logger,this.validator,JSON.parse(JSON.stringify(this.settings.openapi)),r);return await i.load(),i.generate(n,a)}};import we from"moleculer";import z from"fs";import U from"path/posix";var J=we.Errors.MoleculerError,S={},K={name:"openapi",settings:Y,events:{async"$api.aliases.regenerated"(){let s="generateDocs",{cacheMode:t}=this.settings;if(t!=="timeout"&&this.broker.cacher&&this.actions[s]){let e=this.broker.cacher.getCacheKey(`${this.fullName}.${s}`,{},{},[]);await this.broker.cacher.clean(`${e}*`)}this.actions.regenerateOpenApiPaths().catch(e=>{this.logger.error(`regenerateOpenApiPaths failed with error : ${e.toString()}`)}),t==="refresh"&&await this.actions[s]()}},actions:{generateDocs:{rest:{path:"/openapi.json",method:"GET"},cache:{enabled(){return this.settings.cacheOpenApi??!0},keygen:(s,t)=>t.version?`${s}|${t?.version||te}`:s,ttl:600},openapi:{tags:["OpenApi"]},handler(s){return this.getGenerator().generateSchema(s,{filterAliasesFn:this.filterAliases,addMappers:this.addMappers})}},assets:{rest:{path:"/assets/:file",method:"GET"},openapi:{summary:"OpenAPI assets",description:"Return files from swagger-ui-dist folder",tags:["OpenApi"]},params:{file:{type:"enum",values:["swagger-ui.css","swagger-ui.css.map","swagger-ui-bundle.js","swagger-ui-bundle.js.map","swagger-ui-standalone-preset.js","swagger-ui-standalone-preset.js.map"]}},async handler(s){let{file:t}=s.params;t.indexOf(".css")>-1?s.meta.$responseType="text/css":t.indexOf(".js")>-1?s.meta.$responseType="text/javascript":s.meta.$responseType="application/octet-stream";let e=`${await this.getSwaggerPath()}/${t}`;return this.settings.returnAssetsAsStream?z.createReadStream(e):z.promises.readFile(e)}},ui:{rest:{path:"/ui",method:"GET"},openapi:{summary:"OpenAPI ui",description:"You can provide any schema file in query param",tags:["OpenApi"]},params:{url:{$$oa:{summary:"Schema file"},type:"string",optional:!0}},async handler(s){s.meta.$responseType="text/html; charset=utf-8";let t=await this.getOpenApiPaths(),e=t.assetsPath,r={swaggerSettings:{deepLinking:!0,showExtensions:!0,layout:"StandaloneLayout",...this.settings.UIOptions,url:s.params.url||t.schemaPath,dom_id:"#swagger-ui",oauth2RedirectUrl:t.oauth2RedirectPath},oauth:this.settings.UIOauthOptions};return`<html lang="en"><head><title>OpenAPI UI</title><style>body{ margin: 0;} </style></head><body><div id="swagger-ui"><p>Loading...</p><noscript>If you see json, you need to update your dependencies</noscript></div><script type="application/json" id="__SWAGGER_SETTINGS__">${JSON.stringify(r)} <\/script><script>var assetsURL="${e}"; var configElement=document.getElementById("__SWAGGER_SETTINGS__"); if (!configElement){ throw new Error("fail to load configurations");} var settings=JSON.parse(configElement.textContent); window.onload=function (){ var cssLink=document.createElement("link"); cssLink.rel="stylesheet"; cssLink.href=assetsURL + "/swagger-ui.css"; document.head.appendChild(cssLink); function initSwaggerUIDependentCode(){ var ui=SwaggerUIBundle( Object.assign(settings.swaggerSettings,{ presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset], plugins: [SwaggerUIBundle.plugins.DownloadUrl],}) ); if(settings.oauth){ ui.initOAuth(settings.oauth)}} var scripts=[assetsURL + "/swagger-ui-bundle.js", assetsURL + "/swagger-ui-standalone-preset.js"]; var scriptsLoaded=0; function loadScript(script, callback){ var scriptElement=document.createElement("script"); scriptElement.src=script; scriptElement.onload=()=>{ scriptsLoaded++; if (scriptsLoaded===scripts.length){ callback();}}; document.body.appendChild(scriptElement);} for (var i=0; i < scripts.length; i++){ loadScript(scripts[i], initSwaggerUIDependentCode);}}; <\/script></body></html>`}},oauth2Redirect:{rest:{path:"/oauth2-redirect",method:"GET"},openapi:{summary:"OpenAPI OAuth2 redirect",description:"This fill will handle the OAuth2",tags:["OpenApi"]},cache:!1,async handler(s){if(!this)throw new J("unknown error");return s.meta.$responseType="text/html; charset=utf-8",z.promises.readFile(`${await this?.getSwaggerPath()}/oauth2-redirect.html`)}},regenerateOpenApiPaths:{visibility:"private",throttle:1e4,async handler(s){(await this.getGenerator().getAliases(s)).filter(e=>e.service?.name===this.name).forEach(e=>{e.action===`${this.name}.ui`&&(S.uiPath=e.fullPath),e.action===`${this.name}.assets`&&(S.assetsPath=e.fullPath?.replace("/:file","")),e.action===`${this.name}.oauth2Redirect`&&(S.oauth2RedirectPath=e.fullPath),e.action===`${this.name}.generateDocs`&&(S.schemaPath=e.fullPath)}),this.getOpenApiPaths()}}},methods:{getOpenApiPaths(){this.settings.schemaPath&&this.logger.warn("settings.schemaPath is deprecated, use settings.openApiPaths.schemaPath instead"),this.settings.assetsPath&&this.logger.warn("settings.assetsPath is deprecated, use settings.openApiPaths.assetsPath instead"),typeof this.settings.openApiPaths=="string"&&(this.settings.openApiPaths={schemaPath:U.join(this.settings.openApiPaths,"openapi.json"),uiPath:U.join(this.settings.openApiPaths,"ui"),oauth2RedirectPath:U.join(this.settings.openApiPaths,"oauth2-redirect"),assetsPath:U.join(this.settings.openApiPaths,"assets")});let s={assetsPath:this.settings.assetsPath??this.settings.openApiPaths?.assetsPath??S.assetsPath??ne,schemaPath:this.settings.schemaPath??this.settings.openApiPaths?.schemaPath??S.schemaPath,uiPath:this.settings.openApiPaths?.uiPath??S.uiPath,oauth2RedirectPath:this.settings.openApiPaths?.oauth2RedirectPath??S.oauth2RedirectPath};return["assetsPath","schemaPath","uiPath","oauth2RedirectPath"].forEach(t=>{if(!s[t])throw new J(`fail to get path for settings ${t}`)}),s},getSwaggerPath:async()=>{try{return(await import("swagger-ui-dist")).getAbsoluteFSPath()}catch{throw new J("fail to load swagger ui")}},getGenerator(){if(!this.generator)throw new Error("no generator, bad initialization");return this.generator},filterAliases:(s,t)=>t,addMappers:(s,t)=>({})},created(){this.generator=new D(this.broker,this.settings)},async started(){this.logger.info("\u{1F4DC} OpenAPI Docs server is available")}};var zt=K;var Jt=K;export{y as Alias,ue as ECacheMode,E as HTTP_METHODS,g as JOKER_METHOD,de as OPENAPI_VERSIONS_SUPPORTED,Jt as OpenApiMixin,_ as PathAction,x as Route,zt as default,K as mixin};
++var ee = 'unknown-action',
++	le = { server: 'x-moleculer-web-server' },
++	he = {
++		optional: 'x-fastest-optional',
++		description: 'x-fastest-description',
++		summary: 'x-fastest-summary',
++		deprecated: 'x-fastest-deprecated',
++	},
++	d = { ...le, ...he },
++	E = ((m) => (
++		(m.GET = 'get'),
++		(m.PUT = 'put'),
++		(m.POST = 'post'),
++		(m.DELETE = 'delete'),
++		(m.OPTIONS = 'options'),
++		(m.HEAD = 'head'),
++		(m.PATCH = 'patch'),
++		(m.TRACE = 'trace'),
++		m
++	))(E || {}),
++	de = ['3.1'],
++	te = '3.1',
++	N = Object.values(E),
++	k = (s) => N.includes(s?.toLowerCase()),
++	g = '*',
++	j = 'rest',
++	H = ['oneOf', 'allOf', 'anyOf'],
++	B = ['put', 'post', 'patch'],
++	Ve = Object.values(E).filter((s) => !B.includes(s)),
++	R = 'application/json',
++	M = 'file',
++	re = `{{summary}}
++            ({{action}}){{autoAlias}}`,
++	ne = '//unpkg.com/swagger-ui-dist',
++	q = /^[a-zA-Z0-9._-]+$/,
++	w = {
++		json: ['application/json'],
++		urlencoded: ['application/x-www-form-urlencoded'],
++		text: ['text/plain'],
++		multipart: ['multipart/form-data'],
++		stream: ['application/octet-stream'],
++	}
++import je from 'moleculer'
++var ue = ((r) => (
++	(r.NEXT_CALL = 'next-call'), (r.REFRESH = 'refresh'), (r.TIMEOUT = 'timeout'), r
++))(ue || {})
++var fe = {
++		type: 'object',
++		properties: {
++			rows: { type: 'array', items: { type: 'object' } },
++			totalCount: { type: 'number' },
++		},
++	},
++	ge = { type: 'array', items: { type: 'object' } },
++	Ae = { type: 'object' },
++	Oe = {
++		type: 'object',
++		properties: {
++			name: {
++				examples: ['InternalServerError'],
++				type: 'string',
++				description: 'The name of the error',
++			},
++			message: { examples: ['Example'], type: 'string', description: 'an helping message' },
++			code: {
++				type: 'number',
++				description: 'the status code of the error (can be different of the HTTP status code)',
++			},
++			type: { type: 'string', description: 'additional information for the error' },
++			data: { type: 'object' },
++		},
++		required: ['name', 'message', 'code'],
++	},
++	ye = {
++		description: 'Server errors: 500, 501, 400, 404 and etc...',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							examples: [
++								{ name: 'InternalServerError', message: 'Internal Server Error', code: 500 },
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	Se = {
++		description: 'Need auth',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [{ name: 'UnAuthorizedError', message: 'Unauthorized', code: 401 }],
++						},
++					],
++				},
++			},
++		},
++	},
++	be = {
++		description: 'Fields invalid',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [
++								{
++									name: 'MoleculerClientError',
++									message: 'Error message',
++									code: 422,
++									data: [
++										{ name: 'fieldName', message: 'Field invalid' },
++										{ name: 'arrayField[0].fieldName', message: 'Whats wrong' },
++										{ name: 'object.fieldName', message: 'Whats wrong' },
++									],
++								},
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	Pe = {
++		description: '',
++		content: {
++			'application/json': {
++				schema: {
++					oneOf: [
++						{ $ref: '#/components/schemas/DbMixinList' },
++						{ $ref: '#/components/schemas/DbMixinFindList' },
++						{ $ref: '#/components/schemas/Item' },
++					],
++				},
++			},
++		},
++	},
++	Ee = {
++		description: 'File not exist',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [
++								{ name: 'MoleculerClientError', message: 'File missing in the request', code: 400 },
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	Re = {
++		description: 'File too big',
++		content: {
++			'application/json': {
++				schema: {
++					allOf: [
++						{ $ref: '#/components/schemas/Error' },
++						{
++							type: 'object',
++							examples: [
++								{
++									name: 'PayloadTooLarge',
++									message: 'Payload too large',
++									code: 413,
++									type: 'PAYLOAD_TOO_LARGE',
++									data: {
++										fieldname: 'file',
++										filename: '4b2005c0b8.png',
++										encoding: '7bit',
++										mimetype: 'image/png',
++									},
++								},
++							],
++						},
++					],
++				},
++			},
++		},
++	},
++	Te = { DbMixinList: fe, DbMixinFindList: ge, Item: Ae, Error: Oe },
++	_e = {
++		ServerError: ye,
++		UnauthorizedError: Se,
++		ValidationError: be,
++		ReturnedData: Pe,
++		FileNotExist: Ee,
++		FileTooBig: Re,
++	},
++	G = { schemas: Te, responses: _e }
++import ae from 'path/posix'
++var se = (s) =>
++		s.fullName
++			? s.fullName
++			: s.version != null && s.settings?.$noVersionPrefix !== !0
++				? (typeof s.version == 'number' ? 'v' + s.version : s.version) + '.' + s.name
++				: s.name,
++	ie = (s, t) => {
++		let e = [],
++			r
++		for (; (r = s.exec(t)) !== null; )
++			r.index === s.lastIndex && s.lastIndex++, e.push([...r.slice(1)])
++		return e
++	},
++	A = (s = '') => ae.resolve('/', ae.normalize(s)),
++	oe = (s) => s === g || s === j || k(s),
++	pe = (s) => s === g || k(s)
++function W(s) {
++	return s
++		? (t, e) => t[s]?.localeCompare(e[s], 'en', { sensitivity: 'base' }) ?? -1
++		: (t, e) => t.localeCompare(e, 'en', { sensitivity: 'base' })
++}
++import ve from 'path/posix'
++var _ = class {
++	actionType
++	path
++	method
++	action
++	actionName
++	get fullPath() {
++		return this.alias.fullPath
++	}
++	alias
++	constructor(t, e, r) {
++		;(this.alias = t),
++			(this.actionType = t.type),
++			(this.path = t.path),
++			(this.method = e),
++			r && this.setAction(r)
++	}
++	setAction(t) {
++		this.action = t
++	}
++}
++import xe from 'path/posix'
++var y = class {
++	fullPath
++	get path() {
++		return this._path
++	}
++	set path(t) {
++		this._path = A(t)
++	}
++	get method() {
++		return this._method
++	}
++	set method(t) {
++		if (!pe(t)) throw new Error(`"${t}" is not a valid method`)
++		this._method = t.toLowerCase()
++	}
++	route
++	type
++	_method = '*'
++	_path = ''
++	action
++	actionSchema
++	service
++	openapi
++	skipped = !1
++	busboyConfig
++	constructor(t, e) {
++		;(this.route = e),
++			(this.type = t.type),
++			(this.busboyConfig = t.busboyConfig),
++			(this.method = t.method ?? g),
++			(this.path = t.path ?? '/'),
++			(this.fullPath = xe.join(e?.path ?? '/', t.path ?? '/')),
++			(this.action = t.action),
++			t.openapi === !1 ? (this.skipped = !0) : (this.openapi = t.openapi)
++	}
++	isJokerAlias() {
++		return this.method === g
++	}
++	getMethods() {
++		return (this.method === g ? N : [this.method]) ?? []
++	}
++	toJSON() {
++		return {
++			method: this.method,
++			type: this.type,
++			path: this.path,
++			action: this.action,
++			openapi: this.openapi,
++		}
++	}
++	getPaths() {
++		return this.getMethods().map((t) => new _(this, t, this.actionSchema))
++	}
++}
++var V = class {
++	constructor(t, e, r = {}, n = !0) {
++		this.logger = t
++		this.route = e
++		this.aliases = r
++		this.skipUnresolvedActions = n
++	}
++	getAliases() {
++		return Object.entries(this.aliases ?? {}).flatMap(([t, e]) => {
++			let r = this.extractAliasInformation(t, e),
++				n = this.getSubAliases(r ?? {}).map((a) => {
++					let i = new y(a, this.route)
++					return (i.skipped = !0), i
++				})
++			return r
++				? r.action && !r.action.match(q)
++					? (this.logger.error(
++							`alias "${t}" from route "${this.route.path}" can't be added ton openapi . because the name "${r.action}" need to match pattern ${q.toString()}`,
++						),
++						n)
++					: this.getSubAliases(r).map((a) => new y(a, this.route))
++				: (this.logger.warn(`alias "${t}" from route "${this.route.path}" is skipped`), n)
++		})
++	}
++	extractAliasSubInformations(t) {
++		if (((r) => !!r && ['action', 'handler'].some((n) => !!r[n]))(t)) return t
++		if (Array.isArray(t)) {
++			let r = t.reduce((n, a) => (!a || typeof a != 'string' ? n : a), void 0)
++			return !r && this.skipUnresolvedActions ? void 0 : { action: r }
++		} else
++			return typeof t != 'string'
++				? this.skipUnresolvedActions
++					? void 0
++					: { action: void 0 }
++				: { action: t }
++	}
++	extractAliasInformation(t, e) {
++		let r = this.extractAliasSubInformations(e)
++		if (!r) return
++		let n = t.split(/\s+/)
++		if (
++			(n.length === 1 && (r.path = r.path ?? n[0]),
++			n.length > 1 && ((r.path = r.path ?? n[1]), (r.method = r.method ?? n[0])),
++			!r.actionType && r.action?.includes(':'))
++		) {
++			let [a, i] = r.action.split(':')
++			;(r.type = a), (r.action = i)
++		}
++		if ((r.method ? (r.method = r.method.toLowerCase()) : (r.method = g), !oe(r.method))) {
++			this.logger.warn(`"${r.method}" is not a valid http method`)
++			return
++		}
++		return r
++	}
++	getSubAliases(t) {
++		if (t.method !== j) return [t]
++		let e = t.action,
++			r = {
++				list: { method: 'get', action: `${e}.list`, path: `${t.path}` },
++				get: { method: 'get', action: `${e}.get`, path: `${t.path}/:id` },
++				create: { method: 'post', action: `${e}.create`, path: `${t.path}` },
++				update: { method: 'put', action: `${e}.update`, path: `${t.path}/:id` },
++				patch: { method: 'patch', action: `${e}.patch`, path: `${t.path}/:id` },
++				remove: { method: 'delete', action: `${e}.remove`, path: `${t.path}/:id` },
++			}
++		return Object.entries(r)
++			.filter(
++				([n]) => (t.only ? t.only.includes(n) : !0) && (t.except ? !t.except.includes(n) : !0),
++			)
++			.map(([, n]) => ({ ...t, ...n }))
++	}
++}
++var x = class s {
++	constructor(t, e, r, n, a = !0) {
++		this.logger = t
++		this.skipUnresolvedActions = a
++		;(this.path = s.formatPath(e?.path, r)),
++			(this.bodyParsers = e.bodyParsers),
++			(this.busboyConfig = e.busboyConfig),
++			(this.autoAliases = e.autoAliases ?? !1),
++			(this.openapi = e.openapi),
++			(this.openApiService = n),
++			(this.apiService = r),
++			(this.aliases = new V(this.logger, this, e.aliases, this.skipUnresolvedActions).getAliases())
++	}
++	aliases
++	path
++	bodyParsers
++	autoAliases
++	openapi
++	openApiService
++	apiService
++	busboyConfig
++	static formatPath(t, e) {
++		return A(ve.join(e?.settings?.path ?? '/', t ?? '/'))
++	}
++	searchAlias(t) {
++		return this.aliases.find(
++			(e) =>
++				(e.method.toLowerCase() === g || e.method?.toLowerCase() === t.methods?.toLowerCase()) &&
++				A(e.path?.toLowerCase()) === A(t.path?.toLowerCase()),
++		)
++	}
++}
++var $ = class {
++	constructor(t) {
++		this.logger = t
++		this.logger.debug('RoutesParser.constructor()')
++	}
++	async parse(t, e, r, n) {
++		this.logger.debug('RoutesParser.parse()')
++		let a = new Map(),
++			i = new Map()
++		n.forEach((p) =>
++			Object.values(p.actions ?? {}).forEach((c) => {
++				typeof c == 'boolean' ||
++					typeof c == 'function' ||
++					!c.name ||
++					a.set(c.name, { service: p, action: c })
++			}),
++		)
++		let o = se(e)
++		return (
++			(e.settings?.routes || []).forEach((p) => {
++				if (
++					(this.logger.debug(`RoutesParser.parse() - check route ${p.name ?? p.path}`),
++					p?.openapi === !1)
++				) {
++					this.logger.debug(
++						`RoutesParser.parse() - skip route ${p.name ?? p.path} because openapi = false`,
++					)
++					return
++				}
++				let c = new x(this.logger, p, e, t.service?.schema, r)
++				i.set(`${o}-${c.path}`, c)
++			}),
++			((await this.fetchAliasesForService(t, o)) ?? [])
++				.filter(
++					(p, c, u) =>
++						c === u.findIndex((h) => h.fullPath === p.fullPath && h.methods === p.methods),
++				)
++				.flatMap((p) => {
++					this.logger.debug(
++						`RoutesParser.parse() - checking alias ${p.path} for path ${p.fullPath}`,
++					)
++					let c = i.get(`${o}-${A(p.routePath)}`)
++					if (!c) {
++						this.logger.debug(
++							`RoutesParser.parse() - alias ${p.fullPath} is skipped because not linked to a route (can be normal if route use openapi = false)`,
++						)
++						return
++					}
++					let u = c?.searchAlias(p)
++					if (!u) {
++						if (c && !c.autoAliases) {
++							this.logger.error(
++								`fail to get alias configuration for alias ${p.methods} "${p.fullPath}"`,
++							)
++							return
++						}
++						this.logger.debug(`RoutesParser.parse() - alias ${p.fullPath} seems to use autoAliases`)
++						let h = new y(
++							{
++								path: p.path,
++								method: p.methods,
++								action: p.actionName ?? void 0,
++								openapi: c?.openapi,
++							},
++							c,
++						)
++						return p.fullPath && (h.fullPath = p.fullPath), h
++					}
++					if (u.skipped) {
++						this.logger.debug(
++							`RoutesParser.parse() - skip alias ${u.fullPath} because openapi = false`,
++						)
++						return
++					}
++					return u
++				})
++				.filter(Boolean)
++				.map((p) => {
++					if (!p.action) return p
++					let c = a.get(p.action)
++					if (!c)
++						return (
++							this.logger.warn(`fail to get details about action "${p.action}"`), r ? void 0 : p
++						)
++					if (c.action.openapi !== !1)
++						return (p.actionSchema = c.action), (p.service = c.service), p
++				})
++				.filter(Boolean)
++		)
++	}
++	fetchAliasesForService(t, e) {
++		return t.call(`${e}.listAliases`, { withActionSchema: !1, grouping: !1 })
++	}
++}
++var ce = (s) => {
++	let t = typeof s
++	if (['boolean', 'object', 'number', 'string', 'integer', 'array'].includes(t)) return t
++}
++var C = class {
++		constructor(t, e) {
++			this.validator = t
++			this.additionalMappersFn = e
++			;(this.mappers = Ie(this.getMapperFn())), this.load()
++		}
++		mappers
++		getMapperFn() {
++			return {
++				getSchemaObjectFromSchema: (...t) => this.getSchemaObjectFromSchema(...t),
++				getSchemaObjectFromRule: (...t) => this.getSchemaObjectFromRule(...t),
++			}
++		}
++		_loadingPromise
++		async load() {
++			if (this._loadingPromise) return this._loadingPromise
++			;(this._loadingPromise = new Promise(async (t, e) => {
++				try {
++					let r = this.getMapperFn()
++					Object.entries(
++						(await this.additionalMappersFn?.(
++							r.getSchemaObjectFromRule,
++							r.getSchemaObjectFromSchema,
++						)) ?? {},
++					).forEach(([n, a]) => {
++						this.mappers[n] = a
++					}),
++						t()
++				} catch (r) {
++					e(r)
++				}
++			})),
++				await this._loadingPromise
++		}
++		getValidationRules(t) {
++			return Object.fromEntries(Object.entries(t).filter(([e]) => !e.startsWith('$$')))
++		}
++		getMetas(t) {
++			return Object.fromEntries(Object.entries(t).filter(([e]) => e.startsWith('$$')))
++		}
++		getSchemaObjectFromSchema(t) {
++			return Object.fromEntries(
++				Object.entries(this.getValidationRules(t))
++					.map(([e, r]) => [e, this.getSchemaObjectFromRule(r, void 0, t)])
++					.filter(Boolean),
++			)
++		}
++		getSchemaObjectFromRootSchema(t) {
++			if (t.$$root !== !0) throw new Error('this function only support $$root objects')
++			return delete t.$$root, this.getSchemaObjectFromRule(t)
++		}
++		getSchemaObjectFromRule(t, e, r) {
++			if (!this.validator || !this.mappers?.string)
++				throw new Error(
++					`bad initialisation . validator ? ${!!this.validator} | string mapper ${!!this.mappers?.string}`,
++				)
++			let n = typeof t == 'object' ? (Array.isArray(t) ? [...t] : { ...t }) : t,
++				a =
++					Array.isArray(n) || typeof n != 'object' || !n.$$oa
++						? []
++						: [
++								{ property: 'description', extension: d.description },
++								{ property: 'summary', extension: d.summary },
++								{ property: 'deprecated', extension: d.deprecated },
++							].map(({ property: p, extension: c }) => [c, n.$$oa?.[p]]),
++				i = this.validator.getRuleFromSchema(n)?.schema,
++				o = { ...e, ...i },
++				l = (this.mappers[o.type] || this.mappers.string)(o, r)
++			if (l)
++				return (
++					o.optional && (l[d.optional] = !0),
++					a.forEach(([p, c]) => {
++						l[p] = c
++					}),
++					l
++				)
++		}
++	},
++	Ie = ({ getSchemaObjectFromRule: s, getSchemaObjectFromSchema: t }) => ({
++		any: (e) => ({ default: e.default, examples: e.default ? [e.default] : void 0 }),
++		array: (e) => {
++			let r = (e.items ? s(e.items, { enum: e.enum }) : void 0) ?? {},
++				n = {
++					type: 'array',
++					examples: e.default ? [e.default] : void 0,
++					uniqueItems: e.unique,
++					default: e.default,
++					items: r,
++				}
++			return (
++				e.length
++					? ((n.maxItems = e.length), (n.minItems = e.length))
++					: ((n.maxItems = e.max), (n.minItems = e.min)),
++				n
++			)
++		},
++		boolean: (e) => ({
++			type: 'boolean',
++			default: e.default,
++			examples: e.default !== void 0 ? [e.default] : [!0, !1],
++		}),
++		class: () => {},
++		currency: (e) => {
++			let r
++			if (e.customRegex) r = e.customRegex.toString()
++			else {
++				let n = e.currencySymbol || null,
++					a = e.thousandSeparator || ',',
++					i = e.decimalSeparator || '.',
++					o = n ? `\\${n}${e.symbolOptional ? '?' : ''}` : '',
++					m = '(?=.*\\d)^(-?~1|~1-?)(([0-9]\\d{0,2}(~2\\d{3})*)|0)?(\\~3\\d{1,2})?$'
++						.replace(/~1/g, o)
++						.replace('~2', a)
++						.replace('~3', i)
++				r = new RegExp(m).source
++			}
++			return {
++				type: 'string',
++				pattern: r,
++				default: e.default,
++				examples: e.default ? [e.default] : void 0,
++				format: 'currency',
++			}
++		},
++		date: (e) => {
++			if (!e.convert) return
++			let r = new Date(e.default ?? Date.now()),
++				n = [r.toISOString(), r.getTime()]
++			return { type: 'string', default: e.default, format: 'date-time', examples: n }
++		},
++		email: (e) => {
++			let r =
++					/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
++				n = /^\S+@\S+\.\S+$/,
++				a = e.mode == 'precise' ? r : n
++			return {
++				type: 'string',
++				format: 'email',
++				default: e.default,
++				pattern: new RegExp(a).source,
++				maxLength: e.max,
++				minLength: e.min,
++				examples: [e.default ?? 'foo@bar.com'],
++			}
++		},
++		enum: (e) => s({ type: 'string', enum: e.values }),
++		equal: (e, r) =>
++			e.field && r?.[e.field]
++				? s(r?.[e.field])
++				: {
++						type: e.strict ? ce(e.value) : 'string',
++						default: e.default,
++						examples: e.default ? [e.default] : void 0,
++						enum: e.value ? [e.value] : void 0,
++					},
++		forbidden: () => {},
++		function: () => {},
++		luhn: (e) => ({
++			type: 'string',
++			default: e.default,
++			pattern: '^(\\d{1,4} ){3}\\d{1,4}$',
++			examples: e.default ? [e.default] : void 0,
++			format: 'luhn',
++		}),
++		mac: (e) => {
++			let r =
++				/^((([a-f0-9][a-f0-9]+-){5}|([a-f0-9][a-f0-9]+:){5})([a-f0-9][a-f0-9])$)|(^([a-f0-9][a-f0-9][a-f0-9][a-f0-9]+[.]){2}([a-f0-9][a-f0-9][a-f0-9][a-f0-9]))$/i
++			return {
++				type: 'string',
++				default: e.default,
++				pattern: new RegExp(r).source,
++				examples: e.default
++					? [e.default]
++					: ['01:C8:95:4B:65:FE', '01C8.954B.65FE', '01-C8-95-4B-65-FE'],
++				format: 'mac',
++			}
++		},
++		multi: (e) =>
++			Array.isArray(e.rules)
++				? {
++						oneOf: e.rules.map((n) => s(n)).filter(Boolean),
++						default: e.default,
++						examples: e.default ? [e.default] : void 0,
++					}
++				: void 0,
++		number: (e) => {
++			let r = e.default ?? e.enum?.[0] ?? e.min ?? e.max,
++				n = { type: 'number', default: e.default, examples: r ? [r] : void 0 }
++			return (
++				e.positive && (n.minimum = 0),
++				e.negative && (n.maximum = 0),
++				e.max && (n.maximum = e.max),
++				e.min && (n.minimum = e.min),
++				e.equal && ((n.maximum = e.equal), (n.minimum = e.equal)),
++				n
++			)
++		},
++		object: (e) => {
++			let r = e.props ?? e.properties,
++				n = r ? t(r) : void 0
++			return {
++				type: 'object',
++				minProperties: e.minProps,
++				maxProperties: e.maxProps,
++				default: e.default,
++				properties: n,
++				examples: e.default ? [e.default] : void 0,
++			}
++		},
++		record: (e) => {
++			let r = e.value ? s(e.value) : void 0
++			return { type: 'object', default: e.default, additionalProperties: r }
++		},
++		string: (e) => {
++			let r = { default: e.default, type: 'string' }
++			e.length
++				? ((r.maxLength = e.length), (r.minLength = e.length))
++				: ((r.maxLength = e.max), (r.minLength = e.min))
++			let n
++			e.pattern
++				? (r.pattern = new RegExp(e.pattern).source)
++				: e.contains
++					? ((r.pattern = `.*${e.contains}.*`), (n = e.contains))
++					: e.numeric
++						? ((r.pattern = '^[0-9]+$'), (r.format = 'numeric'), (n = '12345'))
++						: e.alpha
++							? ((r.pattern = '^[a-zA-Z]+$'), (r.format = 'alpha'), (n = 'abcdef'))
++							: e.alphanum
++								? ((r.pattern = '^[a-zA-Z0-9]+$'), (r.format = 'alphanum'), (n = 'abc123'))
++								: e.alphadash
++									? ((r.pattern = '^[a-zA-Z0-9_-]+$'), (r.format = 'alphadash'), (n = 'abc-123'))
++									: e.singleLine
++										? ((r.pattern = '^[^\\r\\n]*$'), (r.format = 'single-line'), (n = 'abc 123'))
++										: e.hex
++											? ((r.pattern = '^([0-9A-Fa-f]{2})+$'),
++												(r.format = 'hex'),
++												(n = '48656c6c6f20576f726c64'))
++											: e.base64 &&
++												((r.pattern =
++													'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'),
++												(r.format = 'byte'),
++												(n = 'aGVsbG8gd29ybGQ=')),
++				(r.enum = e.enum)
++			let a = e.default ?? e.enum?.[0] ?? n
++			return a && (r.examples = [a]), r
++		},
++		tuple: (e) => {
++			let r = s({ type: 'array', default: e.default, length: 2 })
++			return (
++				e.items && (r.items = { oneOf: e.items.map((n) => s(n)).filter(Boolean) }),
++				e.default && (r.examples = [e.default]),
++				r
++			)
++		},
++		url: (e) => ({
++			type: 'string',
++			format: 'url',
++			default: e.default,
++			examples: [e.default ?? 'https://foobar.com'],
++		}),
++		uuid: (e) => {
++			let r
++			switch (e.version) {
++				case 0:
++					r = '00000000-0000-0000-0000-000000000000'
++					break
++				case 1:
++					r = '45745c60-7b1a-11e8-9c9c-2d42b21b1a3e'
++					break
++				case 2:
++					r = '9a7b330a-a736-21e5-af7f-feaf819cdc9f'
++					break
++				case 3:
++					r = '9125a8dc-52ee-365b-a5aa-81b0b3681cf6'
++					break
++				case 4:
++				default:
++					r = '10ba038e-48da-487b-96e8-8d3b99b6d18a'
++					break
++				case 5:
++					r = 'fdda765f-fc57-5604-a269-52a7df8164ec'
++					break
++				case 6:
++					r = 'a9030619-8514-6970-e0f9-81b9ceb08a5f'
++					break
++			}
++			return {
++				type: 'string',
++				format: 'uuid',
++				default: e.default,
++				examples: e.default ? [e.default] : [r],
++			}
++		},
++		objectID: (e) => {
++			let r = '507f1f77bcf86cd799439011'
++			return {
++				type: 'string',
++				format: 'ObjectId',
++				default: e.default,
++				minLength: r.length,
++				maxLength: r.length,
++				examples: e.default ? [e.default] : [r],
++			}
++		},
++		custom: () => {},
++	})
++var F = class {
++	static generateResponses(t, e) {
++		let r = t.responses ?? {},
++			n = '200'
++		if (t.response) {
++			let a = { description: '' }
++			if (t.response.description === void 0) a.content = { [e]: t.response }
++			else {
++				let i = t.response
++				;(a.description = i.description),
++					(a.headers = i.headers),
++					(a.links = i.links),
++					(n = i.statusCode?.toString() ?? n),
++					i.content && (a.content = { [i.type ?? e]: i.content })
++			}
++			r[n] = a
++		}
++		return r
++	}
++	static mergeObjects(t, e = {}) {
++		if (!e) throw new Error('need an input object to apply merge')
++		return (
++			Object.entries(e).forEach(([r, n]) => {
++				if (n === !1) {
++					delete t[r]
++					return
++				}
++				t[r] = n
++			}),
++			t
++		)
++	}
++	static mergeCommons(t, e = []) {
++		return e.reduce((r, n) => {
++			let a = r ?? { components: {} }
++			return (
++				a?.components || (a.components = {}),
++				n &&
++					Object.keys(n).forEach((i) => {
++						let o = i
++						if (o === 'components') {
++							Object.keys(n.components ?? {}).forEach((m) => {
++								let l = m
++								a.components || (a.components = {}),
++									a.components[l] || (a.components[l] = {}),
++									this.mergeObjects(a.components[l], n?.components?.[l])
++							})
++							return
++						}
++						if (o === 'responses') {
++							a?.[o] || (a[o] = {}), this.mergeObjects(a[o], n?.[o])
++							return
++						}
++						if (o === 'tags') {
++							a.tags = (n.tags ?? []).reduce(
++								(m = [], l) =>
++									l === null
++										? []
++										: typeof l != 'string'
++											? (l.name && t.set(l.name, { ...(t.get(l.name) ?? {}), ...l }), m)
++											: (t.set(l, { ...(t.get(l) ?? {}), name: l }), [...m, l]),
++								a.tags,
++							)
++							return
++						}
++						if (n[o] === !1 && typeof a[o] != 'boolean') {
++							delete a[o]
++							return
++						}
++						a[o] = n[o]
++					}),
++				a
++			)
++		}, {})
++	}
++	static merge(t, e, r, n, a, i) {
++		return [
++			r?.openapi,
++			a?.settings?.addServiceNameToTags && r?.service?.name ? { tags: [r.service.name] } : void 0,
++			r?.service?.settings?.openapi,
++			n?.openapi,
++		].reduce(
++			(o, m) => (
++				m &&
++					((m.responses = this.generateResponses(m, a?.settings?.defaultResponseContentType ?? R)),
++					(o = this.mergeCommons(t, [o, m])),
++					(o.summary = m.summary ?? o.summary),
++					(o.security = m.security ?? o.security)),
++				o
++			),
++			this.mergeCommons(t, [a?.settings?.openapi, i?.settings?.openapi, e.openapi]),
++		)
++	}
++}
++var L = class {
++	constructor(t, e, r, n) {
++		this.logger = t
++		;(this.converter = new C(e, n)), (this.document = r)
++	}
++	components = {
++		schemas: {},
++		responses: {},
++		parameters: {},
++		examples: {},
++		requestBodies: {},
++		headers: {},
++		securitySchemes: {},
++		links: {},
++		callbacks: {},
++		pathItems: {},
++	}
++	document
++	converter
++	isLoaded
++	async load() {
++		await this.converter.load(), (this.isLoaded = !0)
++	}
++	generate(t, e) {
++		this.isLoaded ||
++			this.logger.warn('generator : converter is not loaded, custom mapper can be not be enabled')
++		let r = new Map()
++		this.document.openapi &&
++			(this.logger.warn('setting manually the openapi version is not supported'),
++			delete this.document.openapi)
++		let n = {
++			openapi: `${t}.0`,
++			...this.document,
++			servers: [],
++			tags: [],
++			components: this.cleanComponents(this.document.components),
++		}
++		n.responses && delete n.responses
++		let a = new Map()
++		return (
++			e.sort(W('fullPath')),
++			e.forEach((i) => {
++				n.paths || (n.paths = {})
++				let o = i.route,
++					{ apiService: m, openApiService: l } = o,
++					p = this.formatParamUrl(A(i.fullPath)),
++					c = n.paths?.[p] ?? {}
++				i.isJokerAlias() &&
++					((c.description = i.actionSchema?.openapi?.description),
++					(c.summary = i.actionSchema?.openapi?.summary)),
++					i.getPaths().forEach((u) => {
++						let h = u.method,
++							Z = `${p}.${h}`,
++							O = c[h]
++						if (O) {
++							if (
++								(O[d.server] || O.servers?.length) &&
++								i.route.apiService.settings?.openapi?.server?.url &&
++								!O.servers?.find((P) => P.url === i.route.apiService.settings?.openapi?.server?.url)
++							) {
++								let P = i.route.apiService.settings.openapi.server
++								if (!O.servers?.length) {
++									O.servers = []
++									let I = O[d.server]
++									I && O.servers.push(I)
++								}
++								O.servers.push(P), this.addServerToDocument(n, P)
++								return
++							}
++							let b = a.get(Z)
++							this.logger.warn(
++								`${h.toUpperCase()} ${p} is already register by action ${b ?? '<unamedAction>'} skip`,
++							)
++							return
++						}
++						a.set(Z, u.action?.name)
++						let f = F.merge(r, o, i, u.action, l, m),
++							{ parameters: X, requestBody: me } = this.extractParameters(h, p, i) ?? {}
++						f?.parameters && X.push(...f.parameters),
++							(this.components = this.mergeComponents(
++								this.components,
++								this.cleanComponents(f.components),
++							))
++						let v = {
++							summary: i.isJokerAlias() ? void 0 : f?.summary,
++							description: i.isJokerAlias() ? void 0 : f?.description,
++							deprecated: f.deprecated,
++							operationId: f?.operationId,
++							externalDocs: f?.externalDocs,
++							security: f?.security,
++							tags: this.handleTags(n, r, f?.tags),
++							parameters: X,
++							requestBody: me,
++							responses: f?.responses,
++						}
++						if (i.route.apiService.settings?.openapi?.server) {
++							let b = i.route.apiService.settings.openapi.server
++							;(v[d.server] = b), this.addServerToDocument(n, b)
++						}
++						let Q = {
++								summary: f?.summary ?? '',
++								action: i.action ?? ee,
++								autoAlias: i.route.autoAliases ? '[autoAlias]' : '',
++							},
++							T = i.route?.openApiService?.settings?.summaryTemplate
++						;(typeof T == 'string' || T === void 0) &&
++							(v.summary = Object.entries(Q)
++								.reduce((b, [P, I]) => b.replace(new RegExp(`{{${P}}}`, 'g'), I ?? ''), T ?? re)
++								.trim()),
++							typeof T == 'function' && (v.summary = T(Q)),
++							(c[h] = v)
++					}),
++					(n.paths[p] = c)
++			}),
++			n.tags?.sort(W('name')),
++			(n.components = this.mergeComponents(n.components, this.components)),
++			this.removeExtensions(n)
++		)
++	}
++	addServerToDocument(t, e) {
++		t.servers || (t.servers = []), t.servers.some((r) => r.url === e.url) || t.servers.push(e)
++	}
++	mergeComponents(t, e) {
++		return Object.keys(e).reduce(
++			(r, n) => (Object.keys(e?.[n]).length ? { ...r, [n]: { ...t[n], ...e[n] } } : r),
++			{ ...t },
++		)
++	}
++	addQueryParameters(t, e, r, n) {
++		if (e.openapi?.queryParameters)
++			return e.openapi.queryParameters.map((i) => ({ ...i, in: 'query' }))
++		let a = this.getParameters(r, n, !1)
++		return (
++			Object.entries(a).forEach(([i, o]) => {
++				let m = this.converter.getSchemaObjectFromRule(o)
++				if (!m) return
++				let l = this.getComponent(m),
++					p = {
++						name: i,
++						in: 'query',
++						style: m.type === 'object' ? 'deepObject' : void 0,
++						explode: m.type === 'object' ? !0 : void 0,
++						required: l[d.optional] !== !0 || void 0,
++						schema: m,
++					}
++				if (!t.some((c) => c.name === i)) {
++					t.push(p)
++					return
++				}
++				t = t.map((c) => (c.name !== i ? c : { ...p, in: 'path', required: !0 }))
++			}),
++			t
++		)
++	}
++	getRequestBody(t, e, r, n, a = []) {
++		if (t.openapi?.requestBody) return t.openapi?.requestBody
++		if (!t.action) return
++		let i = n?.$$oa ?? {},
++			o = this.getParameters(e, r, !0)
++		if (Object.keys(o).length > 0) {
++			let m = { ...n, ...o },
++				l = this.createRequestBodyFromParams(t.action, m, a),
++				p = Object.entries(t.route?.bodyParsers || {})
++					.filter(([, h]) => !!h)
++					.flatMap(([h]) => w[h] ?? []),
++				c = (p?.length ? p : [t.route?.openApiService?.settings?.defaultResponseContentType]) ?? [
++					R,
++				],
++				u = !1
++			if (this.isReferenceObject(l)) {
++				let h = this.getComponentByRef(l.$ref)
++				if (!h) throw new Error(`fail to get schema from path ${l.$ref}`)
++				u = (h.required ?? []).length > 0
++			}
++			return {
++				description: i.description,
++				summary: i.summary,
++				required: u,
++				content: Object.fromEntries(c.map((h) => [h, { schema: l }])),
++			}
++		}
++	}
++	extractParameters(t, e, r) {
++		let n = r?.actionSchema?.params ?? {},
++			a = this.converter.getMetas(n),
++			i = ['multipart', 'stream'].includes(r.type ?? ''),
++			o = r.openapi?.pathParameters
++				? r.openapi.pathParameters.map((c) => ({ ...c, in: 'path' }))
++				: this.extractParamsFromUrl(e),
++			l = { parameters: this.addQueryParameters(o, r, i ? 'get' : t, n) },
++			p = o.map((c) => c.name)
++		return (
++			i
++				? (l.requestBody = r.openapi?.requestBody
++						? r.openapi?.requestBody
++						: this.generateFileUploadBody(r, p))
++				: (l.requestBody = this.getRequestBody(r, t, n, a, p)),
++			l
++		)
++	}
++	getParameters(t, e, r) {
++		let n = B.includes(t)
++		return Object.fromEntries(
++			Object.entries(this.converter.getValidationRules(e))
++				.map(([a, i]) => {
++					let o = i?.$$oa?.in
++					if ((o ? o === 'body' : n) === r) return [a, i]
++				})
++				.filter(Boolean),
++		)
++	}
++	generateFileUploadBody(t, e) {
++		let r = t.type ? w[t.type] : w.multipart,
++			n = {},
++			a = { type: 'string', format: 'binary' }
++		if (t.type === 'stream') (n.type = a.type), (n.format = a.format)
++		else {
++			if (t.actionSchema?.params?.$$root === !0)
++				throw new Error('$$root parameters is not supported on multipart')
++			let i = t.busboyConfig?.limits?.files ?? t?.route?.busboyConfig?.limits?.files,
++				o = t.route.openApiService?.settings?.multiPartFileFieldName ?? M
++			n.allOf = [
++				{
++					type: 'object',
++					properties: { [o]: i === 1 ? a : { type: 'array', items: a, maxItems: i } },
++					required: [o],
++				},
++			]
++		}
++		return { required: !0, content: { [r[0]]: { schema: n } } }
++	}
++	isReferenceObject(t) {
++		return !!t?.$ref
++	}
++	getComponent(t) {
++		if (!this.isReferenceObject(t)) return t
++		let e = this.getComponentByRef(t.$ref)
++		if (!e) throw new Error(`fail to get component "${t.$ref}`)
++		return e
++	}
++	getComponentByRef(t) {
++		let e = t.split('/').filter((r) => r !== '')
++		if (
++			!(
++				e.length < 4 ||
++				e[0] !== '#' ||
++				e[1] !== 'components' ||
++				!Object.keys(this.components).includes(e[2])
++			)
++		)
++			return e
++				.slice(2)
++				.reduce((r, n) => (r && r.hasOwnProperty(n) ? r[n] : void 0), this.components)
++	}
++	createRequestBodyFromParams(t, e, r = [], n = {}) {
++		if (e.$$root === !0) return this.converter.getSchemaObjectFromRootSchema(e)
++		let a = this.converter.getSchemaObjectFromSchema(e),
++			i = Object.fromEntries(Object.entries(a).filter(([o, m]) => !r.includes(o) && m))
++		return this._createSchemaComponentFromObject(t, i, n)
++	}
++	extractParamsFromUrl(t = '') {
++		return [...ie(/{(\w+)}/g, t).flat()].map((e) => ({
++			name: e,
++			in: 'path',
++			required: !0,
++			schema: { type: 'string' },
++		}))
++	}
++	_createSchemaComponentFromObject(t, e, r = {}) {
++		this.components.schemas || (this.components.schemas = {})
++		let n = [],
++			a = Object.fromEntries(
++				Object.entries(e).map(([i, o]) => {
++					let m = `${t}.${i}`
++					return o[d.optional] != !0 && n.push(i), [i, this._createSchemaPartFromRule(m, o)]
++				}),
++			)
++		return (
++			this.components.schemas[t] &&
++				this.logger.warn(`Generator - schema ${t} already exist and will be overwrite`),
++			(this.components.schemas[t] = {
++				type: 'object',
++				properties: a,
++				required: n.length > 0 ? n : void 0,
++				default: r.default,
++			}),
++			{ $ref: `#/components/schemas/${t}` }
++		)
++	}
++	formatParamUrl(t = '') {
++		let e = t.indexOf('/:')
++		if (e === -1) return t
++		let r = t.indexOf('/', ++e)
++		return r === -1
++			? t.slice(0, e) + '{' + t.slice(++e) + '}'
++			: this.formatParamUrl(t.slice(0, e) + '{' + t.slice(++e, r) + '}' + t.slice(r))
++	}
++	_createSchemaPartFromRule(t, e) {
++		let r = this.extractSystemParams(e)
++		if (
++			((e.description = r.description),
++			(e.title = r.summary),
++			(e.deprecated = r.deprecated),
++			e.type == 'object' && e.properties)
++		)
++			return {
++				summary: e.title,
++				deprecated: e.deprecated,
++				description: e.description,
++				...this._createSchemaComponentFromObject(t, e.properties, { default: e.default }),
++			}
++		if (e.type === 'array' && e.items)
++			return { ...e, items: this._createSchemaPartFromRule(t, e.items) }
++		if (H.some((n) => e[n])) {
++			let n = 0
++			H.forEach((a) => {
++				e[a] &&
++					(e[a] = e[a].map((i) => {
++						if (i.type !== 'object') return i
++						let o = `${t}.${n++}`
++						return this._createSchemaPartFromRule(o, i)
++					}))
++			})
++		}
++		return e
++	}
++	extractSystemParams(t = {}) {
++		return {
++			optional: t?.[d.optional],
++			description: t?.[d.description],
++			summary: t?.[d.summary],
++			deprecated: t?.[d.deprecated],
++		}
++	}
++	removeExtensions(t) {
++		return Array.isArray(t)
++			? t.map((e) => this.removeExtensions(e))
++			: typeof t == 'object'
++				? (Object.values(d).forEach((e) => {
++						delete t[e]
++					}),
++					Object.fromEntries(Object.entries(t).map(([e, r]) => [e, this.removeExtensions(r)])))
++				: t
++	}
++	cleanComponents(t = {}) {
++		return Object.fromEntries(
++			Object.entries(t).map(([e, r]) => [
++				e,
++				Object.fromEntries(
++					Object.entries(r)
++						.map(([n, a]) => (a === !1 ? void 0 : [n, a]))
++						.filter(Boolean),
++				),
++			]),
++		)
++	}
++	handleTags(t, e, r = []) {
++		let n = Array.from(new Set(r))
++		return (
++			t.tags || (t.tags = []),
++			n.forEach((a) => {
++				let i = e.get(a)
++				!t.tags.some(({ name: o }) => o === a) && i && t.tags.push(i)
++			}),
++			n
++		)
++	}
++}
++var Me = je.Errors.MoleculerError,
++	Y = {
++		onlyLocal: !1,
++		openapi: {
++			info: { description: '', version: '0.0.1', title: 'Api docs' },
++			tags: [],
++			paths: {},
++			components: { schemas: G.schemas, securitySchemes: {}, responses: G.responses },
++			responses: {
++				200: { $ref: '#/components/responses/ReturnedData' },
++				401: { $ref: '#/components/responses/UnauthorizedError' },
++				422: { $ref: '#/components/responses/ValidationError' },
++				default: { $ref: '#/components/responses/ServerError' },
++			},
++		},
++		cacheOpenApi: !0,
++		skipUnresolvedActions: !0,
++		cacheMode: 'next-call',
++		summaryTemplate: `{{summary}}
++            ({{action}}) {{autoAlias}}`,
++		returnAssetsAsStream: !0,
++		defaultResponseContentType: R,
++		multiPartFileFieldName: M,
++		addServiceNameToTags: !1,
++		UIOptions: {},
++	},
++	D = class {
++		broker
++		settings
++		logger
++		validator
++		constructor(t, e) {
++			this.broker = t
++			let r = this.broker.validator
++			if (r.constructor.name != 'FastestValidator' && r.validator)
++				throw new Error('only fastest validator is allowed')
++			;(this.logger = this.broker.getLogger('moleculer-openapi-generator')),
++				(this.validator = r.validator),
++				(this.settings = { ...Y, ...e })
++		}
++		fetchServicesWithActions(t, e = !0, r = this.settings.onlyLocal) {
++			return t.call('$node.services', { withActions: e, onlyLocal: r ?? !1 })
++		}
++		async mapAliases(t, e) {
++			this.logger.debug('mapAliases()')
++			let r = e.filter((a) => a?.settings?.routes)
++			if (
++				(this.logger.debug(`mapAliases() : ${r?.length ?? 0} moleculer-web services found`),
++				!r?.length)
++			)
++				throw new Me('fail to identify service hosting moleculer-web')
++			let n = new $(this.logger)
++			return (
++				await Promise.all(
++					r.map(async (a) => await n.parse(t, a, this.settings.skipUnresolvedActions ?? !0, e)),
++				)
++			).flat()
++		}
++		async getAliases(t) {
++			let e = await this.fetchServicesWithActions(t)
++			return this.mapAliases(t, e)
++		}
++		async generateSchema(t, { filterAliasesFn: e, addMappers: r }) {
++			let n = '3.1',
++				a = await e(t, await this.getAliases(t)),
++				i = new L(this.logger, this.validator, JSON.parse(JSON.stringify(this.settings.openapi)), r)
++			return await i.load(), i.generate(n, a)
++		}
++	}
++import we from 'moleculer'
++import z from 'fs'
++import U from 'path/posix'
++var J = we.Errors.MoleculerError,
++	S = {},
++	K = {
++		name: 'openapi',
++		settings: Y,
++		events: {
++			async '$api.aliases.regenerated'() {
++				let s = 'generateDocs',
++					{ cacheMode: t } = this.settings
++				if (t !== 'timeout' && this.broker.cacher && this.actions[s]) {
++					let e = this.broker.cacher.getCacheKey(`${this.fullName}.${s}`, {}, {}, [])
++					await this.broker.cacher.clean(`${e}*`)
++				}
++				this.actions.regenerateOpenApiPaths().catch((e) => {
++					this.logger.error(`regenerateOpenApiPaths failed with error : ${e.toString()}`)
++				}),
++					t === 'refresh' && (await this.actions[s]())
++			},
++		},
++		actions: {
++			generateDocs: {
++				rest: { path: '/openapi.json', method: 'GET' },
++				cache: !1,
++				openapi: { tags: ['OpenApi'] },
++				handler(s) {
++					return this.getGenerator().generateSchema(s, {
++						filterAliasesFn: this.filterAliases,
++						addMappers: this.addMappers,
++					})
++				},
++			},
++			assets: {
++				rest: { path: '/assets/:file', method: 'GET' },
++				openapi: {
++					summary: 'OpenAPI assets',
++					description: 'Return files from swagger-ui-dist folder',
++					tags: ['OpenApi'],
++				},
++				params: {
++					file: {
++						type: 'enum',
++						values: [
++							'swagger-ui.css',
++							'swagger-ui.css.map',
++							'swagger-ui-bundle.js',
++							'swagger-ui-bundle.js.map',
++							'swagger-ui-standalone-preset.js',
++							'swagger-ui-standalone-preset.js.map',
++						],
++					},
++				},
++				async handler(s) {
++					let { file: t } = s.params
++					t.indexOf('.css') > -1
++						? (s.meta.$responseType = 'text/css')
++						: t.indexOf('.js') > -1
++							? (s.meta.$responseType = 'text/javascript')
++							: (s.meta.$responseType = 'application/octet-stream')
++					let e = `${await this.getSwaggerPath()}/${t}`
++					return this.settings.returnAssetsAsStream ? z.createReadStream(e) : z.promises.readFile(e)
++				},
++			},
++			ui: {
++				rest: { path: '/ui', method: 'GET' },
++				openapi: {
++					summary: 'OpenAPI ui',
++					description: 'You can provide any schema file in query param',
++					tags: ['OpenApi'],
++				},
++				params: { url: { $$oa: { summary: 'Schema file' }, type: 'string', optional: !0 } },
++				async handler(s) {
++					s.meta.$responseType = 'text/html; charset=utf-8'
++					let t = await this.getOpenApiPaths(),
++						e = t.assetsPath,
++						r = {
++							swaggerSettings: {
++								deepLinking: !0,
++								showExtensions: !0,
++								layout: 'StandaloneLayout',
++								...this.settings.UIOptions,
++								url: s.params.url || t.schemaPath,
++								dom_id: '#swagger-ui',
++								oauth2RedirectUrl: t.oauth2RedirectPath,
++							},
++							oauth: this.settings.UIOauthOptions,
++						}
++					return `<html lang="en"><head><title>OpenAPI UI</title><style>body{ margin: 0;} </style></head><body><div id="swagger-ui"><p>Loading...</p><noscript>If you see json, you need to update your dependencies</noscript></div><script type="application/json" id="__SWAGGER_SETTINGS__">${JSON.stringify(r)} <\/script><script>var assetsURL="${e}"; var configElement=document.getElementById("__SWAGGER_SETTINGS__"); if (!configElement){ throw new Error("fail to load configurations");} var settings=JSON.parse(configElement.textContent); window.onload=function (){ var cssLink=document.createElement("link"); cssLink.rel="stylesheet"; cssLink.href=assetsURL + "/swagger-ui.css"; document.head.appendChild(cssLink); function initSwaggerUIDependentCode(){ var ui=SwaggerUIBundle( Object.assign(settings.swaggerSettings,{ presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset], plugins: [SwaggerUIBundle.plugins.DownloadUrl],}) ); if(settings.oauth){ ui.initOAuth(settings.oauth)}} var scripts=[assetsURL + "/swagger-ui-bundle.js", assetsURL + "/swagger-ui-standalone-preset.js"]; var scriptsLoaded=0; function loadScript(script, callback){ var scriptElement=document.createElement("script"); scriptElement.src=script; scriptElement.onload=()=>{ scriptsLoaded++; if (scriptsLoaded===scripts.length){ callback();}}; document.body.appendChild(scriptElement);} for (var i=0; i < scripts.length; i++){ loadScript(scripts[i], initSwaggerUIDependentCode);}}; <\/script></body></html>`
++				},
++			},
++			oauth2Redirect: {
++				rest: { path: '/oauth2-redirect', method: 'GET' },
++				openapi: {
++					summary: 'OpenAPI OAuth2 redirect',
++					description: 'This fill will handle the OAuth2',
++					tags: ['OpenApi'],
++				},
++				cache: !1,
++				async handler(s) {
++					if (!this) throw new J('unknown error')
++					return (
++						(s.meta.$responseType = 'text/html; charset=utf-8'),
++						z.promises.readFile(`${await this?.getSwaggerPath()}/oauth2-redirect.html`)
++					)
++				},
++			},
++			regenerateOpenApiPaths: {
++				visibility: 'private',
++				throttle: 1e4,
++				async handler(s) {
++					;(await this.getGenerator().getAliases(s))
++						.filter((e) => e.service?.name === this.name)
++						.forEach((e) => {
++							e.action === `${this.name}.ui` && (S.uiPath = e.fullPath),
++								e.action === `${this.name}.assets` &&
++									(S.assetsPath = e.fullPath?.replace('/:file', '')),
++								e.action === `${this.name}.oauth2Redirect` && (S.oauth2RedirectPath = e.fullPath),
++								e.action === `${this.name}.generateDocs` && (S.schemaPath = e.fullPath)
++						}),
++						this.getOpenApiPaths()
++				},
++			},
++		},
++		methods: {
++			getOpenApiPaths() {
++				this.settings.schemaPath &&
++					this.logger.warn(
++						'settings.schemaPath is deprecated, use settings.openApiPaths.schemaPath instead',
++					),
++					this.settings.assetsPath &&
++						this.logger.warn(
++							'settings.assetsPath is deprecated, use settings.openApiPaths.assetsPath instead',
++						),
++					typeof this.settings.openApiPaths == 'string' &&
++						(this.settings.openApiPaths = {
++							schemaPath: U.join(this.settings.openApiPaths, 'openapi.json'),
++							uiPath: U.join(this.settings.openApiPaths, 'ui'),
++							oauth2RedirectPath: U.join(this.settings.openApiPaths, 'oauth2-redirect'),
++							assetsPath: U.join(this.settings.openApiPaths, 'assets'),
++						})
++				let s = {
++					assetsPath:
++						this.settings.assetsPath ??
++						this.settings.openApiPaths?.assetsPath ??
++						S.assetsPath ??
++						ne,
++					schemaPath:
++						this.settings.schemaPath ?? this.settings.openApiPaths?.schemaPath ?? S.schemaPath,
++					uiPath: this.settings.openApiPaths?.uiPath ?? S.uiPath,
++					oauth2RedirectPath:
++						this.settings.openApiPaths?.oauth2RedirectPath ?? S.oauth2RedirectPath,
++				}
++				return (
++					['assetsPath', 'schemaPath', 'uiPath', 'oauth2RedirectPath'].forEach((t) => {
++						if (!s[t]) throw new J(`fail to get path for settings ${t}`)
++					}),
++					s
++				)
++			},
++			getSwaggerPath: async () => {
++				try {
++					return (await import('swagger-ui-dist')).getAbsoluteFSPath()
++				} catch {
++					throw new J('fail to load swagger ui')
++				}
++			},
++			getGenerator() {
++				if (!this.generator) throw new Error('no generator, bad initialization')
++				return this.generator
++			},
++			filterAliases: (s, t) => t,
++			addMappers: (s, t) => ({}),
++		},
++		created() {
++			this.generator = new D(this.broker, this.settings)
++		},
++		async started() {
++			this.logger.info('\u{1F4DC} OpenAPI Docs server is available')
++		},
++	}
++var zt = K
++var Jt = K
++export {
++	y as Alias,
++	ue as ECacheMode,
++	E as HTTP_METHODS,
++	g as JOKER_METHOD,
++	de as OPENAPI_VERSIONS_SUPPORTED,
++	Jt as OpenApiMixin,
++	_ as PathAction,
++	x as Route,
++	zt as default,
++	K as mixin,
++}

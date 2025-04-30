@@ -12,21 +12,32 @@ import type {
 } from 'moleculer'
 import { IResolvers, ServiceResolverSchema } from 'moleculer-apollo-server'
 import SequelizeDbAdapter, { CountOptions, QueryOptions } from 'moleculer-db-adapter-sequelize'
+import { Sequelize } from 'sequelize'
 import { EnvironmentModelType } from '../libs/dbAdapters/environment-database'
 export type SyncEnv = EnvironmentModelType & { hash: string }
 
-export type AppMoleculerService<TExtend = any> = Service<AppServiceSettingSchema & TExtend> & {
+export type AppMoleculerService<TExtend = any, SExtend = {}> = Service<
+	AppServiceSettingSchema & TExtend
+> & {
 	adapter: SequelizeDbAdapter & {
 		count(filters?: CountOptions & { query: QueryOptions }): Promise<number>
+	} & {
+		db: Sequelize
 	}
+} & SExtend
+export type AccountInfo = {
+	id: string
+	email: string
+	displayName: string
 }
 export type AppBroker = ServiceBroker & {} & {}
 export type AuthContextMeta<Params = any, AdditionalFields extends object = any> = Context<
 	Params,
 	{
 		accountId: string
+		accountInfo: AccountInfo
 		accessToken?: string
-		user?: User
+		user?: User & { id: string; teams: any[]; isAdmin: boolean }
 		$serviceInterchange?: boolean
 		/**
 		 * API
@@ -58,12 +69,12 @@ export type AuthorizedContextMeta<Params = any> = AuthContextMeta<Params> & {
 
 export type ObjectValues<T> = T[keyof T]
 
-type AppServiceSettingSchema = ServiceSettingSchema & {
+export type AppServiceSettingSchema<T = {}> = ServiceSettingSchema & {
 	graphql?: {
 		type?: string | string[]
 		resolvers?: ServiceResolverSchema | IResolvers | IResolvers[]
 	}
-}
+} & T
 type ActionHookBefore<TParams = any, TResp = any> = (
 	ctx: AuthContextMeta<TParams>,
 ) => Promise<void> | void
@@ -77,8 +88,8 @@ type ActionHookError<TParams = any, TResp = any> = (
 	err: Error,
 ) => Promise<void> | void
 
-export type AppService<TMethods = {}, S = AppServiceSettingSchema> = Omit<
-	AppMoleculerService<S>,
+export type AppService<TMethods = {}, S = AppServiceSettingSchema, T = {}> = Omit<
+	AppMoleculerService<S, T>,
 	'broker'
 > &
 	TMethods & {
@@ -110,7 +121,7 @@ export type AppServiceActionsSchema<S = AppServiceSettingSchema> = {
 	[key: string]: AppActionSchema | ActionHandler | boolean
 } & ThisType<AppService>
 
-export type AppServiceSchema<S = AppServiceSettingSchema> = ServiceSchema<
+export type AppServiceSchema<S = AppServiceSettingSchema, P = {}> = ServiceSchema<
 	S & {
 		fields?: string[]
 		idField?: string
@@ -119,4 +130,4 @@ export type AppServiceSchema<S = AppServiceSettingSchema> = ServiceSchema<
 	adapter?: any
 	model?: any
 	afterConnected?: () => Promise<void> | void
-}
+} & P
