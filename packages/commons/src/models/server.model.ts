@@ -113,7 +113,7 @@ export type ServerOptions = {
 
   /**
    * Enable the admin API
-   * https://mockoon.com/docs/latest/admin-api/overview/
+   * https://pandamock.com/docs/latest/admin-api/overview/
    */
   enableAdminApi: boolean;
 

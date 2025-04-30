@@ -282,7 +282,7 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
       {
         label: 'CLI',
         click: () => {
-          shell.openExternal('https://mockoon.com/cli/');
+          shell.openExternal('https://pandamock.com/cli/');
         }
       },
       {
@@ -294,7 +294,7 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
       {
         label: 'Mock samples',
         click: () => {
-          shell.openExternal('https://mockoon.com/mock-samples/');
+          shell.openExternal('https://pandamock.com/mock-samples/');
         }
       },
       { type: 'separator' },
@@ -319,25 +319,25 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
       {
         label: 'Official website',
         click: () => {
-          shell.openExternal('https://mockoon.com');
+          shell.openExternal('https://pandamock.com');
         }
       },
       {
         label: 'Docs',
         click: () => {
-          shell.openExternal('https://mockoon.com/docs');
+          shell.openExternal('https://pandamock.com/docs');
         }
       },
       {
         label: 'Tutorials',
         click: () => {
-          shell.openExternal('https://mockoon.com/tutorials/');
+          shell.openExternal('https://pandamock.com/tutorials/');
         }
       },
       {
         label: 'Get support',
         click: () => {
-          shell.openExternal('https://mockoon.com/contact/');
+          shell.openExternal('https://pandamock.com/contact/');
         }
       },
       { type: 'separator' },

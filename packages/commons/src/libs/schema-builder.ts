@@ -353,7 +353,7 @@ export const BuildDemoEnvironment = (): Environment => {
           {
             ...BuildRouteResponse(),
             headers: [{ key: 'Content-Type', value: 'text/plain' }],
-            body: "The current path will match the following routes: \nhttp://localhost:3000/path/with/pattern/\nhttp://localhost:3000/path/with/patterns/\nhttp://localhost:3000/path/with/patterns/anything-else\n\nLearn more about Mockoon's routing: https://mockoon.com/docs/latest/api-endpoints/routing/"
+            body: "The current path will match the following routes: \nhttp://localhost:3000/path/with/pattern/\nhttp://localhost:3000/path/with/patterns/\nhttp://localhost:3000/path/with/patterns/anything-else\n\nLearn more about Mockoon's routing: https://pandamock.com/docs/latest/api-endpoints/routing/"
           }
         ]
       },
@@ -391,7 +391,7 @@ export const BuildDemoEnvironment = (): Environment => {
           {
             ...BuildRouteResponse(),
             headers: [{ key: 'Content-Type', value: 'text/plain' }],
-            body: 'You can serve the same responses based on the same rules for all or part of your endpoints by creating global routes using the fallback mode and a wildcard path. \nThis is useful if you want to protect all your endpoints by checking if an Authorization header is present or if you want to verify that all your requests contain a specific property in their body.\nTo learn more: https://mockoon.com/docs/latest/route-responses/global-routes-with-rules/'
+            body: 'You can serve the same responses based on the same rules for all or part of your endpoints by creating global routes using the fallback mode and a wildcard path. \nThis is useful if you want to protect all your endpoints by checking if an Authorization header is present or if you want to verify that all your requests contain a specific property in their body.\nTo learn more: https://pandamock.com/docs/latest/route-responses/global-routes-with-rules/'
           }
         ]
       },
@@ -404,7 +404,7 @@ export const BuildDemoEnvironment = (): Environment => {
           {
             ...BuildRouteResponse(),
             headers: [{ key: 'Content-Type', value: 'text/plain' }],
-            body: 'Mockoon can also act as a proxy and forward all entering requests that are not caught by declared routes. \nYou can activate this option in the environment settings ("Settings" tab at the top). \nTo learn more: https://mockoon.com/docs/latest/server-configuration/proxy-mode/\n\nAll entering requests, and responses from the proxied server will be recorded and can be automatically mocked ("Logs" tab at the top).\nTo learn more: https://mockoon.com/docs/latest/logging-and-recording/requests-logging/'
+            body: 'Mockoon can also act as a proxy and forward all entering requests that are not caught by declared routes. \nYou can activate this option in the environment settings ("Settings" tab at the top). \nTo learn more: https://pandamock.com/docs/latest/server-configuration/proxy-mode/\n\nAll entering requests, and responses from the proxied server will be recorded and can be automatically mocked ("Logs" tab at the top).\nTo learn more: https://pandamock.com/docs/latest/logging-and-recording/requests-logging/'
           }
         ]
       }

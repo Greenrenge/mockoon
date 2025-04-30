@@ -121,7 +121,7 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
   public deployInstances$ = this.store.select('deployInstances');
   public alertLabels = {
     VERSION_TOO_OLD_WARNING:
-      'We will soon not support your Mockoon version anymore. Please update.',
+      'We will soon not support your PandaMock version anymore. Please update.',
     OFFLINE_WARNING:
       'Concurrent offline editing may result in conflicts. In case of conflict, you will be prompted to choose between the local or remote version. Click to learn more.',
     OFFLINE_WARNING_SOLO:
@@ -305,9 +305,9 @@ export class EnvironmentsMenuComponent implements OnInit, OnDestroy {
   public offlineReasonsLabels = {
     [SyncErrors.TOO_MANY_DEVICES]: 'too many devices connected.',
     [SyncErrors.VERSION_TOO_OLD]:
-      'your Mockoon version is too old, please update.',
+      'your PandaMock version is too old, please update.',
     [SyncDisconnectReasons.ROOM_INCOMPATIBLE_VERSION]:
-      'your sync space was updated and is not compatible with your current version of Mockoon, please update.'
+      'your sync space was updated and is not compatible with your current version of PandaMock, please update.'
   };
   private localDropdownMenuStaticItems: DropdownMenuElement[] = [
     {

@@ -122,7 +122,7 @@ export const applyUpdate = () => {
 
       app.quit();
     } else {
-      shell.openExternal('https://mockoon.com/download');
+      shell.openExternal('https://pandamock.com/download');
     }
   }
 };

@@ -357,11 +357,8 @@
           } @else {
             <div class="message message-sm m-2">
               @if (!isConnected) {
-                <a href="#" (click)="login($event)">Log in</a> or
+                <a href="#" (click)="login($event)">Log in</a>
               }
-              <a [href]="cloudPlansURL" target="_blank"
-                >Subscribe to Mockoon Cloud</a
-              >
               to create and deploy cloud environments
             </div>
           }

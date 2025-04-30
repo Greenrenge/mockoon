@@ -22,7 +22,7 @@ describe('Data loading', () => {
     const { instance, output } = await spawnCli([
       'start',
       '--data',
-      'https://mockoon.com'
+      'https://pandamock.com'
     ]);
 
     instance.kill();
@@ -31,7 +31,7 @@ describe('Data loading', () => {
     ok(stderr.includes('This file is not a valid OpenAPI specification'));
     ok(
       stderr.includes(
-        'OpenAPI parser: "https://mockoon.com/" is not a valid JSON Schema'
+        'OpenAPI parser: "https://pandamock.com/" is not a valid JSON Schema'
       )
     );
     // different error message for Node.js < or > 20
