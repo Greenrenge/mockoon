@@ -202,7 +202,8 @@ export default {
 				// CSP fixed for gql playground freezed on loading screen
 				// https://github.com/graphql/graphql-playground/issues/1283#issuecomment-703631091
 				{
-					contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+					// contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+					contentSecurityPolicy: false,
 				},
 			),
 		],
@@ -227,6 +228,11 @@ export default {
 			buildStaticRoute({
 				fromFolder: './src/assets/auth',
 				toRoute: '/auth',
+			}),
+			buildStaticRoute({
+				fromFolder:
+					process.env.NODE_ENV === 'production' ? './src/assets/app' : '../app/dist/renderer',
+				toRoute: '/app',
 			}),
 			{
 				path: '/api',
@@ -366,7 +372,8 @@ export default {
 					]),
 		],
 		assets: {
-			folder: process.env.NODE_ENV === 'production' ? './src/public' : '../app/dist/renderer',
+			// folder: process.env.NODE_ENV === 'production' ? './src/public' : '../app/dist/renderer',
+			folder: process.env.NODE_ENV === 'production' ? './src/public' : '../main-web/out',
 			options: {},
 		},
 		onError(req: ClientRequest, res: ServerResponse, err: Error) {

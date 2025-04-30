@@ -6,3 +6,4 @@ packages:
   - 'packages/serverless'
   - 'packages/cli'
   - 'packages/app'
+  - 'packages/main-web'
