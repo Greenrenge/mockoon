@@ -1,61 +1,70 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { useAuth } from "../auth/auth-provider"
-import { useGraphQL } from "../graphql/graphql-provider"
-import { useUser } from "../providers"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
-import Link from "next/link"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../auth/auth-provider';
+import { useGraphQL } from '../graphql/graphql-provider';
+import { useUser } from '../providers';
 
 export function TenantInitializer() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const { query, mutation } = useGraphQL()
-  const { refetchUser } = useUser()
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { query, mutation } = useGraphQL();
+  const { refetchUser } = useUser();
 
-  const [isInitialized, setIsInitialized] = useState<boolean | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [tenantName, setTenantName] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [isInitialized, setIsInitialized] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tenantName, setTenantName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const checkInitialization = async () => {
-      if (!isAuthenticated || authLoading) return
+      if (!isAuthenticated || authLoading) {
+        return;
+      }
 
       try {
-        setIsLoading(true)
-        const data = await query<{ initializationStatus: { initialized: boolean } }>(
-          `query { initializationStatus { initialized } }`,
-        )
-        setIsInitialized(data.initializationStatus.initialized)
+        setIsLoading(true);
+        const data = await query<{
+          initializationStatus: { initialized: boolean };
+        }>(`query { initializationStatus { initialized } }`);
+        setIsInitialized(data.initializationStatus.initialized);
       } catch (error) {
-        console.error("Error checking initialization:", error)
+        console.error('Error checking initialization:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    checkInitialization()
-  }, [isAuthenticated, authLoading, query])
+    checkInitialization();
+  }, [isAuthenticated, authLoading, query]);
 
   const handleInitializeTenant = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!tenantName.trim()) {
-      setError("Tenant name is required")
-      return
+      setError('Tenant name is required');
+      return;
     }
 
     try {
-      setIsSubmitting(true)
-      setError(null)
+      setIsSubmitting(true);
+      setError(null);
 
       const data = await mutation<{ initializeTenant: { success: boolean } }>(
         `mutation($name: String!) { 
@@ -63,22 +72,22 @@ export function TenantInitializer() {
             success 
           } 
         }`,
-        { name: tenantName },
-      )
+        { name: tenantName }
+      );
 
       if (data.initializeTenant.success) {
-        setSuccess(true)
-        setIsInitialized(true)
-        await refetchUser() // Refresh user data to update roles
+        setSuccess(true);
+        setIsInitialized(true);
+        await refetchUser(); // Refresh user data to update roles
       } else {
-        setError("Failed to initialize tenant")
+        setError('Failed to initialize tenant');
       }
     } catch (error: any) {
-      setError(error.message || "An error occurred")
+      setError(error.message || 'An error occurred');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isLoading || authLoading) {
     return (
@@ -87,7 +96,7 @@ export function TenantInitializer() {
           <CardTitle className="text-center">Loading...</CardTitle>
         </CardHeader>
       </Card>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -95,10 +104,12 @@ export function TenantInitializer() {
       <Card className="w-full max-w-md mx-auto mt-8">
         <CardHeader>
           <CardTitle>Get Started</CardTitle>
-          <CardDescription>Login to set up your PandaMock tenant</CardDescription>
+          <CardDescription>
+            Login to set up your PandaMock tenant
+          </CardDescription>
         </CardHeader>
       </Card>
-    )
+    );
   }
 
   if (isInitialized) {
@@ -109,7 +120,9 @@ export function TenantInitializer() {
             <CheckCircle2 className="h-5 w-5 text-green-500" />
             Tenant Initialized
           </CardTitle>
-          <CardDescription>Your PandaMock tenant is ready to use</CardDescription>
+          <CardDescription>
+            Your PandaMock tenant is ready to use
+          </CardDescription>
         </CardHeader>
         <CardFooter>
           <Button asChild className="w-full">
@@ -117,14 +130,16 @@ export function TenantInitializer() {
           </Button>
         </CardFooter>
       </Card>
-    )
+    );
   }
 
   return (
     <Card className="w-full max-w-md mx-auto mt-8">
       <CardHeader>
         <CardTitle>Initialize Your Tenant</CardTitle>
-        <CardDescription>Set up your PandaMock tenant to get started</CardDescription>
+        <CardDescription>
+          Set up your PandaMock tenant to get started
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
@@ -139,7 +154,9 @@ export function TenantInitializer() {
           <Alert className="mb-4 border-green-500">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
             <AlertTitle>Success</AlertTitle>
-            <AlertDescription>Your tenant has been initialized successfully!</AlertDescription>
+            <AlertDescription>
+              Your tenant has been initialized successfully!
+            </AlertDescription>
           </Alert>
         )}
 
@@ -159,10 +176,10 @@ export function TenantInitializer() {
             </div>
           </div>
           <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
-            {isSubmitting ? "Initializing..." : "Initialize Tenant"}
+            {isSubmitting ? 'Initializing...' : 'Initialize Tenant'}
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
