@@ -1,22 +1,31 @@
-import { Inter } from 'next/font/google';
-import type React from 'react';
-import './globals.css';
+import type React from "react"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { Providers } from "@/components/providers"
+import { Navbar } from "@/components/navbar"
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: 'JWT & JWKS Generator | Developer Tools',
-  description: 'Generate and manage JSON Web Tokens and Key Sets'
-};
+  title: "PandaMock - SaaS Tenant Management",
+  description: "Manage your PandaMock SaaS tenant and teams",
+}
 
 export default function RootLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+          </div>
+        </Providers>
+      </body>
     </html>
-  );
+  )
 }
