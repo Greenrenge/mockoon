@@ -1,0 +1,270 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+""
+scalar Date
+""
+scalar Timestamp
+"The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)."
+scalar JSON
+""
+scalar Upload
+""
+type Query {
+  ""
+  getInitializationStatus: InitializationStatus!
+  ""
+  me: MeResponse!
+  ""
+  getAdmins: [Admin!]!
+  ""
+  getTeams: [Team!]!
+  ""
+  getTeam(
+    ""
+    teamId: ID!
+  ): Team!
+}
+""
+type InitializationStatus {
+  ""
+  initialized: Boolean!
+  ""
+  tenantName: String
+  ""
+  initializedAt: Date
+}
+""
+type MeResponse {
+  ""
+  id: ID!
+  ""
+  uid: String!
+  ""
+  email: String!
+  ""
+  displayName: String
+  ""
+  createdAt: Date
+  ""
+  updatedAt: Date
+  ""
+  teams: [Team!]
+  ""
+  plan: String
+  ""
+  teamId: String
+  ""
+  teamRole: String
+  ""
+  deployInstancesQuota: Int
+  ""
+  deployInstancesQuotaUsed: Int
+  ""
+  cloudSyncItemsQuota: Int
+  ""
+  cloudSyncItemsQuotaUsed: Int
+  ""
+  cloudSyncSizeQuota: Int
+  ""
+  cloudSyncHighestMajorVersion: Int
+  ""
+  templatesQuota: Int
+  ""
+  templatesQuotaUsed: Int
+  ""
+  nextQuotaResetOn: Int
+  ""
+  subscription: AppSubscription
+  ""
+  isAdmin: Boolean
+}
+""
+type Team {
+  ""
+  id: ID!
+  ""
+  name: String!
+  ""
+  description: String
+  ""
+  createdBy: String!
+  ""
+  createdAt: Date!
+  ""
+  updatedAt: Date!
+}
+""
+type AppSubscription {
+  ""
+  trial: Boolean
+  ""
+  provider: String
+  ""
+  frequency: String
+  ""
+  createdOn: Date
+  ""
+  renewOn: Date
+  ""
+  portalEnabled: Boolean
+  ""
+  cancellationScheduled: Boolean
+  ""
+  pastDue: Boolean
+  ""
+  subscriptionId: String
+}
+""
+type Admin {
+  ""
+  id: ID!
+  ""
+  email: String!
+  ""
+  invitedBy: String
+  ""
+  invitedAt: Date
+  ""
+  joinedAt: Date
+}
+""
+type Mutation {
+  ""
+  initializeApp(
+    ""
+    tenantName: String!
+  ): InitializationResponse!
+  ""
+  addAdmin(
+    ""
+    email: String!
+  ): AddAdminResponse!
+  ""
+  removeAdmin(
+    ""
+    email: String!
+  ): RemoveAdminResponse!
+  ""
+  createTeam(
+    ""
+    name: String!,
+    ""
+    description: String
+  ): CreateTeamResponse!
+  ""
+  addTeamMember(
+    ""
+    teamId: ID!,
+    ""
+    email: String!,
+    ""
+    role: String!
+  ): AddTeamMemberResponse!
+  ""
+  updateTeamMemberRole(
+    ""
+    teamId: ID!,
+    ""
+    email: String!,
+    ""
+    role: String!
+  ): UpdateTeamMemberRoleResponse!
+  ""
+  removeTeamMember(
+    ""
+    teamId: ID!,
+    ""
+    email: String!
+  ): RemoveTeamMemberResponse!
+}
+""
+type InitializationResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+  ""
+  tenantName: String
+}
+""
+type AddAdminResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+}
+""
+type RemoveAdminResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+}
+""
+type CreateTeamResponse {
+  ""
+  success: Boolean!
+  ""
+  teamId: ID!
+  ""
+  message: String!
+}
+""
+type AddTeamMemberResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+}
+""
+type UpdateTeamMemberRoleResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+}
+""
+type RemoveTeamMemberResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+}
+""
+type Pagination {
+  ""
+  total: Int
+  ""
+  skip: Int
+  ""
+  limit: Int
+}
+""
+type PaginationCursor {
+  ""
+  hasNextPage: Boolean!
+  ""
+  nextCursor: String
+}
+""
+type Response {
+  ""
+  message: String
+}
+""
+type TeamMember {
+  ""
+  id: ID!
+  ""
+  email: String!
+  ""
+  role: String!
+  ""
+  invitedBy: String
+  ""
+  invitedAt: Date
+  ""
+  joinedAt: Date
+}

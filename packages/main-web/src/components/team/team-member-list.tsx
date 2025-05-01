@@ -1,66 +1,107 @@
-"use client"
+'use client';
 
-import { useGraphQL } from "../graphql/graphql-provider"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatDate } from "@/lib/utils"
-import { Trash2 } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { formatDate } from '@/lib/utils';
+import { Trash2 } from 'lucide-react';
+import { useGraphQL } from '../graphql/graphql-provider';
 
 type TeamMember = {
-  id: string
-  email: string
-  role: string
-  joinedAt: string | null
-}
+  id: string;
+  email: string;
+  role: string;
+  joinedAt: string | null;
+};
 
 type TeamMemberListProps = {
-  teamId: string
-  members: TeamMember[]
-  isLoading: boolean
-  onMemberUpdated: () => void
-}
+  teamId: string;
+  members: TeamMember[];
+  isLoading: boolean;
+  onMemberUpdated: () => void;
+};
 
-export function TeamMemberList({ teamId, members, isLoading, onMemberUpdated }: TeamMemberListProps) {
-  const { mutation } = useGraphQL()
+export function TeamMemberList({
+  teamId,
+  members,
+  isLoading,
+  onMemberUpdated
+}: TeamMemberListProps) {
+  const { mutation } = useGraphQL();
+  // You can also import the methods from useMutation
+  // import { useMutation } from '@apollo/client';
+  // import { UPDATE_TEAM_MEMBER_ROLE, REMOVE_TEAM_MEMBER } from '@/graphql/team-mutations';
 
   const handleRoleChange = async (memberId: string, role: string) => {
     try {
-      const data = await mutation<{ updateTeamMemberRole: { success: boolean } }>(
-        `mutation($teamId: ID!, $memberId: ID!, $role: String!) { 
+      // OPTION 1: Using the compatibility layer for smooth migration
+      const data = await mutation<{
+        updateTeamMemberRole: { success: boolean };
+      }>(
+        `mutation UpdateTeamMemberRole($teamId: ID!, $memberId: ID!, $role: String!) {
           updateTeamMemberRole(teamId: $teamId, memberId: $memberId, role: $role) { 
             success 
           } 
         }`,
-        { teamId, memberId, role },
-      )
+        { teamId, memberId, role }
+      );
+
+      /* OPTION 2: Using Apollo Client directly (future implementation)
+      const [updateRole] = useMutation(UPDATE_TEAM_MEMBER_ROLE);
+      const result = await updateRole({
+        variables: { teamId, memberId, role }
+      });
+      const data = result.data;
+      */
 
       if (data.updateTeamMemberRole.success) {
-        onMemberUpdated()
+        onMemberUpdated();
       }
     } catch (error) {
-      console.error("Error updating role:", error)
+      console.error('Error updating role:', error);
     }
-  }
+  };
 
   const handleRemoveMember = async (memberId: string) => {
     try {
+      // OPTION 1: Using the compatibility layer for smooth migration
       const data = await mutation<{ removeTeamMember: { success: boolean } }>(
-        `mutation($teamId: ID!, $memberId: ID!) { 
+        `mutation RemoveTeamMember($teamId: ID!, $memberId: ID!) { 
           removeTeamMember(teamId: $teamId, memberId: $memberId) { 
             success 
           } 
         }`,
-        { teamId, memberId },
-      )
+        { teamId, memberId }
+      );
+
+      /* OPTION 2: Using Apollo Client directly (future implementation)
+      const [removeMember] = useMutation(REMOVE_TEAM_MEMBER);
+      const result = await removeMember({
+        variables: { teamId, memberId }
+      });
+      const data = result.data;
+      */
 
       if (data.removeTeamMember.success) {
-        onMemberUpdated()
+        onMemberUpdated();
       }
     } catch (error) {
-      console.error("Error removing member:", error)
+      console.error('Error removing member:', error);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -75,7 +116,7 @@ export function TeamMemberList({ teamId, members, isLoading, onMemberUpdated }: 
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -95,7 +136,10 @@ export function TeamMemberList({ teamId, members, isLoading, onMemberUpdated }: 
           <TableBody>
             {members.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-4 text-muted-foreground"
+                >
                   No team members found
                 </TableCell>
               </TableRow>
@@ -104,7 +148,12 @@ export function TeamMemberList({ teamId, members, isLoading, onMemberUpdated }: 
                 <TableRow key={member.id}>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>
-                    <Select value={member.role} onValueChange={(value) => handleRoleChange(member.id, value)}>
+                    <Select
+                      value={member.role}
+                      onValueChange={(value) =>
+                        handleRoleChange(member.id, value)
+                      }
+                    >
                       <SelectTrigger className="w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
@@ -125,9 +174,17 @@ export function TeamMemberList({ teamId, members, isLoading, onMemberUpdated }: 
                       </span>
                     )}
                   </TableCell>
-                  <TableCell>{member.joinedAt ? formatDate(member.joinedAt) : "Not joined yet"}</TableCell>
+                  <TableCell>
+                    {member.joinedAt
+                      ? formatDate(member.joinedAt)
+                      : 'Not joined yet'}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="destructive" size="icon" onClick={() => handleRemoveMember(member.id)}>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => handleRemoveMember(member.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -138,5 +195,5 @@ export function TeamMemberList({ teamId, members, isLoading, onMemberUpdated }: 
         </Table>
       </div>
     </div>
-  )
+  );
 }

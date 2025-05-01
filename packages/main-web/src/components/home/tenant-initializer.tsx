@@ -41,9 +41,9 @@ export function TenantInitializer() {
       try {
         setIsLoading(true);
         const data = await query<{
-          initializationStatus: { initialized: boolean };
-        }>(`query { initializationStatus { initialized } }`);
-        setIsInitialized(data.initializationStatus.initialized);
+          getInitializationStatus: { initialized: boolean };
+        }>(`query { getInitializationStatus { initialized } }`);
+        setIsInitialized(data.getInitializationStatus.initialized);
       } catch (error) {
         console.error('Error checking initialization:', error);
       } finally {

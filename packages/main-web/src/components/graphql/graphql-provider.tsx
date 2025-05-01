@@ -1,9 +1,16 @@
 'use client';
 
 import { env } from '@/config/env';
+import {
+  ApolloClient,
+  ApolloProvider,
+  HttpLink,
+  InMemoryCache,
+  gql
+} from '@apollo/client';
 import type React from 'react';
-
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
+import { useAuth } from '../auth/auth-provider';
 
 type GraphQLContextType = {
   query: <T>(query: string, variables?: any) => Promise<T>;
@@ -22,26 +29,43 @@ const GraphQLContext = createContext<GraphQLContextType>({
 export const useGraphQL = () => useContext(GraphQLContext);
 
 export function GraphQLProvider({ children }: { children: React.ReactNode }) {
-  const query = async <T,>(query: string, variables?: any): Promise<T> => {
+  const { isAuthenticated } = useAuth();
+
+  // Create Apollo Client instance
+  const client = useMemo(() => {
+    const httpLink = new HttpLink({
+      uri: env.API_URL + '/graphql'
+    });
+
+    // For now, we're not adding auth headers since we don't have a getAuthToken method
+    // This can be updated later when authentication is properly integrated
+    return new ApolloClient({
+      link: httpLink,
+      cache: new InMemoryCache(),
+      defaultOptions: {
+        watchQuery: {
+          fetchPolicy: 'cache-and-network'
+        }
+      }
+    });
+  }, []);
+
+  // Compatibility layer for existing components
+  const query = async <T,>(queryStr: string, variables?: any): Promise<T> => {
     try {
-      const response = await fetch(env.API_URL + '/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query,
-          variables
-        })
+      const result = await client.query({
+        query: gql`
+          ${queryStr}
+        `,
+        variables,
+        fetchPolicy: 'network-only'
       });
 
-      const { data, errors } = await response.json();
-
-      if (errors) {
-        throw new Error(errors[0].message);
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
       }
 
-      return data;
+      return result.data as T;
     } catch (error) {
       console.error('GraphQL query error:', error);
       throw error;
@@ -49,28 +73,22 @@ export function GraphQLProvider({ children }: { children: React.ReactNode }) {
   };
 
   const mutation = async <T,>(
-    mutation: string,
+    mutationStr: string,
     variables?: any
   ): Promise<T> => {
     try {
-      const response = await fetch(env.API_URL + '/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables
-        })
+      const result = await client.mutate({
+        mutation: gql`
+          ${mutationStr}
+        `,
+        variables
       });
 
-      const { data, errors } = await response.json();
-
-      if (errors) {
-        throw new Error(errors[0].message);
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
       }
 
-      return data;
+      return result.data as T;
     } catch (error) {
       console.error('GraphQL mutation error:', error);
       throw error;
@@ -78,8 +96,10 @@ export function GraphQLProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <GraphQLContext.Provider value={{ query, mutation }}>
-      {children}
-    </GraphQLContext.Provider>
+    <ApolloProvider client={client}>
+      <GraphQLContext.Provider value={{ query, mutation }}>
+        {children}
+      </GraphQLContext.Provider>
+    </ApolloProvider>
   );
 }
