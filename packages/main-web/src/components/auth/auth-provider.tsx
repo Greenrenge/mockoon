@@ -4,7 +4,6 @@ import type React from 'react';
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { env } from '../../config/env';
-console.log('env', env);
 
 // Auth config type definition
 type AuthConfig = {
@@ -26,7 +25,7 @@ type AuthContextType = {
   config: AuthConfig;
   login: () => Promise<void>;
   logout: () => Promise<void>;
-  getAuthToken: () => Promise<string | null>;
+  getAuthToken: () => string | null;
 };
 
 // Define the interface for auth providers
@@ -34,7 +33,7 @@ interface LoginAuthProvider {
   initialize(): Promise<void>;
   isAuthenticated(): boolean;
   getUser(): any | null;
-  getAuthToken(): Promise<string | null>;
+  getAuthToken(): string | null;
   login(): Promise<void>;
   logout(): Promise<void>;
 }
@@ -62,7 +61,7 @@ class DisabledAuthProvider implements LoginAuthProvider {
     return this.user;
   }
 
-  async getAuthToken(): Promise<string | null> {
+  getAuthToken(): string | null {
     return 'mock-token-for-disabled-auth';
   }
 
@@ -83,6 +82,9 @@ class KeycloakAuthProvider implements LoginAuthProvider {
   private user: any = null;
   private keycloak: any = null;
   private config: AuthConfig;
+  private accessToken: string | null = null;
+  private refreshTimer: NodeJS.Timeout | null = null;
+  private readonly REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   constructor(config: AuthConfig) {
     this.config = config;
@@ -100,9 +102,12 @@ class KeycloakAuthProvider implements LoginAuthProvider {
       });
 
       const authenticated = await this.keycloak.init({
-        onLoad: 'check-sso',
-        silentCheckSsoRedirectUri: env.AUTH_SILENT_CHECK_URL,
-        pkceMethod: 'S256'
+        // onLoad: 'check-sso',
+        onLoad: 'login-required',
+        // https://github.com/keycloak/keycloak/issues/36063 , only works on https
+        checkLoginIframe: false,
+        silentCheckSsoRedirectUri: env.AUTH_SILENT_CHECK_URL
+        // pkceMethod: 'S256'
       });
 
       this.authenticated = authenticated;
@@ -114,15 +119,39 @@ class KeycloakAuthProvider implements LoginAuthProvider {
           email: this.keycloak.tokenParsed.email,
           roles: this.keycloak.tokenParsed.realm_access?.roles || []
         };
+
+        // Initialize access token
+        this.accessToken = this.keycloak.token;
+
+        // Set up periodic token refresh
+        this.startTokenRefreshTimer();
       }
 
-      // Set up token refresh
+      // Set up token refresh on expiration event
       this.keycloak.onTokenExpired = () => {
-        this.keycloak.updateToken(30);
+        this.refreshToken();
       };
     } catch (error) {
       console.error('Failed to initialize Keycloak:', error);
       this.authenticated = false;
+    }
+  }
+
+  // Start the token refresh timer
+  private startTokenRefreshTimer(): void {
+    // Clear any existing timer first
+    this.clearTokenRefreshTimer();
+
+    this.refreshTimer = setInterval(() => {
+      this.refreshToken();
+    }, this.REFRESH_INTERVAL);
+  }
+
+  // Clear the token refresh timer
+  private clearTokenRefreshTimer(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
     }
   }
 
@@ -149,36 +178,46 @@ class KeycloakAuthProvider implements LoginAuthProvider {
         email: this.keycloak.tokenParsed.email,
         roles: this.keycloak.tokenParsed.realm_access?.roles || []
       };
+
+      // Update access token
+      this.accessToken = this.keycloak.token;
+
+      // Set up periodic token refresh
+      this.startTokenRefreshTimer();
     }
   }
 
   async logout(): Promise<void> {
+    // Clear token refresh timer
+    this.clearTokenRefreshTimer();
+
     if (this.keycloak) {
       await this.keycloak.logout();
       this.authenticated = false;
       this.user = null;
+      this.accessToken = null;
     }
   }
 
-  async getAuthToken(): Promise<string | null> {
-    if (!this.keycloak || !this.authenticated) {
-      return null;
+  async refreshToken(): Promise<void> {
+    if (!this.keycloak) {
+      await this.initialize();
     }
-
-    // Update the token if it's expired or about to expire
-    try {
-      const updated = await this.keycloak.updateToken(30);
-      if (updated) {
-        console.log('Token was successfully refreshed');
+    if (this.keycloak) {
+      try {
+        const refreshed = await this.keycloak.updateToken(30);
+        if (refreshed) {
+          this.accessToken = this.keycloak.token;
+          console.log('Token refreshed successfully');
+        }
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
       }
-      return this.keycloak.token;
-    } catch (error) {
-      console.error(
-        'Failed to refresh the token, or the session has expired',
-        error
-      );
-      return null;
     }
+  }
+
+  getAuthToken(): string | null {
+    return this.accessToken;
   }
 }
 
@@ -188,9 +227,45 @@ class SupabaseAuthProvider implements LoginAuthProvider {
   private user: any = null;
   private supabase: any = null;
   private config: AuthConfig;
+  private accessToken: string | null = null;
+  private refreshTimer: NodeJS.Timeout | null = null;
+  private readonly REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   constructor(config: AuthConfig) {
     this.config = config;
+  }
+
+  // Start the token refresh timer
+  private startTokenRefreshTimer(): void {
+    // Clear any existing timer first
+    this.clearTokenRefreshTimer();
+
+    this.refreshTimer = setInterval(async () => {
+      await this.refreshToken();
+    }, this.REFRESH_INTERVAL);
+  }
+
+  // Clear the token refresh timer
+  private clearTokenRefreshTimer(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
+  // Method to refresh the token
+  private async refreshToken(): Promise<void> {
+    if (!this.supabase || !this.authenticated) {
+      return;
+    }
+
+    try {
+      const { data } = await this.supabase.auth.getSession();
+      this.accessToken = data.session?.access_token || null;
+      console.log('Supabase token refreshed successfully');
+    } catch (error) {
+      console.error('Failed to refresh token from Supabase:', error);
+    }
   }
 
   async initialize(): Promise<void> {
@@ -221,6 +296,12 @@ class SupabaseAuthProvider implements LoginAuthProvider {
             name: user.user_metadata?.name || user.email,
             roles: user.app_metadata?.roles || ['user']
           };
+
+          // Initialize access token
+          this.accessToken = session.access_token || null;
+
+          // Start token refresh timer
+          this.startTokenRefreshTimer();
         }
       }
 
@@ -235,8 +316,20 @@ class SupabaseAuthProvider implements LoginAuthProvider {
             name: user.user_metadata?.name || user.email,
             roles: user.app_metadata?.roles || ['user']
           };
+
+          // Update access token on auth state change
+          this.accessToken = session.access_token || null;
+
+          // Reset timer when auth state changes
+          if (this.authenticated) {
+            this.startTokenRefreshTimer();
+          } else {
+            this.clearTokenRefreshTimer();
+          }
         } else {
           this.user = null;
+          this.accessToken = null;
+          this.clearTokenRefreshTimer();
         }
       });
     } catch (error) {
@@ -265,29 +358,26 @@ class SupabaseAuthProvider implements LoginAuthProvider {
         provider: 'github',
         options: {}
       });
+
+      // Note: The token will be set via the onAuthStateChange event
+      // and the timer will be started there as well
     }
   }
 
   async logout(): Promise<void> {
+    // Clear token refresh timer
+    this.clearTokenRefreshTimer();
+
     if (this.supabase) {
       await this.supabase.auth.signOut();
       this.authenticated = false;
       this.user = null;
+      this.accessToken = null;
     }
   }
 
-  async getAuthToken(): Promise<string | null> {
-    if (!this.supabase || !this.authenticated) {
-      return null;
-    }
-
-    try {
-      const { data } = await this.supabase.auth.getSession();
-      return data.session?.access_token || null;
-    } catch (error) {
-      console.error('Failed to get auth token from Supabase:', error);
-      return null;
-    }
+  getAuthToken(): string | null {
+    return this.accessToken;
   }
 }
 
@@ -316,7 +406,7 @@ const AuthContext = createContext<AuthContextType>({
   },
   login: async () => {},
   logout: async () => {},
-  getAuthToken: async () => null
+  getAuthToken: () => null
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -398,7 +488,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const getAuthToken = async (): Promise<string | null> => {
+  const getAuthToken = (): string | null => {
     if (!authProvider) return null;
     return authProvider.getAuthToken();
   };

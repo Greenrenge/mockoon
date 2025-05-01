@@ -2,10 +2,10 @@
 
 import type React from 'react';
 
+import { ApolloProviderWrapper } from '@/components/graphql/apollo-provider';
 import { env } from '@/config/env';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { AuthProvider } from './auth/auth-provider';
-import { GraphQLProvider } from './graphql/graphql-provider';
+import { AuthProvider, useAuth } from './auth/auth-provider';
 
 type UserRole = {
   isAdmin: boolean;
@@ -48,11 +48,18 @@ function UserProvider({ children }: { children: React.ReactNode }) {
     teams: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { getAuthToken } = useAuth();
 
   const fetchUserData = async () => {
     try {
       // This would be replaced with an actual GraphQL query
-      const response = await fetch(env.API_URL + '/api/tenants/me');
+      const response = await fetch(env.API_URL + '/api/tenants/me', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAuthToken()}`
+        }
+      });
       const data = await response.json();
 
       setUser(data.user);
@@ -74,7 +81,7 @@ function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [getAuthToken]);
 
   return (
     <UserContext.Provider
@@ -88,9 +95,9 @@ function UserProvider({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <GraphQLProvider>
+      <ApolloProviderWrapper>
         <UserProvider>{children}</UserProvider>
-      </GraphQLProvider>
+      </ApolloProviderWrapper>
     </AuthProvider>
   );
 }

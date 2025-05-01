@@ -25,7 +25,7 @@ export function ApolloProviderWrapper({
 
     const authLink = setContext(async (_, { headers }) => {
       // Get the authentication token from auth provider if it exists
-      const token = await getAuthToken();
+      const token = getAuthToken();
       // Return the headers to the context so httpLink can read them
       return {
         headers: {

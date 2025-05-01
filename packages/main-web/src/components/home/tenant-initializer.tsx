@@ -23,7 +23,7 @@ import { useAuth } from '../auth/auth-provider';
 import { useUser } from '../providers';
 
 export function TenantInitializer() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, login } = useAuth();
   const { refetchUser } = useUser();
 
   const [tenantName, setTenantName] = useState('');
@@ -34,7 +34,8 @@ export function TenantInitializer() {
   const {
     data,
     loading: isLoading,
-    refetch
+    refetch,
+    called
   } = useQuery(GET_INITIALIZATION_STATUS, {
     skip: !isAuthenticated || authLoading, // Skip if not authenticated or auth is loading
     fetchPolicy: 'network-only' // Don't use cache
@@ -105,9 +106,9 @@ export function TenantInitializer() {
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Link href="/api/auth/login" className="w-full">
-            <Button className="w-full">Sign In</Button>
-          </Link>
+          <Button className="w-full" onClick={() => login()}>
+            Sign In
+          </Button>
         </CardFooter>
       </Card>
     );
@@ -130,48 +131,62 @@ export function TenantInitializer() {
       </Card>
     );
   }
+  if (!isInitialized && called) {
+    return (
+      <Card className="w-full max-w-md mx-auto mt-8">
+        <CardHeader>
+          <CardTitle>Initialize Your Tenant</CardTitle>
+          <CardDescription>
+            To get started, please initialize your tenant with a name.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
+          {success && (
+            <Alert className="mb-4">
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertTitle>Success</AlertTitle>
+              <AlertDescription>
+                Tenant initialized successfully.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleInitializeTenant}>
+            <div className="space-y-4">
+              <Input
+                placeholder="Tenant Name"
+                value={tenantName}
+                onChange={(e) => setTenantName(e.target.value)}
+                disabled={isSubmitting}
+              />
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Initializing...' : 'Initialize'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card className="w-full max-w-md mx-auto mt-8">
       <CardHeader>
-        <CardTitle>Initialize Your Tenant</CardTitle>
+        <CardTitle>Tenant Initialization</CardTitle>
         <CardDescription>
-          To get started, please initialize your tenant with a name.
+          Please initialize your tenant to get started.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {success && (
-          <Alert className="mb-4">
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>
-              Tenant initialized successfully.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={handleInitializeTenant}>
-          <div className="space-y-4">
-            <Input
-              placeholder="Tenant Name"
-              value={tenantName}
-              onChange={(e) => setTenantName(e.target.value)}
-              disabled={isSubmitting}
-            />
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Initializing...' : 'Initialize'}
-            </Button>
-          </div>
-        </form>
+        <p>Loading initialization status...</p>
       </CardContent>
     </Card>
   );
