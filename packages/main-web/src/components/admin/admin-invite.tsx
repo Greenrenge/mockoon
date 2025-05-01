@@ -1,66 +1,73 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { useGraphQL } from "../graphql/graphql-provider"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ADD_ADMIN } from '@/graphql/mutations';
+import { useMutation } from '@apollo/client';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
 
 type AdminInviteProps = {
-  onSuccess: () => void
-}
+  onSuccess: () => void;
+};
 
 export function AdminInvite({ onSuccess }: AdminInviteProps) {
-  const { mutation } = useGraphQL()
-  const [email, setEmail] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Using Apollo's useMutation hook
+  const [inviteAdmin, { loading: isSubmitting }] = useMutation(ADD_ADMIN, {
+    onCompleted: (data) => {
+      if (data.addAdmin.success) {
+        setSuccess(true);
+        setEmail('');
+        onSuccess();
+      } else {
+        setError('Failed to invite admin');
+      }
+    },
+    onError: (error) => {
+      setError(error.message || 'An error occurred');
+    }
+  });
 
   const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!email.trim()) {
-      setError("Email is required")
-      return
+      setError('Email is required');
+      return;
     }
+
+    setError(null);
 
     try {
-      setIsSubmitting(true)
-      setError(null)
-
-      const data = await mutation<{ inviteAdmin: { success: boolean } }>(
-        `mutation($email: String!) { 
-          inviteAdmin(email: $email) { 
-            success 
-          } 
-        }`,
-        { email },
-      )
-
-      if (data.inviteAdmin.success) {
-        setSuccess(true)
-        setEmail("")
-        onSuccess()
-      } else {
-        setError("Failed to invite admin")
-      }
-    } catch (error: any) {
-      setError(error.message || "An error occurred")
-    } finally {
-      setIsSubmitting(false)
+      await inviteAdmin({
+        variables: { email }
+      });
+    } catch (error) {
+      // Apollo's onError will handle this
     }
-  }
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Invite Admin</CardTitle>
-        <CardDescription>Invite a new admin user by email</CardDescription>
+        <CardDescription>
+          Invite a user to become an admin of this application.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
@@ -72,28 +79,29 @@ export function AdminInvite({ onSuccess }: AdminInviteProps) {
         )}
 
         {success && (
-          <Alert className="mb-4 border-green-500">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <Alert className="mb-4">
+            <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Success</AlertTitle>
-            <AlertDescription>Admin invitation sent successfully!</AlertDescription>
+            <AlertDescription>
+              Admin invitation sent successfully.
+            </AlertDescription>
           </Alert>
         )}
 
-        <form onSubmit={handleInvite}>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Email address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isSubmitting}
-            />
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Sending..." : "Invite"}
-            </Button>
-          </div>
+        <form onSubmit={handleInvite} className="flex gap-2">
+          <Input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="flex-1"
+            disabled={isSubmitting}
+          />
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Inviting...' : 'Invite'}
+          </Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

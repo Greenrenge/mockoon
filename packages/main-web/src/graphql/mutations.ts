@@ -58,3 +58,28 @@ export const REMOVE_ADMIN = gql(/* GraphQL */ `
     }
   }
 `);
+
+export const DELETE_TEAM = gql(/* GraphQL */ `
+  mutation DeleteTeam($id: ID!) {
+    deleteTeam(id: $id) {
+      success
+    }
+  }
+`);
+
+export const INITIALIZE_TENANT = gql(/* GraphQL */ `
+  mutation InitializeTenant($name: String!) {
+    initializeTenant(name: $name) {
+      success
+    }
+  }
+`);
+
+export const UPDATE_TEAM_MEMBER_ROLE = gql(/* GraphQL */ `
+  mutation UpdateTeamMemberRole($teamId: ID!, $memberId: ID!, $role: String!) {
+    updateTeamMemberRole(teamId: $teamId, memberId: $memberId, role: $role) {
+      success
+      message
+    }
+  }
+`);

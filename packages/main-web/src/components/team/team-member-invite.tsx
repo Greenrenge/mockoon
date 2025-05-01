@@ -1,69 +1,85 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { useGraphQL } from "../graphql/graphql-provider"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { ADD_TEAM_MEMBER } from '@/graphql/mutations';
+import { useMutation } from '@apollo/client';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
 
 type TeamMemberInviteProps = {
-  teamId: string
-  onSuccess: () => void
-}
+  teamId: string;
+  onSuccess: () => void;
+};
 
 export function TeamMemberInvite({ teamId, onSuccess }: TeamMemberInviteProps) {
-  const { mutation } = useGraphQL()
-  const [email, setEmail] = useState("")
-  const [role, setRole] = useState("USER")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('USER');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Using Apollo's useMutation hook
+  const [inviteTeamMember, { loading: isSubmitting }] = useMutation(
+    ADD_TEAM_MEMBER,
+    {
+      onCompleted: (data) => {
+        if (data.addTeamMember.success) {
+          setSuccess(true);
+          setEmail('');
+          onSuccess();
+        } else {
+          setError('Failed to invite team member');
+        }
+      },
+      onError: (error) => {
+        setError(error.message || 'An error occurred');
+      }
+    }
+  );
 
   const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!email.trim()) {
-      setError("Email is required")
-      return
+      setError('Email is required');
+      return;
     }
+
+    setError(null);
 
     try {
-      setIsSubmitting(true)
-      setError(null)
-
-      const data = await mutation<{ inviteTeamMember: { success: boolean } }>(
-        `mutation($email: String!, $role: String!, $teamId: ID!) { 
-          inviteTeamMember(email: $email, role: $role, teamId: $teamId) { 
-            success 
-          } 
-        }`,
-        { email, role, teamId },
-      )
-
-      if (data.inviteTeamMember.success) {
-        setSuccess(true)
-        setEmail("")
-        onSuccess()
-      } else {
-        setError("Failed to invite team member")
-      }
-    } catch (error: any) {
-      setError(error.message || "An error occurred")
-    } finally {
-      setIsSubmitting(false)
+      await inviteTeamMember({
+        variables: { email, role, teamId }
+      });
+    } catch (error) {
+      // Apollo's onError will handle this
     }
-  }
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Invite Team Member</CardTitle>
-        <CardDescription>Invite a new member to your team</CardDescription>
+        <CardDescription>
+          Invite a user to join this team with specific permissions.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {error && (
@@ -75,41 +91,45 @@ export function TeamMemberInvite({ teamId, onSuccess }: TeamMemberInviteProps) {
         )}
 
         {success && (
-          <Alert className="mb-4 border-green-500">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <Alert className="mb-4">
+            <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Success</AlertTitle>
-            <AlertDescription>Team member invitation sent successfully!</AlertDescription>
+            <AlertDescription>
+              Team member invited successfully.
+            </AlertDescription>
           </Alert>
         )}
 
         <form onSubmit={handleInvite} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <Input
-                placeholder="Email address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
-              />
-            </div>
-            <div>
-              <Select value={role} onValueChange={setRole} disabled={isSubmitting}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="OWNER">Owner</SelectItem>
-                  <SelectItem value="USER">User</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1"
+              disabled={isSubmitting}
+            />
+            <Select
+              value={role}
+              onValueChange={setRole}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">User</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="OWNER">Owner</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Invite Member"}
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? 'Inviting...' : 'Invite Member'}
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

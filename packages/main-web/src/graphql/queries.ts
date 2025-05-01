@@ -72,3 +72,26 @@ export const GET_ADMINS = gql(/* GraphQL */ `
     }
   }
 `);
+
+// Teams with member count query
+export const GET_TEAMS_WITH_MEMBER_COUNT = gql(/* GraphQL */ `
+  query GetTeamsWithMemberCount {
+    teams {
+      id
+      name
+      memberCount
+    }
+  }
+`);
+
+// Team members query
+export const GET_TEAM_MEMBERS = gql(/* GraphQL */ `
+  query GetTeamMembers($teamId: ID!) {
+    teamMembers(teamId: $teamId) {
+      id
+      email
+      role
+      joinedAt
+    }
+  }
+`);

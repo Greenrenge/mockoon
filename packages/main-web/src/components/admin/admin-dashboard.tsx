@@ -1,40 +1,32 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useGraphQL } from "../graphql/graphql-provider"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AdminList } from "./admin-list"
-import { AdminInvite } from "./admin-invite"
-import { TeamManagement } from "./team-management"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GET_ADMINS } from '@/graphql/queries';
+import { useQuery } from '@apollo/client';
+import { AdminInvite } from './admin-invite';
+import { AdminList } from './admin-list';
+import { TeamManagement } from './team-management';
 
 export function AdminDashboard() {
-  const { query } = useGraphQL()
-  const [admins, setAdmins] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  // Using Apollo's useQuery hook instead of manual fetching
+  const {
+    data,
+    loading: isLoading,
+    refetch
+  } = useQuery(GET_ADMINS, {
+    fetchPolicy: 'network-only' // Don't use cache
+  });
 
+  const admins = data?.getAdmins || [];
+
+  // Function to refetch admins data
   const fetchAdmins = async () => {
     try {
-      setIsLoading(true)
-      const data = await query<{ admins: any[] }>(
-        `query { 
-          admins { 
-            id 
-            email 
-            joinedAt 
-          } 
-        }`,
-      )
-      setAdmins(data.admins)
+      await refetch();
     } catch (error) {
-      console.error("Error fetching admins:", error)
-    } finally {
-      setIsLoading(false)
+      console.error('Error fetching admins:', error);
     }
-  }
-
-  useEffect(() => {
-    fetchAdmins()
-  }, [query])
+  };
 
   return (
     <Tabs defaultValue="admins">
@@ -52,5 +44,5 @@ export function AdminDashboard() {
         <TeamManagement />
       </TabsContent>
     </Tabs>
-  )
+  );
 }

@@ -26,6 +26,7 @@ type AuthContextType = {
   config: AuthConfig;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  getAuthToken: () => Promise<string | null>;
 };
 
 // Define the interface for auth providers
@@ -33,6 +34,7 @@ interface LoginAuthProvider {
   initialize(): Promise<void>;
   isAuthenticated(): boolean;
   getUser(): any | null;
+  getAuthToken(): Promise<string | null>;
   login(): Promise<void>;
   logout(): Promise<void>;
 }
@@ -58,6 +60,10 @@ class DisabledAuthProvider implements LoginAuthProvider {
 
   getUser(): any {
     return this.user;
+  }
+
+  async getAuthToken(): Promise<string | null> {
+    return 'mock-token-for-disabled-auth';
   }
 
   async login(): Promise<void> {
@@ -151,6 +157,27 @@ class KeycloakAuthProvider implements LoginAuthProvider {
       await this.keycloak.logout();
       this.authenticated = false;
       this.user = null;
+    }
+  }
+
+  async getAuthToken(): Promise<string | null> {
+    if (!this.keycloak || !this.authenticated) {
+      return null;
+    }
+
+    // Update the token if it's expired or about to expire
+    try {
+      const updated = await this.keycloak.updateToken(30);
+      if (updated) {
+        console.log('Token was successfully refreshed');
+      }
+      return this.keycloak.token;
+    } catch (error) {
+      console.error(
+        'Failed to refresh the token, or the session has expired',
+        error
+      );
+      return null;
     }
   }
 }
@@ -248,6 +275,20 @@ class SupabaseAuthProvider implements LoginAuthProvider {
       this.user = null;
     }
   }
+
+  async getAuthToken(): Promise<string | null> {
+    if (!this.supabase || !this.authenticated) {
+      return null;
+    }
+
+    try {
+      const { data } = await this.supabase.auth.getSession();
+      return data.session?.access_token || null;
+    } catch (error) {
+      console.error('Failed to get auth token from Supabase:', error);
+      return null;
+    }
+  }
 }
 
 // Factory class to create appropriate auth provider
@@ -274,7 +315,8 @@ const AuthContext = createContext<AuthContextType>({
     option: {}
   },
   login: async () => {},
-  logout: async () => {}
+  logout: async () => {},
+  getAuthToken: async () => null
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -356,9 +398,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const getAuthToken = async (): Promise<string | null> => {
+    if (!authProvider) return null;
+    return authProvider.getAuthToken();
+  };
+
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isLoading, user, config, login, logout }}
+      value={{
+        isAuthenticated,
+        isLoading,
+        user,
+        config,
+        login,
+        logout,
+        getAuthToken
+      }}
     >
       {children}
     </AuthContext.Provider>
