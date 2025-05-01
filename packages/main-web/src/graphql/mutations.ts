@@ -1,16 +1,5 @@
 import { gql } from '@/graphql/__generated__';
 
-// Define your GraphQL mutations here
-export const INITIALIZE_APP = gql(/* GraphQL */ `
-  mutation InitializeApp($tenantName: String!) {
-    initializeApp(tenantName: $tenantName) {
-      success
-      message
-      tenantName
-    }
-  }
-`);
-
 // Team mutations
 export const CREATE_TEAM = gql(/* GraphQL */ `
   mutation CreateTeam($name: String!, $description: String) {
@@ -68,18 +57,9 @@ export const DELETE_TEAM = gql(/* GraphQL */ `
 `);
 
 export const INITIALIZE_TENANT = gql(/* GraphQL */ `
-  mutation InitializeTenant($name: String!) {
-    initializeTenant(name: $name) {
+  mutation InitializeTenant($tenantName: String!) {
+    initializeTenant(tenantName: $tenantName) {
       success
-    }
-  }
-`);
-
-export const UPDATE_TEAM_MEMBER_ROLE = gql(/* GraphQL */ `
-  mutation UpdateTeamMemberRole($teamId: ID!, $memberId: ID!, $role: String!) {
-    updateTeamMemberRole(teamId: $teamId, memberId: $memberId, role: $role) {
-      success
-      message
     }
   }
 `);

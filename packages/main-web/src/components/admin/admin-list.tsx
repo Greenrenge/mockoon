@@ -1,18 +1,25 @@
-"use client"
+'use client';
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatDate } from "@/lib/utils"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { formatDate } from '@/lib/utils';
 
 type Admin = {
-  id: string
-  email: string
-  joinedAt: string | null
-}
+  id: string;
+  email: string;
+  joinedAt?: string | null;
+};
 
 type AdminListProps = {
-  admins: Admin[]
-  isLoading: boolean
-}
+  admins: Admin[];
+  isLoading: boolean;
+};
 
 export function AdminList({ admins, isLoading }: AdminListProps) {
   if (isLoading) {
@@ -28,7 +35,7 @@ export function AdminList({ admins, isLoading }: AdminListProps) {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -46,7 +53,10 @@ export function AdminList({ admins, isLoading }: AdminListProps) {
           <TableBody>
             {admins.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                <TableCell
+                  colSpan={3}
+                  className="text-center py-4 text-muted-foreground"
+                >
                   No admin users found
                 </TableCell>
               </TableRow>
@@ -65,7 +75,11 @@ export function AdminList({ admins, isLoading }: AdminListProps) {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell>{admin.joinedAt ? formatDate(admin.joinedAt) : "Not joined yet"}</TableCell>
+                  <TableCell>
+                    {admin.joinedAt
+                      ? formatDate(admin.joinedAt)
+                      : 'Not joined yet'}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -73,5 +87,5 @@ export function AdminList({ admins, isLoading }: AdminListProps) {
         </Table>
       </div>
     </div>
-  )
+  );
 }

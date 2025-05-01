@@ -51,7 +51,7 @@ export function TeamManagement() {
     fetchPolicy: 'network-only' // Don't use cache
   });
 
-  const teams = data?.teams || [];
+  const teams = data?.getTeams || [];
 
   const [teamName, setTeamName] = useState('');
   const [error, setError] = useState<string | null>(null);

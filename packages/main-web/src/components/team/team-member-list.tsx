@@ -16,10 +16,8 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import {
-  REMOVE_TEAM_MEMBER,
-  UPDATE_TEAM_MEMBER_ROLE
-} from '@/graphql/mutations';
+import { REMOVE_TEAM_MEMBER } from '@/graphql/mutations';
+import { UPDATE_TEAM_MEMBER_ROLE } from '@/graphql/team-mutations';
 import { formatDate } from '@/lib/utils';
 import { useMutation } from '@apollo/client';
 import { Trash2 } from 'lucide-react';
@@ -28,7 +26,7 @@ type TeamMember = {
   id: string;
   email: string;
   role: string;
-  joinedAt: string | null;
+  joinedAt?: string | null;
 };
 
 type TeamMemberListProps = {
@@ -68,20 +66,20 @@ export function TeamMemberList({
     }
   });
 
-  const handleRoleChange = async (memberId: string, role: string) => {
+  const handleRoleChange = async (email: string, role: string) => {
     try {
       await updateTeamMemberRole({
-        variables: { teamId, memberId, role }
+        variables: { teamId, email, role }
       });
     } catch (error) {
       // Error handling is done in the onError callback
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
+  const handleRemoveMember = async (email: string) => {
     try {
       await removeTeamMember({
-        variables: { teamId, memberId }
+        variables: { teamId, email }
       });
     } catch (error) {
       // Error handling is done in the onError callback
@@ -114,13 +112,13 @@ export function TeamMemberList({
             </TableRow>
           ) : (
             members.map((member) => (
-              <TableRow key={member.id}>
+              <TableRow key={member.email}>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>
                   <Select
                     defaultValue={member.role}
                     onValueChange={(value) =>
-                      handleRoleChange(member.id, value)
+                      handleRoleChange(member.email, value)
                     }
                   >
                     <SelectTrigger className="w-[180px]">
@@ -140,7 +138,7 @@ export function TeamMemberList({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleRemoveMember(member.id)}
+                    onClick={() => handleRemoveMember(member.email)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

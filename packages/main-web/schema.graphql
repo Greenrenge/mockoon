@@ -25,6 +25,11 @@ type Query {
     ""
     teamId: ID!
   ): Team!
+  ""
+  teamMembers(
+    ""
+    teamId: ID!
+  ): [TeamMember!]!
 }
 ""
 type InitializationStatus {
@@ -94,6 +99,8 @@ type Team {
   createdAt: Date!
   ""
   updatedAt: Date!
+  ""
+  memberCount: Int!
 }
 ""
 type AppSubscription {
@@ -130,9 +137,24 @@ type Admin {
   joinedAt: Date
 }
 ""
+type TeamMember {
+  ""
+  id: ID!
+  ""
+  email: String!
+  ""
+  role: String!
+  ""
+  invitedBy: String
+  ""
+  invitedAt: Date
+  ""
+  joinedAt: Date
+}
+""
 type Mutation {
   ""
-  initializeApp(
+  initializeTenant(
     ""
     tenantName: String!
   ): InitializationResponse!
@@ -153,6 +175,11 @@ type Mutation {
     ""
     description: String
   ): CreateTeamResponse!
+  ""
+  deleteTeam(
+    ""
+    id: ID!
+  ): DeleteTeamResponse!
   ""
   addTeamMember(
     ""
@@ -212,6 +239,13 @@ type CreateTeamResponse {
   message: String!
 }
 ""
+type DeleteTeamResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+}
+""
 type AddTeamMemberResponse {
   ""
   success: Boolean!
@@ -252,19 +286,4 @@ type PaginationCursor {
 type Response {
   ""
   message: String
-}
-""
-type TeamMember {
-  ""
-  id: ID!
-  ""
-  email: String!
-  ""
-  role: String!
-  ""
-  invitedBy: String
-  ""
-  invitedAt: Date
-  ""
-  joinedAt: Date
 }

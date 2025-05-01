@@ -49,7 +49,6 @@ export function TenantInitializer() {
       onCompleted: async (data) => {
         if (data.initializeTenant.success) {
           setSuccess(true);
-          setIsInitialized(true);
           await refetchUser(); // Refresh user data to update roles
         } else {
           setError('Failed to initialize tenant');
@@ -79,7 +78,7 @@ export function TenantInitializer() {
 
     try {
       await initializeTenant({
-        variables: { name: tenantName }
+        variables: { tenantName: tenantName }
       });
     } catch (error) {
       // Error handling is done in the onError callback

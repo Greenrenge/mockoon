@@ -76,7 +76,7 @@ export const GET_ADMINS = gql(/* GraphQL */ `
 // Teams with member count query
 export const GET_TEAMS_WITH_MEMBER_COUNT = gql(/* GraphQL */ `
   query GetTeamsWithMemberCount {
-    teams {
+    getTeams {
       id
       name
       memberCount
