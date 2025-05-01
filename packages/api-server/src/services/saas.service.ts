@@ -861,7 +861,72 @@ const SaaSService = {
 				}
 			},
 		},
-
+		updateTeamMemberRole: {
+			graphql: {
+				type: gql`
+					type UpdateTeamMemberRoleResponse {
+						success: Boolean!
+						message: String!
+					}
+				`,
+				mutation: gql`
+					type Mutation {
+						updateTeamMemberRole(
+							teamId: ID!
+							email: String!
+							role: String!
+						): UpdateTeamMemberRoleResponse!
+					}
+				`,
+			},
+			rest: 'PUT /teams/:teamId/members',
+			params: {
+				teamId: { type: 'uuid' },
+				email: { type: 'email' },
+				role: { type: 'enum', values: ['owner', 'user'] },
+			},
+			async handler(this: TSaaSService, ctx: AuthContextMeta<AddTeamMemberParams>) {
+				const { teamId, email, role } = ctx.params
+				const userId = ctx.meta.accountId
+				const isTeamAdmin = await this.models.teamMembers.findOne({
+					where: { teamId, userId, role: 'owner' },
+				})
+				if (!ctx.meta.user.isAdmin && !isTeamAdmin) {
+					throw new Error('Unauthorized: Only admins or team admins can update team members')
+				}
+				// Check if team exists
+				const team = await this.models.teams.findOne({
+					where: { id: teamId },
+				})
+				if (!team) {
+					throw new Error('Team not found')
+				}
+				// Find the member to update
+				const memberToUpdate = await this.models.teamMembers.findOne({
+					where: { teamId, email },
+				})
+				if (!memberToUpdate) {
+					throw new Error('Team member not found')
+				}
+				// Prevent changing the last owner to user
+				if (memberToUpdate.role === 'owner' && role === 'user') {
+					const teamAdminCount = await this.models.teamMembers.count({
+						where: { teamId, role: 'owner' },
+					})
+					if (teamAdminCount <= 1) {
+						throw new Error('Cannot change the last team admin to user')
+					}
+				}
+				// Update the team member role
+				await memberToUpdate.update({
+					role,
+				})
+				return {
+					success: true,
+					message: `Team member ${email} updated to role ${role}`,
+				}
+			},
+		},
 		/**
 		 * Remove a member from a team
 		 */
