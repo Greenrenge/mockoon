@@ -3,8 +3,8 @@
  * @see https://www.electron.build/configuration/configuration
  */
 const config = {
-  appId: 'com.mockoon.app',
-  productName: 'Mockoon',
+  appId: 'com.pandamock.app',
+  productName: 'PandaMock',
   extraMetadata: { name: 'mockoon' },
   directories: {
     output: 'packages',
@@ -19,7 +19,7 @@ const config = {
   ],
   protocols: [
     {
-      name: 'Mockoon',
+      name: 'PandaMock',
       schemes: ['mockoon'],
       role: 'Editor'
     }

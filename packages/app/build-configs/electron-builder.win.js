@@ -14,7 +14,7 @@ const config = Object.assign({}, commonConfig, {
     azureSignOptions: {
       endpoint: 'https://eus.codesigning.azure.net',
       // respect casing
-      certificateProfileName: 'Mockoon',
+      certificateProfileName: 'PandaMock',
       codeSigningAccountName: 'mockoon'
     }
   },

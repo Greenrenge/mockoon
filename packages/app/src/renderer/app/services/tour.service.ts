@@ -47,7 +47,7 @@ export class TourService {
             placement: 'right',
             links: [
               {
-                url: 'https://mockoon.com/docs/latest/mockoon-data-files/data-files-location/',
+                url: 'https://pandamock.com/docs/latest/mockoon-data-files/data-files-location/',
                 text: 'Local environments documentation'
               },
               {
@@ -65,7 +65,7 @@ export class TourService {
       placement: 'right',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/api-endpoints/routing/',
+          url: 'https://pandamock.com/docs/latest/api-endpoints/routing/',
           text: 'Routing documentation'
         }
       ]
@@ -78,7 +78,7 @@ export class TourService {
       placement: 'bottom-left',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/api-endpoints/crud-routes/',
+          url: 'https://pandamock.com/docs/latest/api-endpoints/crud-routes/',
           text: 'CRUD routes documentation'
         }
       ]
@@ -91,7 +91,7 @@ export class TourService {
       placement: 'bottom',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/api-endpoints/routing/#route-patterns-and-regexes',
+          url: 'https://pandamock.com/docs/latest/api-endpoints/routing/#route-patterns-and-regexes',
           text: 'Routes path documentation'
         }
       ]
@@ -104,7 +104,7 @@ export class TourService {
       placement: 'bottom',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/route-responses/multiple-responses/',
+          url: 'https://pandamock.com/docs/latest/route-responses/multiple-responses/',
           text: 'Route responses documentation'
         }
       ]
@@ -117,7 +117,7 @@ export class TourService {
       placement: 'left',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/route-responses/multiple-responses/#random-route-response',
+          url: 'https://pandamock.com/docs/latest/route-responses/multiple-responses/#random-route-response',
           text: 'Response modes documentation'
         }
       ]
@@ -130,7 +130,7 @@ export class TourService {
       placement: 'bottom',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/route-responses/dynamic-rules/',
+          url: 'https://pandamock.com/docs/latest/route-responses/dynamic-rules/',
           text: 'Response rules documentation'
         }
       ]
@@ -143,7 +143,7 @@ export class TourService {
       placement: 'top',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/response-configuration/response-body/',
+          url: 'https://pandamock.com/docs/latest/response-configuration/response-body/',
           text: 'Response body documentation'
         }
       ]
@@ -166,7 +166,7 @@ export class TourService {
               'After you configured your environment, you can start it, and it will <strong>run on your local machine</strong>. <br/>You can also run your mock API on your <strong>server or CI environment</strong> using our CLI or Docker image.',
             placement: 'bottom-left',
             links: [
-              { url: 'https://mockoon.com/cli/', text: 'Discover the CLI' }
+              { url: 'https://pandamock.com/cli/', text: 'Discover the CLI' }
             ]
           } as TourStep
         ]),
@@ -178,7 +178,7 @@ export class TourService {
       placement: 'bottom',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/logging-and-recording/requests-logging/',
+          url: 'https://pandamock.com/docs/latest/logging-and-recording/requests-logging/',
           text: 'Requests logging documentation'
         }
       ]
@@ -191,7 +191,7 @@ export class TourService {
       placement: 'bottom',
       links: [
         {
-          url: 'https://mockoon.com/docs/latest/server-configuration/proxy-mode/',
+          url: 'https://pandamock.com/docs/latest/server-configuration/proxy-mode/',
           text: 'Proxy mode documentation'
         }
       ]

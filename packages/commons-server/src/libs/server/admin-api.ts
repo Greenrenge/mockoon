@@ -5,7 +5,7 @@ import { Sse } from './sse';
 
 /**
  * Creates the Admin API endpoints
- * Documentation: https://mockoon.com/docs/latest/admin-api/overview/ *
+ * Documentation: https://pandamock.com/docs/latest/admin-api/overview/ *
  */
 export const createAdminEndpoint = (
   app: Express,
@@ -55,7 +55,7 @@ export const createAdminEndpoint = (
   app.get(adminApiPrefix, (req, res) => {
     res.send({
       response:
-        "Welcome to Mockoon's admin API. Check the documentation at https://mockoon.com/docs/latest/admin-api/overview/ for more information."
+        "Welcome to Mockoon's admin API. Check the documentation at https://pandamock.com/docs/latest/admin-api/overview/ for more information."
     });
   });
 

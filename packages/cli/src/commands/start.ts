@@ -84,12 +84,12 @@ export default class Start extends Command {
     }),
     'disable-admin-api': Flags.boolean({
       description:
-        'Disable the admin API, enabled by default (more info: https://mockoon.com/docs/latest/admin-api/overview/)',
+        'Disable the admin API, enabled by default (more info: https://pandamock.com/docs/latest/admin-api/overview/)',
       default: false
     }),
     'disable-tls': Flags.boolean({
       description:
-        'Disable TLS for all environments. TLS configuration is part of the environment configuration (more info: https://mockoon.com/docs/latest/server-configuration/serving-over-tls/).',
+        'Disable TLS for all environments. TLS configuration is part of the environment configuration (more info: https://pandamock.com/docs/latest/server-configuration/serving-over-tls/).',
       default: false
     }),
     'max-transaction-logs': Flags.integer({

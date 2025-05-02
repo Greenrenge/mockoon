@@ -15,7 +15,7 @@ const config = Object.assign({}, commonConfig, {
     icon: 'build-res',
     artifactName: 'mockoon-${version}.${ext}',
     desktop: {
-      Name: 'Mockoon',
+      Name: 'PandaMock',
       Type: 'Application',
       Categories: 'Development'
     }

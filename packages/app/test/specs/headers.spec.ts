@@ -112,7 +112,7 @@ const getOverriddenCORSHeaders: HttpCall = {
   testedResponse: {
     status: 200,
     headers: {
-      'access-control-allow-origin': 'https://mockoon.com',
+      'access-control-allow-origin': 'https://pandamock.com',
       'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
       'access-control-allow-headers':
         'Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With'
@@ -251,7 +251,7 @@ describe('Headers', () => {
 
       await headersUtils.add('environment-headers', {
         key: 'Access-Control-Allow-Origin',
-        value: 'https://mockoon.com'
+        value: 'https://pandamock.com'
       });
 
       await utils.waitForAutosave();
