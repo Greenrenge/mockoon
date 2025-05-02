@@ -792,13 +792,22 @@ const SaaSService = {
 					throw new Error('Unauthorized: Only admins or team admins can delete teams')
 				}
 
-				// Delete the team
-				await team.destroy()
+				try {
+					// First, delete all team members to avoid foreign key constraint errors
+					await this.models.teamMembers.destroy({
+						where: { teamId: id },
+					})
 
-				return {
-					success: true,
-					message: `Team "${team.name}" deleted successfully`,
-					deleted: true,
+					// Then delete the team
+					await team.destroy()
+
+					return {
+						success: true,
+						message: `Team "${team.name}" deleted successfully`,
+						deleted: true,
+					}
+				} catch (error) {
+					throw new Error(`Failed to delete team: ${error.message}`)
 				}
 			},
 		},
