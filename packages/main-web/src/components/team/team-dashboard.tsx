@@ -65,6 +65,23 @@ export function TeamDashboard() {
 
   return (
     <div className="space-y-6">
+      {ownedTeams.length === 0 && (
+        <div className="border rounded-md p-6">
+          <h3 className="text-lg font-medium mb-4">No Teams Found</h3>
+          <p className="text-muted-foreground">
+            You are not a member of any teams. Please contact an admin to be
+            added to a team.
+          </p>
+        </div>
+      )}
+      {ownedTeams.length === 1 && (
+        <div className="border rounded-md p-6">
+          <h3 className="text-lg font-medium mb-4">
+            You are a member of the following team:
+          </h3>
+          <p className="text-muted-foreground">{ownedTeams[0].name}</p>
+        </div>
+      )}
       {ownedTeams.length > 1 && (
         <div className="flex items-center gap-2">
           <label htmlFor="team-select" className="text-sm font-medium">
@@ -87,7 +104,6 @@ export function TeamDashboard() {
           </Select>
         </div>
       )}
-
       {selectedTeamId && (
         <Tabs defaultValue="members">
           <TabsList className="mb-6">

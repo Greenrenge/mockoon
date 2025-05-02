@@ -4,11 +4,14 @@ import { env } from '@/config/env';
 import {
   ApolloClient,
   ApolloProvider,
+  from, // Import 'from'
   HttpLink,
   InMemoryCache
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error'; // Import 'onError'
 import React, { useMemo } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '../auth/auth-provider';
 
 export function ApolloProviderWrapper({
@@ -35,8 +38,26 @@ export function ApolloProviderWrapper({
       };
     });
 
+    // Error link to handle GraphQL and network errors
+    const errorLink = onError(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        graphQLErrors.forEach(({ message, locations, path }) => {
+          console.error(
+            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+          );
+          toast.error(`GraphQL error: ${message}`);
+        });
+      }
+
+      if (networkError) {
+        console.error(`[Network error]: ${networkError}`);
+        toast.error(`Network error: ${networkError.message}`);
+      }
+    });
+
     return new ApolloClient({
-      link: authLink.concat(httpLink),
+      // Chain the links: errorLink -> authLink -> httpLink
+      link: from([errorLink, authLink, httpLink]),
       cache: new InMemoryCache(),
       defaultOptions: {
         watchQuery: {
