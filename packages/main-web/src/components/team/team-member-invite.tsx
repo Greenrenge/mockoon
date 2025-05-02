@@ -31,7 +31,7 @@ type TeamMemberInviteProps = {
 
 export function TeamMemberInvite({ teamId, onSuccess }: TeamMemberInviteProps) {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('USER');
+  const [role, setRole] = useState('user');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -119,9 +119,8 @@ export function TeamMemberInvite({ teamId, onSuccess }: TeamMemberInviteProps) {
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="USER">User</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
-                <SelectItem value="OWNER">Owner</SelectItem>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="owner">Owner</SelectItem>
               </SelectContent>
             </Select>
           </div>

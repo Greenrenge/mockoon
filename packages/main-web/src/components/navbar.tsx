@@ -1,34 +1,34 @@
-"use client"
+'use client';
 
-import { useAuth } from "./auth/auth-provider"
-import { useUser } from "./providers"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { PiIcon as Panda } from "lucide-react"
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { PiIcon as Panda } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from './auth/auth-provider';
+import { useUser } from './providers';
 
 export function Navbar() {
-  const { isAuthenticated, isLoading: authLoading, login, logout } = useAuth()
-  const { user, roles, isLoading: userLoading } = useUser()
+  const { isAuthenticated, isLoading: authLoading, login, logout } = useAuth();
+  const { user, roles, isLoading: userLoading } = useUser();
 
-  const isLoading = authLoading || userLoading
+  const isLoading = authLoading || userLoading;
 
   const getInitials = (name?: string) => {
-    if (!name) return "U"
+    if (!name) return 'U';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }
+      .join('')
+      .toUpperCase();
+  };
 
   return (
     <nav className="border-b bg-background">
@@ -53,17 +53,27 @@ export function Navbar() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
                     <Avatar>
-                      <AvatarImage src="/placeholder.svg" alt={user?.displayName || "User"} />
-                      <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
+                      <AvatarImage
+                        src="/placeholder.svg"
+                        alt={user?.displayName || 'User'}
+                      />
+                      <AvatarFallback>
+                        {getInitials(user?.displayName)}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>
                     <div className="font-medium">{user?.displayName}</div>
-                    <div className="text-xs text-muted-foreground">{user?.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {user?.email}
+                    </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
 
@@ -80,7 +90,9 @@ export function Navbar() {
                   )}
 
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()}>Logout</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => logout()}>
+                    Logout
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -90,5 +102,5 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-  )
+  );
 }

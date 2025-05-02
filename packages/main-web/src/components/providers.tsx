@@ -63,13 +63,12 @@ function UserProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
 
       setUser(data.user);
-
       // Set roles based on the response
       setRoles({
         isAdmin: data.isAdmin || false,
         isTeamMember: data.teams?.length > 0 || false,
         isTeamOwner:
-          data.teams?.some((team: any) => team.role === 'OWNER') || false,
+          data.teams?.some((team: any) => team.role === 'owner') || false,
         teams: data.teams || []
       });
     } catch (error) {

@@ -10,7 +10,7 @@ import { useUser } from '../providers';
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { roles, isLoading: userLoading, user } = useUser();
+  const { roles, isLoading: userLoading } = useUser();
 
   const isLoading = authLoading || userLoading;
   useEffect(() => {

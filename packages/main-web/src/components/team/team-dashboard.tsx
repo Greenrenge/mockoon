@@ -19,7 +19,7 @@ export function TeamDashboard() {
   const { roles } = useUser();
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
-  const ownedTeams = roles.teams.filter((team) => team.role === 'OWNER');
+  const ownedTeams = roles.teams.filter((team) => team.role === 'owner');
 
   useEffect(() => {
     if (ownedTeams.length > 0 && !selectedTeamId) {
