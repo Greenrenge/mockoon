@@ -29,6 +29,16 @@ export const REMOVE_TEAM_MEMBER = gql(/* GraphQL */ `
   }
 `);
 
+export const UPDATE_TEAM_INFO = gql(/* GraphQL */ `
+  mutation UpdateTeamInfo($id: ID!, $name: String!) {
+    updateTeamInfo(id: $id, name: $name) {
+      success
+      message
+      updated
+    }
+  }
+`);
+
 // Admin mutations
 export const ADD_ADMIN = gql(/* GraphQL */ `
   mutation AddAdmin($email: String!) {

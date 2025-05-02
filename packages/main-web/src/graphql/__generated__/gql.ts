@@ -17,6 +17,7 @@ type Documents = {
     "\n  mutation CreateTeam($name: String!, $description: String) {\n    createTeam(name: $name, description: $description) {\n      success\n      teamId\n      message\n    }\n  }\n": typeof types.CreateTeamDocument,
     "\n  mutation AddTeamMember($teamId: ID!, $email: String!, $role: String!) {\n    addTeamMember(teamId: $teamId, email: $email, role: $role) {\n      success\n      message\n    }\n  }\n": typeof types.AddTeamMemberDocument,
     "\n  mutation RemoveTeamMember($teamId: ID!, $email: String!) {\n    removeTeamMember(teamId: $teamId, email: $email) {\n      success\n      message\n    }\n  }\n": typeof types.RemoveTeamMemberDocument,
+    "\n  mutation UpdateTeamInfo($id: ID!, $name: String!) {\n    updateTeamInfo(id: $id, name: $name) {\n      success\n      message\n      updated\n    }\n  }\n": typeof types.UpdateTeamInfoDocument,
     "\n  mutation AddAdmin($email: String!) {\n    addAdmin(email: $email) {\n      success\n      message\n    }\n  }\n": typeof types.AddAdminDocument,
     "\n  mutation RemoveAdmin($email: String!) {\n    removeAdmin(email: $email) {\n      success\n      message\n    }\n  }\n": typeof types.RemoveAdminDocument,
     "\n  mutation DeleteTeam($id: ID!) {\n    deleteTeam(id: $id) {\n      success\n    }\n  }\n": typeof types.DeleteTeamDocument,
@@ -35,6 +36,7 @@ const documents: Documents = {
     "\n  mutation CreateTeam($name: String!, $description: String) {\n    createTeam(name: $name, description: $description) {\n      success\n      teamId\n      message\n    }\n  }\n": types.CreateTeamDocument,
     "\n  mutation AddTeamMember($teamId: ID!, $email: String!, $role: String!) {\n    addTeamMember(teamId: $teamId, email: $email, role: $role) {\n      success\n      message\n    }\n  }\n": types.AddTeamMemberDocument,
     "\n  mutation RemoveTeamMember($teamId: ID!, $email: String!) {\n    removeTeamMember(teamId: $teamId, email: $email) {\n      success\n      message\n    }\n  }\n": types.RemoveTeamMemberDocument,
+    "\n  mutation UpdateTeamInfo($id: ID!, $name: String!) {\n    updateTeamInfo(id: $id, name: $name) {\n      success\n      message\n      updated\n    }\n  }\n": types.UpdateTeamInfoDocument,
     "\n  mutation AddAdmin($email: String!) {\n    addAdmin(email: $email) {\n      success\n      message\n    }\n  }\n": types.AddAdminDocument,
     "\n  mutation RemoveAdmin($email: String!) {\n    removeAdmin(email: $email) {\n      success\n      message\n    }\n  }\n": types.RemoveAdminDocument,
     "\n  mutation DeleteTeam($id: ID!) {\n    deleteTeam(id: $id) {\n      success\n    }\n  }\n": types.DeleteTeamDocument,
@@ -76,6 +78,10 @@ export function gql(source: "\n  mutation AddTeamMember($teamId: ID!, $email: St
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  mutation RemoveTeamMember($teamId: ID!, $email: String!) {\n    removeTeamMember(teamId: $teamId, email: $email) {\n      success\n      message\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveTeamMember($teamId: ID!, $email: String!) {\n    removeTeamMember(teamId: $teamId, email: $email) {\n      success\n      message\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation UpdateTeamInfo($id: ID!, $name: String!) {\n    updateTeamInfo(id: $id, name: $name) {\n      success\n      message\n      updated\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateTeamInfo($id: ID!, $name: String!) {\n    updateTeamInfo(id: $id, name: $name) {\n      success\n      message\n      updated\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

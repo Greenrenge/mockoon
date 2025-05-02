@@ -29,7 +29,11 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { CREATE_TEAM, DELETE_TEAM } from '@/graphql/mutations';
+import {
+  CREATE_TEAM,
+  DELETE_TEAM,
+  UPDATE_TEAM_INFO
+} from '@/graphql/mutations';
 import { GET_TEAMS_WITH_MEMBER_COUNT } from '@/graphql/queries';
 import { useMutation, useQuery } from '@apollo/client';
 import { AlertCircle, CheckCircle2, Edit, Trash2 } from 'lucide-react';
@@ -54,6 +58,8 @@ export function TeamManagement() {
   const teams = data?.getTeams || [];
 
   const [teamName, setTeamName] = useState('');
+  const [editedTeamName, setEditedTeamName] = useState('');
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -85,6 +91,28 @@ export function TeamManagement() {
     }
   });
 
+  // Using Apollo's useMutation hook for updating team info
+  const [updateTeamInfo, { loading: isUpdatingTeamInfo }] = useMutation(
+    UPDATE_TEAM_INFO,
+    {
+      onCompleted: (data) => {
+        if (data.updateTeamInfo.success) {
+          setSuccess(true);
+          setEditedTeamName('');
+          setEditingTeamId(null);
+          refetch(); // Refetch teams after updating team info
+        } else {
+          setError('Failed to update team information');
+        }
+      },
+      onError: (error) => {
+        setError(
+          error.message || 'An error occurred updating team information'
+        );
+      }
+    }
+  );
+
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -112,6 +140,31 @@ export function TeamManagement() {
     } catch (error) {
       // Error handling is done in the onError callback
     }
+  };
+
+  const handleUpdateTeamInfo = async () => {
+    if (!editedTeamName.trim() || !editingTeamId) {
+      setError('Team name is required');
+      return;
+    }
+
+    setError(null);
+
+    try {
+      await updateTeamInfo({
+        variables: {
+          id: editingTeamId,
+          name: editedTeamName
+        }
+      });
+    } catch (error) {
+      // Error handling is done in the onError callback
+    }
+  };
+
+  const openEditTeamDialog = (team: Team) => {
+    setEditingTeamId(team.id);
+    setEditedTeamName(team.name);
   };
 
   return (
@@ -184,9 +237,21 @@ export function TeamManagement() {
                   <TableCell>{team.memberCount} members</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Dialog>
+                      <Dialog
+                        open={!!editingTeamId}
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setEditingTeamId(null);
+                            setEditedTeamName('');
+                          }
+                        }}
+                      >
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditTeamDialog(team)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
@@ -197,14 +262,38 @@ export function TeamManagement() {
                               Update the team details.
                             </DialogDescription>
                           </DialogHeader>
-                          <form className="space-y-4 py-4">
+                          {error && (
+                            <Alert variant="destructive">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertTitle>Error</AlertTitle>
+                              <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                          )}
+                          <form
+                            className="space-y-4 py-4"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              handleUpdateTeamInfo();
+                            }}
+                          >
                             <Input
-                              defaultValue={team.name}
+                              value={editedTeamName}
+                              onChange={(e) =>
+                                setEditedTeamName(e.target.value)
+                              }
                               placeholder="Team name"
                             />
                           </form>
                           <DialogFooter>
-                            <Button type="submit">Save changes</Button>
+                            <Button
+                              type="submit"
+                              onClick={handleUpdateTeamInfo}
+                              disabled={isUpdatingTeamInfo}
+                            >
+                              {isUpdatingTeamInfo
+                                ? 'Saving...'
+                                : 'Save changes'}
+                            </Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>

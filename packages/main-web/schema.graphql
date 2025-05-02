@@ -205,6 +205,13 @@ type Mutation {
     ""
     email: String!
   ): RemoveTeamMemberResponse!
+  ""
+  updateTeamInfo(
+    ""
+    id: ID!,
+    ""
+    name: String!
+  ): UpdateTeamInfoResponse!
 }
 ""
 type InitializationResponse {
@@ -214,6 +221,8 @@ type InitializationResponse {
   message: String!
   ""
   tenantName: String
+  ""
+  created: Boolean!
 }
 ""
 type AddAdminResponse {
@@ -221,6 +230,8 @@ type AddAdminResponse {
   success: Boolean!
   ""
   message: String!
+  ""
+  created: Boolean!
 }
 ""
 type RemoveAdminResponse {
@@ -228,6 +239,8 @@ type RemoveAdminResponse {
   success: Boolean!
   ""
   message: String!
+  ""
+  removed: Boolean!
 }
 ""
 type CreateTeamResponse {
@@ -237,6 +250,8 @@ type CreateTeamResponse {
   teamId: ID!
   ""
   message: String!
+  ""
+  created: Boolean!
 }
 ""
 type DeleteTeamResponse {
@@ -244,6 +259,8 @@ type DeleteTeamResponse {
   success: Boolean!
   ""
   message: String!
+  ""
+  deleted: Boolean!
 }
 ""
 type AddTeamMemberResponse {
@@ -251,6 +268,8 @@ type AddTeamMemberResponse {
   success: Boolean!
   ""
   message: String!
+  ""
+  created: Boolean!
 }
 ""
 type UpdateTeamMemberRoleResponse {
@@ -258,6 +277,8 @@ type UpdateTeamMemberRoleResponse {
   success: Boolean!
   ""
   message: String!
+  ""
+  updated: Boolean!
 }
 ""
 type RemoveTeamMemberResponse {
@@ -265,6 +286,17 @@ type RemoveTeamMemberResponse {
   success: Boolean!
   ""
   message: String!
+  ""
+  removed: Boolean!
+}
+""
+type UpdateTeamInfoResponse {
+  ""
+  success: Boolean!
+  ""
+  message: String!
+  ""
+  updated: Boolean!
 }
 ""
 type Pagination {

@@ -48,7 +48,7 @@ function UserProvider({ children }: { children: React.ReactNode }) {
     teams: []
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { getAuthToken } = useAuth();
+  const { getAuthToken, isAuthenticated } = useAuth();
 
   const fetchUserData = async () => {
     try {
@@ -80,8 +80,11 @@ function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    fetchUserData();
-  }, [getAuthToken]);
+    if (isAuthenticated) {
+      setIsLoading(true);
+      fetchUserData();
+    }
+  }, [getAuthToken, isAuthenticated]);
 
   return (
     <UserContext.Provider
