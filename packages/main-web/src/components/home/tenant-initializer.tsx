@@ -76,6 +76,7 @@ export function TenantInitializer() {
     }
 
     setError(null);
+    setSuccess(false);
 
     try {
       await initializeTenant({
@@ -86,7 +87,7 @@ export function TenantInitializer() {
     }
   };
 
-  if (isLoading || authLoading) {
+  if (isLoading || (authLoading && !isSubmitting)) {
     return (
       <Card className="w-full max-w-md mx-auto mt-8">
         <CardHeader>
@@ -124,8 +125,8 @@ export function TenantInitializer() {
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Link href="/dashboard" className="w-full">
-            <Button className="w-full">Go to Dashboard</Button>
+          <Link href="/app" className="w-full">
+            <Button className="w-full">Launch App</Button>
           </Link>
         </CardFooter>
       </Card>
@@ -159,20 +160,34 @@ export function TenantInitializer() {
             </Alert>
           )}
 
-          <form onSubmit={handleInitializeTenant}>
-            <div className="space-y-4">
-              <Input
-                placeholder="Tenant Name"
-                value={tenantName}
-                onChange={(e) => setTenantName(e.target.value)}
-                disabled={isSubmitting}
-              />
+          {!success && (
+            <form onSubmit={handleInitializeTenant}>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Tenant Name"
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
+                  disabled={isSubmitting}
+                />
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Initializing...' : 'Initialize'}
-              </Button>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Initializing...' : 'Initialize'}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {success && (
+            <div className="mt-4">
+              <Link href="/app" className="w-full">
+                <Button className="w-full">Launch App</Button>
+              </Link>
             </div>
-          </form>
+          )}
         </CardContent>
       </Card>
     );

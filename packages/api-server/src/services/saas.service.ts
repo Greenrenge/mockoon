@@ -10,7 +10,7 @@ import { mustLogin } from '../mixins/mustLogin'
 import { AppService, AppServiceSchema, AuthContextMeta } from '../types/common'
 
 // Interfaces for our params
-interface InitializeAppParams {
+interface initializeTenantParams {
 	tenantName: string
 }
 
@@ -308,7 +308,7 @@ const SaaSService = {
 		/**
 		 * Initialize the application
 		 */
-		initializeApp: {
+		initializeTenant: {
 			graphql: {
 				type: gql`
 					type InitializationResponse {
@@ -319,7 +319,7 @@ const SaaSService = {
 				`,
 				mutation: gql`
 					type Mutation {
-						initializeApp(tenantName: String!): InitializationResponse!
+						initializeTenant(tenantName: String!): InitializationResponse!
 					}
 				`,
 			},
@@ -327,7 +327,7 @@ const SaaSService = {
 			params: {
 				tenantName: { type: 'string', min: 2 },
 			},
-			async handler(this: TSaaSService, ctx: AuthContextMeta<InitializeAppParams>) {
+			async handler(this: TSaaSService, ctx: AuthContextMeta<initializeTenantParams>) {
 				const { tenantName } = ctx.params
 				const userId = ctx.meta.accountId
 
@@ -681,7 +681,54 @@ const SaaSService = {
 				}
 			},
 		},
+		deleteTeam: {
+			graphql: {
+				type: gql`
+					type DeleteTeamResponse {
+						success: Boolean!
+						message: String!
+					}
+				`,
+				mutation: gql`
+					type Mutation {
+						deleteTeam(id: ID!): DeleteTeamResponse!
+					}
+				`,
+			},
+			rest: 'DELETE /teams/:id',
+			params: {
+				id: { type: 'uuid' },
+			},
+			async handler(this: TSaaSService, ctx: AuthContextMeta) {
+				const { id } = ctx.params
+				const userId = ctx.meta.accountId
 
+				// Check if team exists
+				const team = await this.models.teams.findOne({
+					where: { id },
+				})
+
+				if (!team) {
+					throw new Error('Team not found')
+				}
+
+				const isTeamAdmin = await this.models.teamMembers.findOne({
+					where: { teamId: id, userId, role: 'owner' },
+				})
+
+				if (!ctx.meta.user.isAdmin && !isTeamAdmin) {
+					throw new Error('Unauthorized: Only admins or team admins can delete teams')
+				}
+
+				// Delete the team
+				await team.destroy()
+
+				return {
+					success: true,
+					message: `Team "${team.name}" deleted successfully`,
+				}
+			},
+		},
 		/**
 		 * Get all teams
 		 */
@@ -695,6 +742,7 @@ const SaaSService = {
 						createdBy: String!
 						createdAt: Date!
 						updatedAt: Date!
+						memberCount: Int!
 					}
 				`,
 				query: gql`
@@ -734,6 +782,18 @@ const SaaSService = {
 						},
 					})
 				}
+				// Add member count to each team
+				teams = await Promise.all(
+					teams.map(async (team: any) => {
+						const memberCount = await this.models.teamMembers.count({
+							where: { teamId: team.id },
+						})
+						return {
+							...team.toJSON(),
+							memberCount,
+						}
+					}),
+				)
 
 				return teams
 			},
@@ -999,7 +1059,59 @@ const SaaSService = {
 				}
 			},
 		},
+		/**
+ * teamMembers(teamId: $teamId) {
+      id
+      email
+      role
+      joinedAt
+    }
+ */
+		teamMembers: {
+			graphql: {
+				query: gql`
+					type Query {
+						teamMembers(teamId: ID!): [TeamMember!]!
+					}
+				`,
+			},
+			rest: 'GET /teams/:teamId/members',
+			params: {
+				teamId: { type: 'uuid' },
+			},
+			async handler(this: TSaaSService, ctx: AuthContextMeta) {
+				const { teamId } = ctx.params
+				const userId = ctx.meta.accountId
 
+				// Check if team exists
+				const team = await this.models.teams.findOne({
+					where: { id: teamId },
+				})
+
+				if (!team) {
+					throw new Error('Team not found')
+				}
+
+				const isTeamAdmin = await this.models.teamMembers.findOne({
+					where: { teamId, userId, role: 'owner' },
+				})
+
+				if (!ctx.meta.user.isAdmin && !isTeamAdmin) {
+					throw new Error('Unauthorized: Only admins or team admins can view team members')
+				}
+
+				// Get team members
+				const members = await this.models.teamMembers.findAll({
+					where: { teamId },
+					include: {
+						model: this.models.teams,
+						as: 'team',
+					},
+				})
+
+				return members
+			},
+		},
 		/**
 		 * Process user login - automatically assign admin and team roles based on email matches
 		 * This is called by the auth service when a user logs in

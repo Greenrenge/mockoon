@@ -4,7 +4,7 @@ import { Kind } from 'graphql'
 import GraphQLJSON from 'graphql-type-json'
 import helmet from 'helmet'
 import type { ClientRequest, ServerResponse } from 'http'
-import { pick } from 'lodash'
+import { omit, pick } from 'lodash'
 import { Context, Errors, ServiceBroker } from 'moleculer'
 import moleculerApolloServer from 'moleculer-apollo-server'
 import ApiGateway, {
@@ -180,6 +180,25 @@ export default {
 							$params,
 						}
 					},
+				},
+				formatError: (error) => {
+					const isProduction = process.env.NODE_ENV === 'production'
+					console.log('GraphQL Error:', error)
+					console.log('isProduction:', process.env.NODE_ENV)
+					if (!isProduction) {
+						return error
+					}
+
+					// Sanitized error for production
+					const sanitizedError = {
+						message: 'An error occurred while processing your request',
+						extensions: omit(error.extensions || {}, ['exception.stacktrace']),
+					}
+
+					// Log full error on server side
+					console.error('GraphQL Error:', JSON.stringify(error, null, 2))
+
+					return sanitizedError
 				},
 			},
 		}),

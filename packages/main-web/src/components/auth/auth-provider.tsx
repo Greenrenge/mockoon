@@ -85,6 +85,7 @@ class KeycloakAuthProvider implements LoginAuthProvider {
   private accessToken: string | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
   private readonly REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+  private readonly BUFFER_TIME = 30; // Buffer time in seconds before token expires
 
   constructor(config: AuthConfig) {
     this.config = config;
@@ -142,6 +143,32 @@ class KeycloakAuthProvider implements LoginAuthProvider {
     // Clear any existing timer first
     this.clearTokenRefreshTimer();
 
+    if (this.keycloak && this.keycloak.tokenParsed) {
+      // Get token expiration time from the token
+      const expiresAt = this.keycloak.tokenParsed.exp * 1000; // Convert to milliseconds
+      const now = Date.now();
+
+      // Calculate time until expiration minus buffer time
+      const timeToExpiry = expiresAt - now - this.BUFFER_TIME * 1000;
+
+      if (timeToExpiry > 0) {
+        console.log(
+          `Token will refresh in ${Math.floor(timeToExpiry / 1000)} seconds (before expiry)`
+        );
+
+        // Schedule refresh right before token expires
+        this.refreshTimer = setTimeout(() => {
+          this.refreshToken();
+        }, timeToExpiry);
+
+        return;
+      }
+    }
+
+    // Fallback to fixed interval if we can't determine expiration time
+    console.log(
+      `Using fallback refresh interval of ${this.REFRESH_INTERVAL / 1000} seconds`
+    );
     this.refreshTimer = setInterval(() => {
       this.refreshToken();
     }, this.REFRESH_INTERVAL);
@@ -209,9 +236,19 @@ class KeycloakAuthProvider implements LoginAuthProvider {
         if (refreshed) {
           this.accessToken = this.keycloak.token;
           console.log('Token refreshed successfully');
+
+          // After successful refresh, update the timer based on the new token's expiry
+          this.startTokenRefreshTimer();
+        } else {
+          console.log('Token is still valid, no refresh needed');
         }
       } catch (error) {
         console.error('Failed to refresh token:', error);
+        // Fallback to fixed interval refresh on error
+        this.clearTokenRefreshTimer();
+        this.refreshTimer = setTimeout(() => {
+          this.refreshToken();
+        }, 60000); // Try again in 1 minute on error
       }
     }
   }
