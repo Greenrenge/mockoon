@@ -2,7 +2,7 @@ import { Frequency, Plans, TeamRoles, User } from '@mockoon/cloud'
 import { moleculerGql as gql } from 'moleculer-apollo-server'
 import DbService from 'moleculer-db'
 import SequelizeDbAdapter from 'moleculer-db-adapter-sequelize'
-import { DataTypes } from 'sequelize'
+import { DataTypes, Op } from 'sequelize'
 import config from '../config'
 import { syncSequelize } from '../libs/dbAdapters/sequelize-utils'
 import { DEFAULT_PLAN } from '../libs/saas-plan'
@@ -315,6 +315,7 @@ const SaaSService = {
 						success: Boolean!
 						message: String!
 						tenantName: String
+						created: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -333,8 +334,14 @@ const SaaSService = {
 
 				// Check if app is already initialized
 				const settings = await this.models.settings.findOne()
-				if (settings.initialized) {
-					throw new Error('Application has already been initialized')
+				if (settings && settings.initialized) {
+					// Return existing initialization data instead of throwing error
+					return {
+						success: true,
+						message: 'Application was already initialized',
+						tenantName: settings.tenantName,
+						created: false,
+					}
 				}
 
 				// Initialize the app
@@ -358,6 +365,7 @@ const SaaSService = {
 					success: true,
 					message: 'Application initialized successfully',
 					tenantName,
+					created: true,
 				}
 			},
 		},
@@ -524,6 +532,7 @@ const SaaSService = {
 					type AddAdminResponse {
 						success: Boolean!
 						message: String!
+						created: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -546,7 +555,7 @@ const SaaSService = {
 
 				// Check if app is initialized
 				const settings = await this.models.settings.findOne()
-				if (!settings.initialized) {
+				if (!settings?.initialized) {
 					throw new Error('Application has not been initialized yet')
 				}
 
@@ -555,20 +564,29 @@ const SaaSService = {
 					where: { email },
 				})
 
-				if (existingAdmin) {
-					throw new Error('Admin with this email already exists')
-				}
+				let created = false
 
-				// Add new admin
-				await this.models.admins.create({
-					email,
-					invitedBy: userId,
-					invitedAt: new Date(),
-				})
+				if (existingAdmin) {
+					// Admin already exists, nothing to do
+					return {
+						success: true,
+						message: `Admin ${email} already exists`,
+						created: false,
+					}
+				} else {
+					// Add new admin
+					await this.models.admins.create({
+						email,
+						invitedBy: userId,
+						invitedAt: new Date(),
+					})
+					created = true
+				}
 
 				return {
 					success: true,
-					message: `Admin invitation sent to ${email}`,
+					message: created ? `Admin invitation sent to ${email}` : `Admin ${email} already exists`,
+					created,
 				}
 			},
 		},
@@ -582,6 +600,7 @@ const SaaSService = {
 					type RemoveAdminResponse {
 						success: Boolean!
 						message: String!
+						removed: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -608,12 +627,34 @@ const SaaSService = {
 				})
 
 				if (!adminToRemove) {
-					throw new Error('Admin not found')
+					// Admin doesn't exist - idempotent response
+					return {
+						success: true,
+						message: `Admin ${email} does not exist or was already removed`,
+						removed: false,
+					}
 				}
 
 				// Don't allow removing the initial admin who setup the application
 				if (adminToRemove.userId === settings.initializedBy) {
 					throw new Error('Cannot remove the initial admin')
+				}
+
+				// Check if this admin has joined (is active)
+				const isJoinedAdmin = adminToRemove.joinedAt !== null
+
+				if (isJoinedAdmin) {
+					// Count the number of joined (active) admins
+					const joinedAdminsCount = await this.models.admins.count({
+						where: { joinedAt: { [Op.ne]: null } },
+					})
+
+					// If we're trying to delete the last joined admin, prevent deletion
+					if (joinedAdminsCount <= 1) {
+						throw new Error(
+							'Cannot delete the last active admin. Please ensure another admin has joined before removing this user.',
+						)
+					}
 				}
 
 				// Remove admin
@@ -622,6 +663,7 @@ const SaaSService = {
 				return {
 					success: true,
 					message: `Admin ${email} has been removed`,
+					removed: true,
 				}
 			},
 		},
@@ -636,6 +678,7 @@ const SaaSService = {
 						success: Boolean!
 						teamId: ID!
 						message: String!
+						created: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -656,28 +699,51 @@ const SaaSService = {
 					throw new Error('Unauthorized: Only admins can create teams')
 				}
 
-				// Create the team
-				const team = await this.models.teams.create({
-					name,
-					description,
-					createdBy: userId,
+				// Check if team with this name already exists
+				const existingTeam = await this.models.teams.findOne({
+					where: { name },
 				})
 
-				// Add the admin as a owner
-				await this.models.teamMembers.create({
-					teamId: team.id,
-					email: ctx.meta.accountInfo.email,
-					userId,
-					role: 'owner',
-					invitedBy: userId,
-					invitedAt: new Date(),
-					joinedAt: new Date(),
-				})
+				let team
+				let created = false
+
+				if (existingTeam) {
+					// Update existing team if description is provided
+					if (description !== undefined) {
+						await existingTeam.update({
+							description,
+							updatedAt: new Date(),
+						})
+					}
+					team = existingTeam
+				} else {
+					// Create the team
+					team = await this.models.teams.create({
+						name,
+						description,
+						createdBy: userId,
+					})
+					created = true
+
+					// Add the admin as a owner
+					await this.models.teamMembers.create({
+						teamId: team.id,
+						email: ctx.meta.accountInfo.email,
+						userId,
+						role: 'owner',
+						invitedBy: userId,
+						invitedAt: new Date(),
+						joinedAt: new Date(),
+					})
+				}
 
 				return {
 					success: true,
 					teamId: team.id,
-					message: `Team "${name}" created successfully`,
+					created,
+					message: created
+						? `Team "${name}" created successfully`
+						: `Team "${name}" already exists`,
 				}
 			},
 		},
@@ -687,6 +753,7 @@ const SaaSService = {
 					type DeleteTeamResponse {
 						success: Boolean!
 						message: String!
+						deleted: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -709,7 +776,12 @@ const SaaSService = {
 				})
 
 				if (!team) {
-					throw new Error('Team not found')
+					// Team doesn't exist - idempotent response
+					return {
+						success: true,
+						message: `Team with ID ${id} does not exist or was already deleted`,
+						deleted: false,
+					}
 				}
 
 				const isTeamAdmin = await this.models.teamMembers.findOne({
@@ -726,6 +798,7 @@ const SaaSService = {
 				return {
 					success: true,
 					message: `Team "${team.name}" deleted successfully`,
+					deleted: true,
 				}
 			},
 		},
@@ -862,6 +935,7 @@ const SaaSService = {
 					type AddTeamMemberResponse {
 						success: Boolean!
 						message: String!
+						created: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -897,13 +971,29 @@ const SaaSService = {
 					throw new Error('Unauthorized: Only admins or team admins can add team members')
 				}
 
+				let created = false
+
 				// Check if member already exists
 				const existingMember = await this.models.teamMembers.findOne({
 					where: { teamId, email },
 				})
 
 				if (existingMember) {
-					throw new Error('Member with this email already exists in the team')
+					// Update the member's role if different
+					if (existingMember.role !== role) {
+						await existingMember.update({ role })
+						return {
+							success: true,
+							message: `Team member ${email} role updated to ${role}`,
+							created: false,
+						}
+					} else {
+						return {
+							success: true,
+							message: `Team member ${email} already exists with role ${role}`,
+							created: false,
+						}
+					}
 				}
 
 				// Add the team member
@@ -918,6 +1008,7 @@ const SaaSService = {
 				return {
 					success: true,
 					message: `Team member ${email} added to team with role ${role}`,
+					created: true,
 				}
 			},
 		},
@@ -927,6 +1018,7 @@ const SaaSService = {
 					type UpdateTeamMemberRoleResponse {
 						success: Boolean!
 						message: String!
+						updated: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -965,9 +1057,21 @@ const SaaSService = {
 				const memberToUpdate = await this.models.teamMembers.findOne({
 					where: { teamId, email },
 				})
+
+				// If member doesn't exist, return helpful error message
 				if (!memberToUpdate) {
-					throw new Error('Team member not found')
+					throw new Error(`Team member ${email} not found. Use addTeamMember to add a new member.`)
 				}
+
+				// If role isn't changing, no need to update
+				if (memberToUpdate.role === role) {
+					return {
+						success: true,
+						message: `Team member ${email} already has role ${role}`,
+						updated: false,
+					}
+				}
+
 				// Prevent changing the last owner to user
 				if (memberToUpdate.role === 'owner' && role === 'user') {
 					const teamAdminCount = await this.models.teamMembers.count({
@@ -977,13 +1081,16 @@ const SaaSService = {
 						throw new Error('Cannot change the last team admin to user')
 					}
 				}
+
 				// Update the team member role
 				await memberToUpdate.update({
 					role,
 				})
+
 				return {
 					success: true,
 					message: `Team member ${email} updated to role ${role}`,
+					updated: true,
 				}
 			},
 		},
@@ -996,6 +1103,7 @@ const SaaSService = {
 					type RemoveTeamMemberResponse {
 						success: Boolean!
 						message: String!
+						removed: Boolean!
 					}
 				`,
 				mutation: gql`
@@ -1036,7 +1144,12 @@ const SaaSService = {
 				})
 
 				if (!memberToRemove) {
-					throw new Error('Team member not found')
+					// Member already removed or never existed - idempotent response
+					return {
+						success: true,
+						message: `Team member ${email} is not in the team`,
+						removed: false,
+					}
 				}
 
 				// Prevent removing the last owner
@@ -1056,6 +1169,7 @@ const SaaSService = {
 				return {
 					success: true,
 					message: `Team member ${email} removed from team`,
+					removed: true,
 				}
 			},
 		},

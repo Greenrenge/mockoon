@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -9,6 +10,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { formatDate } from '@/lib/utils';
+import { Trash2 } from 'lucide-react';
 
 type Admin = {
   id: string;
@@ -19,9 +21,10 @@ type Admin = {
 type AdminListProps = {
   admins: Admin[];
   isLoading: boolean;
+  onDelete?: (email: string) => void;
 };
 
-export function AdminList({ admins, isLoading }: AdminListProps) {
+export function AdminList({ admins, isLoading, onDelete }: AdminListProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -48,13 +51,14 @@ export function AdminList({ admins, isLoading }: AdminListProps) {
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {admins.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={3}
+                  colSpan={4}
                   className="text-center py-4 text-muted-foreground"
                 >
                   No admin users found
@@ -79,6 +83,17 @@ export function AdminList({ admins, isLoading }: AdminListProps) {
                     {admin.joinedAt
                       ? formatDate(admin.joinedAt)
                       : 'Not joined yet'}
+                  </TableCell>
+                  <TableCell>
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete(admin.email)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

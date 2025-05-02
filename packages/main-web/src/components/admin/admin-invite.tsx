@@ -83,7 +83,7 @@ export function AdminInvite({ onSuccess }: AdminInviteProps) {
             <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>
-              Admin invitation sent successfully.
+              Admin has been added successfully.
             </AlertDescription>
           </Alert>
         )}
