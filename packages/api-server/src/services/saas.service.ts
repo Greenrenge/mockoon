@@ -433,15 +433,17 @@ const SaaSService = {
 				})
 				const [userMember] = userTeams
 				const teams = userTeams.map((ut: any) => ut.team)
-
-				const userRole = userMember?.role as TeamRoles
+				const userRole = userMember?.role?.toLowerCase() as TeamRoles
 				const userTeamId = userMember?.teamId
 				return {
 					id: ctx.meta.accountId,
 					uid: ctx.meta.accountId,
 					email: ctx.meta.accountInfo.email,
 					displayName: ctx.meta.accountInfo.displayName,
-					teams,
+					teams: teams.map((team: any) => ({
+						...team.toJSON(),
+						role: userTeams.find((ut: any) => ut.teamId === team.id)?.role,
+					})),
 					isAdmin,
 					...(userMember
 						? {
@@ -1081,16 +1083,6 @@ const SaaSService = {
 					}
 				}
 
-				// Prevent changing the last owner to user
-				if (memberToUpdate.role === 'owner' && role === 'user') {
-					const teamAdminCount = await this.models.teamMembers.count({
-						where: { teamId, role: 'owner' },
-					})
-					if (teamAdminCount <= 1) {
-						throw new Error('Cannot change the last team admin to user')
-					}
-				}
-
 				// Update the team member role
 				await memberToUpdate.update({
 					role,
@@ -1283,6 +1275,99 @@ const SaaSService = {
 					success: true,
 					adminJoined: !!adminInvitation,
 					teamsJoined: teamInvitations.length,
+				}
+			},
+		},
+
+		/**
+		 * Update team information
+		 */
+		updateTeamInfo: {
+			graphql: {
+				type: gql`
+					type UpdateTeamInfoResponse {
+						success: Boolean!
+						message: String!
+						updated: Boolean!
+					}
+				`,
+				mutation: gql`
+					type Mutation {
+						updateTeamInfo(id: ID!, name: String!): UpdateTeamInfoResponse!
+					}
+				`,
+			},
+			rest: 'PUT /teams/:id',
+			params: {
+				id: { type: 'uuid' },
+				name: { type: 'string', min: 2 },
+			},
+			async handler(this: TSaaSService, ctx: AuthContextMeta) {
+				const { id, name } = ctx.params
+				const userId = ctx.meta.accountId
+
+				// Check if team exists
+				const team = await this.models.teams.findOne({
+					where: { id },
+				})
+
+				if (!team) {
+					throw new Error('Team not found')
+				}
+
+				const isTeamAdmin = await this.models.teamMembers.findOne({
+					where: { teamId: id, userId, role: 'owner' },
+				})
+
+				if (!ctx.meta.user.isAdmin && !isTeamAdmin) {
+					throw new Error('Unauthorized: Only admins or team admins can update team information')
+				}
+
+				// Check if another team with the requested name already exists (except for the current team)
+				const existingTeamWithName = await this.models.teams.findOne({
+					where: {
+						name,
+						id: { [Op.ne]: id }, // Exclude current team from check
+					},
+				})
+
+				if (existingTeamWithName) {
+					throw new Error(`Team name "${name}" is already taken`)
+				}
+
+				// Track if any changes were made
+				let changesApplied = false
+				const updates: { [key: string]: any } = {}
+
+				// Check if name needs to be updated
+				if (team.name !== name) {
+					updates.name = name
+					changesApplied = true
+				}
+
+				// If no changes, return early
+				if (!changesApplied) {
+					return {
+						success: true,
+						message: 'No changes made to team information',
+						updated: false,
+					}
+				}
+
+				try {
+					// Update the team with all changes
+					await team.update({
+						...updates,
+						updatedAt: new Date(),
+					})
+
+					return {
+						success: true,
+						message: `Team information updated successfully`,
+						updated: true,
+					}
+				} catch (error) {
+					throw new Error(`Failed to update team information: ${error.message}`)
 				}
 			},
 		},

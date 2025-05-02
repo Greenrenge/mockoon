@@ -10,14 +10,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GET_TEAM_MEMBERS, GET_TEAMS } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useUser } from '../providers';
 import { TeamMemberInvite } from './team-member-invite';
 import { TeamMemberList } from './team-member-list';
 
-export function TeamDashboard() {
+export function TeamDashboard({ initialTeamId }: { initialTeamId?: string }) {
   const { roles } = useUser();
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
+    initialTeamId || null
+  );
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Check if the user is an admin
   const isAdmin = roles.isAdmin || false;
@@ -33,11 +38,23 @@ export function TeamDashboard() {
     ? teamsData?.getTeams || []
     : roles.teams.filter((team) => team.role === 'owner');
 
+  // Handle team selection and update URL
+  const handleTeamChange = (teamId: string) => {
+    setSelectedTeamId(teamId);
+    router.push(`/team?teamId=${teamId}`);
+  };
+
   useEffect(() => {
     if (ownedTeams.length > 0 && !selectedTeamId) {
-      setSelectedTeamId(ownedTeams[0].id);
+      const firstTeamId = ownedTeams[0].id;
+      setSelectedTeamId(firstTeamId);
+
+      // Update URL if not already on the correct team route
+      if (searchParams.get('teamId') !== firstTeamId) {
+        router.push(`/team?teamId=${firstTeamId}`);
+      }
     }
-  }, [ownedTeams, selectedTeamId]);
+  }, [ownedTeams, selectedTeamId, router, searchParams]);
 
   // Using Apollo's useQuery hook instead of manual fetching
   const {
@@ -87,10 +104,7 @@ export function TeamDashboard() {
           <label htmlFor="team-select" className="text-sm font-medium">
             Select Team:
           </label>
-          <Select
-            value={selectedTeamId || ''}
-            onValueChange={(value) => setSelectedTeamId(value)}
-          >
+          <Select value={selectedTeamId || ''} onValueChange={handleTeamChange}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select a team" />
             </SelectTrigger>
