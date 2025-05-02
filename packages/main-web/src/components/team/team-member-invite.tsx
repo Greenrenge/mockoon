@@ -24,12 +24,25 @@ import { useMutation } from '@apollo/client';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
+// Define the type for a team member
+type TeamMember = {
+  id: string;
+  email: string;
+  role: string;
+  joinedAt?: Date;
+};
+
 type TeamMemberInviteProps = {
   teamId: string;
   onSuccess: () => void;
+  members: TeamMember[]; // Add members prop
 };
 
-export function TeamMemberInvite({ teamId, onSuccess }: TeamMemberInviteProps) {
+export function TeamMemberInvite({
+  teamId,
+  onSuccess,
+  members
+}: TeamMemberInviteProps) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('user');
   const [error, setError] = useState<string | null>(null);
@@ -57,16 +70,29 @@ export function TeamMemberInvite({ teamId, onSuccess }: TeamMemberInviteProps) {
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim()) {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
       setError('Email is required');
       return;
     }
 
+    // Check if email already exists in the members list (case-insensitive)
+    if (
+      members.some(
+        (member) => member.email.toLowerCase() === trimmedEmail.toLowerCase()
+      )
+    ) {
+      setError('This email address is already a member of the team.');
+      return;
+    }
+
     setError(null);
+    setSuccess(false); // Reset success state on new attempt
 
     try {
       await inviteTeamMember({
-        variables: { email, role, teamId }
+        variables: { email: trimmedEmail, role, teamId }
       });
     } catch (error) {
       // Apollo's onError will handle this

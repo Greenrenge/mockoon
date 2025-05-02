@@ -8,7 +8,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GET_TEAM_MEMBERS } from '@/graphql/queries';
+import { GET_TEAM_MEMBERS, GET_TEAMS } from '@/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { useEffect, useState } from 'react';
 import { useUser } from '../providers';
@@ -19,7 +19,19 @@ export function TeamDashboard() {
   const { roles } = useUser();
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
-  const ownedTeams = roles.teams.filter((team) => team.role === 'owner');
+  // Check if the user is an admin
+  const isAdmin = roles.isAdmin || false;
+
+  // Get all teams if the user is an admin
+  const { data: teamsData, loading: teamsLoading } = useQuery(GET_TEAMS, {
+    skip: !isAdmin, // Only fetch if admin
+    fetchPolicy: 'network-only'
+  });
+
+  // Filter owned teams for non-admin users
+  const ownedTeams = isAdmin
+    ? teamsData?.getTeams || []
+    : roles.teams.filter((team) => team.role === 'owner');
 
   useEffect(() => {
     if (ownedTeams.length > 0 && !selectedTeamId) {
@@ -87,11 +99,12 @@ export function TeamDashboard() {
             <TeamMemberInvite
               teamId={selectedTeamId}
               onSuccess={fetchTeamMembers}
+              members={teamMembers} // Pass the members list
             />
             <TeamMemberList
               teamId={selectedTeamId}
               members={teamMembers}
-              isLoading={isLoading}
+              isLoading={isLoading || (isAdmin && teamsLoading)}
               onMemberUpdated={fetchTeamMembers}
             />
           </TabsContent>

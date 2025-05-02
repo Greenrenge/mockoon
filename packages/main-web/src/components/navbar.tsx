@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -58,10 +58,10 @@ export function Navbar() {
                     className="relative h-10 w-10 rounded-full"
                   >
                     <Avatar>
-                      <AvatarImage
+                      {/* <AvatarImage
                         src="/placeholder.svg"
                         alt={user?.displayName || 'User'}
-                      />
+                      /> */}
                       <AvatarFallback>
                         {getInitials(user?.displayName)}
                       </AvatarFallback>
@@ -75,21 +75,25 @@ export function Navbar() {
                       {user?.email}
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
 
                   {roles.isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin">Admin Management</Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">Admin Management</Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
 
-                  {roles.isTeamOwner && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/team">Team Management</Link>
-                    </DropdownMenuItem>
+                  {(roles.isTeamOwner || roles.isAdmin) && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/team">Team Management</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
                   )}
 
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => logout()}>
                     Logout
                   </DropdownMenuItem>
