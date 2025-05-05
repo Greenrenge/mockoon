@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { PiIcon as Panda } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from './auth/auth-provider';
 import { useUser } from './providers';
@@ -35,7 +35,13 @@ export function Navbar() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <Panda className="h-8 w-8" />
+            <Image
+              src="/icon.svg"
+              alt="Panda Logo"
+              width={48}
+              height={48}
+              className=""
+            />
             <span className="font-bold text-xl">PandaMock</span>
           </Link>
         </div>
