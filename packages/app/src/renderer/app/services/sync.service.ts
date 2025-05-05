@@ -38,11 +38,13 @@ import {
   switchMap,
   tap
 } from 'rxjs';
+import { major } from 'semver';
 import { Socket, io } from 'socket.io-client';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
 import { LoggerService } from 'src/renderer/app/services/logger-service';
 import { RemoteConfigService } from 'src/renderer/app/services/remote-config.service';
 import { SyncPayloadsService } from 'src/renderer/app/services/sync-payloads.service';
+import { TeamsService } from 'src/renderer/app/services/teams.services';
 import { UIService } from 'src/renderer/app/services/ui.service';
 import {
   updateSettingsEnvironmentDescriptorAction,
@@ -62,9 +64,11 @@ export class SyncService {
   private timeDifference: number;
   private serverMigrationDone = false;
   private migrationApproval: boolean;
+  private currentTeamId: string;
 
   constructor(
     @Inject(USER_SERVICE_TOKEN) private userService: IUserService,
+    @Inject(TeamsService) private teamService: TeamsService,
     private store: Store,
     private syncPayloadsService: SyncPayloadsService,
     private environmentsService: EnvironmentsService,
@@ -84,21 +88,32 @@ export class SyncService {
 
     return this.remoteConfig.get('cloudSyncUrl').pipe(
       filter((cloudSyncUrl) => !!cloudSyncUrl),
-      tap((cloudSyncUrl) => {
-        if (!this.socket) {
-          this.socket = io(cloudSyncUrl, {
-            transports: ['websocket'],
-            query: {
-              deviceId: this.deviceId,
-              version: Config.appVersion,
-              highestMigrationId: HighestMigrationId
-            },
-            auth: { token: null },
-            autoConnect: false,
-            reconnectionDelay: 5000
-          });
-        }
-      }),
+      switchMap((cloudSyncUrl) =>
+        this.teamService.getCurrentTeam().pipe(
+          tap((teamId) => {
+            this.initSocket(cloudSyncUrl, teamId || undefined);
+          }),
+          map(() => cloudSyncUrl)
+        )
+      ),
+      switchMap((cloudSyncUrl) =>
+        this.teamService.getCurrentTeam().pipe(
+          switchMap((initialTeamId) => {
+            // Set up a subscription to team changes
+            return merge(
+              of(initialTeamId), // Initial team ID
+              this.teamService.getCurrentTeam().pipe(
+                // Only react when team ID changes
+                distinctUntilChanged(),
+                filter((newTeamId) => newTeamId !== this.currentTeamId),
+                tap((newTeamId) => {
+                  this.initSocket(cloudSyncUrl, newTeamId || undefined);
+                })
+              )
+            ).pipe(map(() => cloudSyncUrl));
+          })
+        )
+      ),
       mergeMap(() =>
         merge(
           this.initListeners(),
@@ -116,16 +131,15 @@ export class SyncService {
                * On web, it's always the latest version. So, the migration is not a positive action from the user and it's better to ask for confirmation.
                * The migration will be done by the sync backend like before but only if the user confirms the action.
                */
-              // TODO: GREEN, remove migration
-              // if (
-              //   Config.isWeb &&
-              //   user.cloudSyncHighestMajorVersion != null &&
-              //   user.cloudSyncHighestMajorVersion < major(Config.appVersion)
-              // ) {
-              //   return this.confirmMigration().pipe(
-              //     map((allow) => ({ user, token, allow }))
-              //   );
-              // }
+              if (
+                Config.isWeb &&
+                user.cloudSyncHighestMajorVersion != null &&
+                user.cloudSyncHighestMajorVersion < major(Config.appVersion)
+              ) {
+                return this.confirmMigration().pipe(
+                  map((allow) => ({ user, token, allow }))
+                );
+              }
 
               return of({ user, token, allow: true });
             }),
@@ -162,7 +176,13 @@ export class SyncService {
   public reconnect() {
     const user = this.store.get('user');
     if (user) {
-      of(true).subscribe((confirmed) => {
+      (Config.isWeb &&
+      !this.migrationApproval &&
+      user.cloudSyncHighestMajorVersion != null &&
+      user.cloudSyncHighestMajorVersion < major(Config.appVersion)
+        ? this.confirmMigration()
+        : of(true)
+      ).subscribe((confirmed) => {
         if (confirmed) {
           this.store.update(updateSyncAction({ offlineReason: null }));
           this.socket?.connect();
@@ -786,5 +806,35 @@ export class SyncService {
       const roundtripTime = timeEnd - timeStart;
       this.timeDifference = data.timestamp - timeStart - roundtripTime / 2;
     });
+  }
+
+  /**
+   * Initialize the socket with the current device ID, app version,
+   * highest migration ID, and team ID.
+   *
+   * @param cloudSyncUrl The URL of the cloud sync server
+   * @param teamId The ID of the current team
+   */
+  private initSocket(cloudSyncUrl: string, teamId?: string) {
+    // Disconnect existing socket if exists
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.socket = io(cloudSyncUrl, {
+      transports: ['websocket'],
+      query: {
+        deviceId: this.deviceId,
+        version: Config.appVersion,
+        highestMigrationId: HighestMigrationId,
+        ...(teamId ? { targetTeamID: teamId } : {})
+      },
+      auth: { token: null },
+      autoConnect: false,
+      reconnectionDelay: 5000
+    });
+
+    this.currentTeamId = teamId;
   }
 }

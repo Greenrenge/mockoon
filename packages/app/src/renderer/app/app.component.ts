@@ -40,6 +40,7 @@ import { RemoteConfigService } from 'src/renderer/app/services/remote-config.ser
 import { ServerService } from 'src/renderer/app/services/server.service';
 import { SettingsService } from 'src/renderer/app/services/settings.service';
 import { SyncService } from 'src/renderer/app/services/sync.service';
+import { TeamsService } from 'src/renderer/app/services/teams.services';
 import { TelemetryService } from 'src/renderer/app/services/telemetry.service';
 import { ToastsService } from 'src/renderer/app/services/toasts.service';
 import { TourService } from 'src/renderer/app/services/tour.service';
@@ -100,6 +101,7 @@ export class AppComponent implements OnInit {
     private serverService: ServerService,
     private mainApiService: MainApiService,
     private loggerService: LoggerService,
+    private teamsService: TeamsService,
     private importExportOpenAPIService: ImportExportOpenAPIService
   ) {
     this.settingsService.monitorSettings().subscribe();
@@ -111,6 +113,7 @@ export class AppComponent implements OnInit {
     this.appQuitService.init().subscribe();
     this.remoteConfigService.init().subscribe();
     this.userService.init().subscribe();
+    this.teamsService.init().subscribe();
     this.syncService.init().subscribe();
     this.deployService.init().subscribe();
     this.mainApiListenerService.init();

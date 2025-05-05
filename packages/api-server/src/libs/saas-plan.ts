@@ -9,7 +9,7 @@ export const DEFAULT_PLAN = {
 	cloudSyncItemsQuota: 0,
 	cloudSyncItemsQuotaUsed: 0,
 	cloudSyncSizeQuota: 0,
-	cloudSyncHighestMajorVersion: 1,
+	cloudSyncHighestMajorVersion: 9,
 	templatesQuota: 0,
 	templatesQuotaUsed: 0,
 	nextQuotaResetOn: 0,
@@ -38,7 +38,7 @@ export const SERVICE_ROLE = {
 	cloudSyncItemsQuota: 999,
 	cloudSyncItemsQuotaUsed: 0,
 	cloudSyncSizeQuota: 100000000, // 100MB
-	cloudSyncHighestMajorVersion: 1,
+	cloudSyncHighestMajorVersion: 9,
 	templatesQuota: 999,
 	templatesQuotaUsed: 0,
 	nextQuotaResetOn: 1,
@@ -65,7 +65,7 @@ export const DISABLED_AUTH_USER = {
 	cloudSyncItemsQuota: 999,
 	cloudSyncItemsQuotaUsed: 0,
 	cloudSyncSizeQuota: 100000000, // 100MB
-	cloudSyncHighestMajorVersion: 1,
+	cloudSyncHighestMajorVersion: 9,
 	templatesQuota: 999,
 	templatesQuotaUsed: 0,
 	nextQuotaResetOn: 1,

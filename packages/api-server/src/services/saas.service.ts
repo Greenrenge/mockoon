@@ -455,7 +455,7 @@ const SaaSService = {
 								cloudSyncItemsQuota: 999,
 								cloudSyncItemsQuotaUsed: 0,
 								cloudSyncSizeQuota: 100000000, // 100MB
-								cloudSyncHighestMajorVersion: 1,
+								cloudSyncHighestMajorVersion: 9,
 								templatesQuota: 999,
 								templatesQuotaUsed: 0,
 								nextQuotaResetOn: 1,

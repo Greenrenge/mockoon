@@ -67,7 +67,7 @@ type MeResponse {
   ""
   cloudSyncSizeQuota: Int
   ""
-  cloudSyncHighestMajorVersion: String
+  cloudSyncHighestMajorVersion: Int
   ""
   templatesQuota: Int
   ""
