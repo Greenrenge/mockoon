@@ -322,6 +322,7 @@ export class SyncService {
       SyncMessageTypes.ENV_LIST
     ).pipe(
       switchMap((updatedCloudEnvironmentsList) => {
+        // settings from the team's basis saved in localStorage
         const environmentDescriptors = this.store.get('settings').environments;
 
         const hashes$ = [];
@@ -354,21 +355,26 @@ export class SyncService {
                 })
               );
             }
+            const foundEnv = this.store.getEnvironmentByUUID(
+              updatedCloudEnvironment.environmentUuid
+            );
 
-            hashObservable$ = this.syncPayloadsService
-              .computeHash(
-                this.store.getEnvironmentByUUID(
-                  updatedCloudEnvironment.environmentUuid
+            hashObservable$ = foundEnv
+              ? this.syncPayloadsService.computeHash(foundEnv).pipe(
+                  map((hash) => ({
+                    environmentUuid: updatedCloudEnvironment.environmentUuid,
+                    serverHash: updatedCloudEnvironment.hash,
+                    lastServerHash:
+                      existingEnvironmentDescriptor.lastServerHash,
+                    hash
+                  }))
                 )
-              )
-              .pipe(
-                map((hash) => ({
+              : of({
                   environmentUuid: updatedCloudEnvironment.environmentUuid,
                   serverHash: updatedCloudEnvironment.hash,
-                  lastServerHash: existingEnvironmentDescriptor.lastServerHash,
-                  hash
-                }))
-              );
+                  lastServerHash: null,
+                  hash: null
+                });
           } else {
             hashObservable$ = of({
               environmentUuid: updatedCloudEnvironment.environmentUuid,

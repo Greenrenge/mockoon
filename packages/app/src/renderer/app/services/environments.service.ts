@@ -958,8 +958,13 @@ export class EnvironmentsService {
         deletedCloudEnvironment.uuid
       );
 
+      if (!environment) {
+        return;
+      }
+
       if (this.isWeb) {
         // permanently delete from the web app
+
         this.store.update(
           removeEnvironmentAction(deletedCloudEnvironment.uuid)
         );

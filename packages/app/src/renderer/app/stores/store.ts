@@ -234,7 +234,7 @@ export class Store {
       .pipe(
         map((store) =>
           store.activeEnvironmentUUID
-            ? store.environmentsLogs[store.activeEnvironmentUUID].find(
+            ? store.environmentsLogs[store.activeEnvironmentUUID]?.find(
                 (environmentLog) =>
                   environmentLog.routeUUID === store.activeRouteUUID &&
                   environmentLog.routeResponseUUID ===

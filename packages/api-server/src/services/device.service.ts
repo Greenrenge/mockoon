@@ -64,36 +64,44 @@ const DevicesService: AppServiceSchema = {
 		 * Register device
 		 */
 		register: {
+			cache: {
+				keys: ['userId', 'deviceId'],
+				ttl: 5,
+			},
 			params: {
 				userId: { type: 'string' },
 				deviceId: { type: 'string' },
 				version: { type: 'string', optional: true },
 			},
 			async handler(this: AppService, ctx: Context<RegisterParams>) {
-				const existing = (await this.adapter.findOne({
-					where: {
-						userId: ctx.params.userId,
-						deviceId: ctx.params.deviceId,
-					},
-				})) as any
+				try {
+					const existing = (await this.adapter.findOne({
+						where: {
+							userId: ctx.params.userId,
+							deviceId: ctx.params.deviceId,
+						},
+					})) as any
 
-				if (existing) {
-					await this.adapter.updateById(existing.id, {
-						userId: ctx.params.userId,
-						deviceId: ctx.params.deviceId,
-						version: ctx.params.version,
-						lastSeen: Date.now(),
-					})
-				} else {
-					await this.adapter.insert({
-						userId: ctx.params.userId,
-						deviceId: ctx.params.deviceId,
-						version: ctx.params.version,
-						lastSeen: Date.now(),
-					})
+					if (existing) {
+						await this.adapter.updateById(existing.id, {
+							userId: ctx.params.userId,
+							deviceId: ctx.params.deviceId,
+							version: ctx.params.version,
+							lastSeen: Date.now(),
+						})
+					} else {
+						await this.adapter.insert({
+							userId: ctx.params.userId,
+							deviceId: ctx.params.deviceId,
+							version: ctx.params.version,
+							lastSeen: Date.now(),
+						})
+					}
+
+					return { success: true }
+				} catch (err) {
+					return { success: false }
 				}
-
-				return { success: true }
 			},
 		},
 

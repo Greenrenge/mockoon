@@ -149,6 +149,7 @@ export class TeamsService implements OnDestroy {
 
       return of(false);
     }
+    this.mainApiService.setCurrentTeamId(teamId);
 
     // Update the URL query parameter to reflect the selected team
     this.updateUrlQueryParam(teamId);
@@ -259,13 +260,13 @@ export class TeamsService implements OnDestroy {
             tap((response) => {
               this.teamsData = response;
 
+              // Sync team ID from URL query string
+              this.syncFromUrlQueryString();
               // If no team is currently selected but user has a teamId, select it
+
               if (!this.currentTeamSubject.value && response.teamId) {
                 this.selectTeam(response.teamId);
               }
-
-              // Sync team ID from URL query string
-              this.syncFromUrlQueryString();
             }),
             catchError((err) => {
               console.error('Error fetching team data:', err);
@@ -329,8 +330,12 @@ export class TeamsService implements OnDestroy {
       syncService?.disconnect();
 
       // Reload settings and environments
-      settingsService?.loadSettings().subscribe();
-      environmentsService?.loadEnvironments().subscribe();
+      settingsService.monitorSettings().subscribe();
+      settingsService.loadSettings().subscribe();
+      // settingsService.saveSettings().subscribe();
+      environmentsService.loadEnvironments().subscribe();
+      // environmentsService.saveEnvironments().subscribe();
+      // environmentsService.listenServerTransactions().subscribe();
 
       // Reconnect sync service
       syncService?.init().subscribe();

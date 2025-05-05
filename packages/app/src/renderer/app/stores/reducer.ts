@@ -735,6 +735,13 @@ export const environmentReducer = (
       let duplicatedRoutes = state.duplicatedRoutes;
       let settings = state.settings;
 
+      const alreadyHasEnvInStore =
+        state.environments.findIndex((e) => e.uuid === action.previousUUID) !==
+        -1;
+      if (!alreadyHasEnvInStore) {
+        state.environments = [...state.environments, action.newEnvironment];
+      }
+
       // replace environment with new content
       const environments = state.environments.map((environment) => {
         if (environment.uuid === action.previousUUID) {
@@ -1359,7 +1366,7 @@ export const environmentReducer = (
       const newEnvironmentsLogs = { ...state.environmentsLogs };
 
       newEnvironmentsLogs[action.environmentUUID] = [
-        ...newEnvironmentsLogs[action.environmentUUID]
+        ...(newEnvironmentsLogs[action.environmentUUID] || [])
       ];
       newEnvironmentsLogs[action.environmentUUID].unshift(action.logItem);
 

@@ -16,6 +16,11 @@ export class MainApiService implements MainAPIModel {
   // Also, the web app is always up to date with the latest schema and first user to connect migrates the envs
   private dbVersion = 1;
   private environmentStoreName = 'environments';
+  private currentTeamId = 'default';
+
+  public setCurrentTeamId(id: string) {
+    this.currentTeamId = id;
+  }
 
   public invoke(channel: string, ...data: any[]) {
     return new Promise<any>((resolve) => {
@@ -32,10 +37,15 @@ export class MainApiService implements MainAPIModel {
           result = this.deleteEnvironmentData(data[0] as string);
           break;
         case 'APP_READ_SETTINGS_DATA':
-          result = JSON.parse(localStorage.getItem('appSettings')) as Settings;
+          result = JSON.parse(
+            localStorage.getItem('appSettings' + `_${this.currentTeamId}`)
+          ) as Settings;
           break;
         case 'APP_WRITE_SETTINGS_DATA':
-          result = localStorage.setItem('appSettings', JSON.stringify(data[0]));
+          result = localStorage.setItem(
+            'appSettings' + `_${this.currentTeamId}`,
+            JSON.stringify(data[0])
+          );
           break;
         case 'APP_BUILD_STORAGE_FILEPATH':
           result = data[0] as string;
@@ -124,7 +134,7 @@ export class MainApiService implements MainAPIModel {
       openRequest.onupgradeneeded = (openRequestEvent) => {
         const db = (openRequestEvent.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains(this.environmentStoreName)) {
-          db.createObjectStore(this.environmentStoreName, { keyPath: 'uuid' });
+          db.createObjectStore('environments', { keyPath: 'uuid' });
         }
       };
 
