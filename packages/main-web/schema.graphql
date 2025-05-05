@@ -21,15 +21,9 @@ type Query {
   ""
   getTeams: [Team!]!
   ""
-  getTeam(
-    ""
-    teamId: ID!
-  ): Team!
+  getTeam("" teamId: ID!): Team!
   ""
-  teamMembers(
-    ""
-    teamId: ID!
-  ): [TeamMember!]!
+  teamMembers("" teamId: ID!): [TeamMember!]!
 }
 ""
 type InitializationStatus {
@@ -73,7 +67,7 @@ type MeResponse {
   ""
   cloudSyncSizeQuota: Int
   ""
-  cloudSyncHighestMajorVersion: Int
+  cloudSyncHighestMajorVersion: String
   ""
   templatesQuota: Int
   ""
@@ -154,64 +148,37 @@ type TeamMember {
 ""
 type Mutation {
   ""
-  initializeTenant(
-    ""
-    tenantName: String!
-  ): InitializationResponse!
+  initializeTenant("" tenantName: String!): InitializationResponse!
   ""
-  addAdmin(
-    ""
-    email: String!
-  ): AddAdminResponse!
+  addAdmin("" email: String!): AddAdminResponse!
   ""
-  removeAdmin(
-    ""
-    email: String!
-  ): RemoveAdminResponse!
+  removeAdmin("" email: String!): RemoveAdminResponse!
   ""
-  createTeam(
-    ""
-    name: String!,
-    ""
-    description: String
-  ): CreateTeamResponse!
+  createTeam("" name: String!, "" description: String): CreateTeamResponse!
   ""
-  deleteTeam(
-    ""
-    id: ID!
-  ): DeleteTeamResponse!
+  deleteTeam("" id: ID!): DeleteTeamResponse!
   ""
   addTeamMember(
     ""
-    teamId: ID!,
+    teamId: ID!
     ""
-    email: String!,
+    email: String!
     ""
     role: String!
   ): AddTeamMemberResponse!
   ""
   updateTeamMemberRole(
     ""
-    teamId: ID!,
+    teamId: ID!
     ""
-    email: String!,
+    email: String!
     ""
     role: String!
   ): UpdateTeamMemberRoleResponse!
   ""
-  removeTeamMember(
-    ""
-    teamId: ID!,
-    ""
-    email: String!
-  ): RemoveTeamMemberResponse!
+  removeTeamMember("" teamId: ID!, "" email: String!): RemoveTeamMemberResponse!
   ""
-  updateTeamInfo(
-    ""
-    id: ID!,
-    ""
-    name: String!
-  ): UpdateTeamInfoResponse!
+  updateTeamInfo("" id: ID!, "" name: String!): UpdateTeamInfoResponse!
 }
 ""
 type InitializationResponse {
