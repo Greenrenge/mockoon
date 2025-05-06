@@ -208,7 +208,7 @@ export class SyncService {
     return this.uiService
       .showConfirmDialog({
         title: 'Confirm migration to the latest version',
-        text: 'Mockoon Cloud web application is running on a newer version (latest) than your cloud space. Do you want to migrate your cloud space to the latest version?',
+        text: 'PandaMock Cloud web application is running on a newer version (latest) than your cloud space. Do you want to migrate your cloud space to the latest version?',
         sub: 'This action is irreversible. If you or your team are using the desktop application, you will need to update it to the latest version to be able to access your cloud space.',
         subIcon: 'warning',
         subIconClass: 'text-warning',
@@ -835,7 +835,7 @@ export class SyncService {
         deviceId: this.deviceId,
         version: Config.appVersion,
         highestMigrationId: HighestMigrationId,
-        ...(teamId ? { targetTeamID: teamId } : {})
+        ...(teamId ? { teamId: teamId } : {})
       },
       auth: { token: null },
       autoConnect: false,
