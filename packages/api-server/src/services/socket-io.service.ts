@@ -10,7 +10,7 @@ import {
 import SocketIOService from 'moleculer-io'
 import { Server, ServerOptions, Socket } from 'socket.io'
 import config from '../config'
-import { AppService, AppServiceSchema, SyncEnv } from '../types/common'
+import { AccountInfo, AppService, AppServiceSchema, SyncEnv } from '../types/common'
 
 type SyncUserPresence = {
 	uid?: string
@@ -72,34 +72,43 @@ const SyncService: AppServiceSchema = {
 						// Handle disconnect
 						disconnect: function (this: CustomSocket) {
 							const service = this.$service as AppService
-							service.broker.call(
-								'devices.unregister',
-								{
-									deviceId: this.deviceId,
-									userId: this.user.uid,
-								},
-								{
-									//@ts-ignore
-									meta: service.socketGetMeta(this),
-								},
-							)
-
-							// Update presence after disconnect with socket ID
-							service.broker
-								.call('presence.removeUserDevice', {
-									userId: this.user.uid,
-									deviceId: this.deviceId,
-									socketId: this.id,
-								})
-								.then((presence) => {
-									// Broadcast presence update to team members
-									if (this.user.teamId) {
+							if (this.user) {
+								service.broker.call(
+									'devices.unregister',
+									{
+										deviceId: this.deviceId,
+										userId: this.user?.uid,
+									},
+									{
 										//@ts-ignore
-										service.io
-											.to(`team:${this.user.teamId}`)
-											.emit(SyncMessageTypes.PRESENCE, presence)
-									}
-								})
+										meta: service.socketGetMeta(this),
+									},
+								)
+
+								// Update presence after disconnect with socket ID
+								service.broker
+									.call(
+										'presence.removeUserDevice',
+										{
+											userId: this.user.uid,
+											deviceId: this.deviceId,
+											socketId: this.id,
+										},
+										{
+											//@ts-ignore
+											meta: service.socketGetMeta(this),
+										},
+									)
+									.then((presence) => {
+										// Broadcast presence update to team members
+										if (this.user.teamId) {
+											//@ts-ignore
+											service.io
+												.to(`team:${this.user.teamId}`)
+												.emit(SyncMessageTypes.PRESENCE, presence)
+										}
+									})
+							}
 						},
 						// Handle time sync request
 						[SyncMessageTypes.TIME]: function (
@@ -162,7 +171,7 @@ const SyncService: AppServiceSchema = {
 				this.logger.info('Broadcasting environment added event:', ctx.params)
 				ctx.call('socket-io.broadcast', {
 					event: SyncMessageTypes.SYNC,
-					rooms: [`team:${ctx.meta.user?.teamId}`],
+					rooms: [`team:${ctx.meta.teamId}`],
 					namespace: '/',
 					args: [ctx.params.action],
 				})
@@ -172,108 +181,165 @@ const SyncService: AppServiceSchema = {
 	methods: {
 		// check only at namespace level
 		async socketAuthorize(this: AppService & { io: Server }, socket, handler) {
-			const deviceId = socket.handshake.query.deviceId as string
-			const version = socket.handshake.query.version as string
-			const highestMigrationId = socket.handshake.query.highestMigrationId as string
+			try {
+				const deviceId = socket.handshake.query.deviceId as string
+				const version = socket.handshake.query.version as string
+				const highestMigrationId = socket.handshake.query.highestMigrationId as string
+				let teamId = socket.handshake.query.teamId as string
+				// validate user is on the team or not
 
-			// Store these on the socket for later use
-			socket.deviceId = deviceId
-			socket.appVersion = version
-			socket.highestMigrationId = highestMigrationId
+				// Store these on the socket for later use
+				socket.deviceId = deviceId
+				socket.appVersion = version
+				socket.highestMigrationId = highestMigrationId
 
-			// Check authentication token
-			const token = socket.handshake.auth.token as string
-			if (!token) {
-				this.logger.error('No token:', { token })
-				throw new Error(SyncErrors.UNAUTHORIZED)
-			}
-			const user = (await this.broker.call('auth.validateToken', { token })) as User
-			if (!user) {
-				this.logger.error('Error validating token:', { token })
-				throw new Error(SyncErrors.UNAUTHORIZED)
-			}
+				// Check authentication token
+				const token = socket.handshake.auth.token as string
+				if (!token) {
+					this.logger.error('No token:', { token })
+					throw new Error(SyncErrors.UNAUTHORIZED)
+				}
+				const account = await this.broker.call<AccountInfo, any>('auth.validateToken', { token })
 
-			socket.user = user
-			socket.accessToken = token
+				if (!account) {
+					this.logger.error('Error validating token:', { token })
+					throw new Error(SyncErrors.UNAUTHORIZED)
+				}
 
-			await this.broker
-				.call(
-					'devices.register',
-					{
-						deviceId: deviceId,
-						userId: user.uid,
-						version: version,
-					},
+				socket.accessToken = token
+				socket.accountInfo = account
+
+				const user = await this.broker.call<
+					User & { id: string; teams: any[]; isAdmin: boolean },
+					any
+				>(
+					'saas.me',
+					{},
 					{
 						//@ts-ignore
 						meta: this.socketGetMeta(socket),
 					},
 				)
-				.catch((err: Error) => {
-					this.logger.error('Error register device:', err)
-					return this.Promise.reject(err)
-				})
 
-			// Add socket to user's room for broadcasting
-			socket.join(`user:${user.uid}`)
-			if (user.teamId) {
-				// Add socket to user's team room for broadcasting
-				socket.join(`team:${user.teamId}`)
-			}
+				if (!user) {
+					this.logger.error('No user found:', { deviceId, version, highestMigrationId })
+					throw new Error(SyncErrors.UNAUTHORIZED)
+				}
+				if (teamId && !user.teams.find((team) => team.id === teamId)) {
+					this.logger.error('User not on the team:', { deviceId, version, highestMigrationId })
+					throw new Error(SyncErrors.UNAUTHORIZED)
+				}
+				if (!teamId && user.teamId && user.teams.find((team) => team.id === user.teamId)) {
+					teamId = user.teamId
+				}
+				if (!teamId) {
+					this.logger.error('No team found:', { deviceId, version, highestMigrationId })
+					throw new Error(SyncErrors.UNAUTHORIZED)
+				}
+				socket.teamId = teamId
+				socket.user = user
 
-			// Initialize user presence with socket ID
-			this.broker
-				.call('presence.addUserDevice', {
-					userId: user.uid,
-					deviceId: deviceId,
-					socketId: socket.id,
-					presenceData: {
-						uid: user.uid,
-						email: user.email,
-						displayName: user.displayName,
-						//@ts-ignore
-						cssColor: this.generateUserColor(user.uid),
-					},
-				})
-				.then((presence) => {
-					// Broadcast initial presence to team members
-					if (user.teamId) {
-						this.broker.call(
-							'socket-io.broadcast',
-							{
-								event: SyncMessageTypes.PRESENCE,
-								rooms: [`team:${socket.user.teamId}`],
-								namespace: '/',
-								args: [presence],
-							},
-							{
+				await this.broker
+					.call(
+						'devices.register',
+						{
+							deviceId: deviceId,
+							userId: account.id,
+							version: version,
+						},
+						{
+							//@ts-ignore
+							meta: this.socketGetMeta(socket),
+						},
+					)
+					.catch((err: Error) => {
+						this.logger.error('Error register device:', err)
+						return this.Promise.reject(err)
+					})
+
+				// Add socket to user's room for broadcasting
+				socket.join(`user:${account.id}`)
+				if (teamId) {
+					// Add socket to user's team room for broadcasting
+					socket.join(`team:${teamId}`)
+				}
+
+				// Initialize user presence with socket ID
+				this.broker
+					.call(
+						'presence.addUserDevice',
+						{
+							userId: account.id,
+							deviceId: deviceId,
+							socketId: socket.id,
+							presenceData: {
+								uid: account.id,
+								email: account.email,
+								displayName: account.displayName,
 								//@ts-ignore
-								meta: this.socketGetMeta(socket),
+								cssColor: this.generateUserColor(account.id),
 							},
-						)
-					}
+						},
+						{
+							//@ts-ignore
+							meta: this.socketGetMeta(socket),
+						},
+					)
+					.then((presence) => {
+						// Broadcast initial presence to team members
+						if (teamId) {
+							this.broker.call(
+								'socket-io.broadcast',
+								{
+									event: SyncMessageTypes.PRESENCE,
+									rooms: [`team:${teamId}`],
+									namespace: '/',
+									args: [presence],
+								},
+								{
+									//@ts-ignore
+									meta: this.socketGetMeta(socket),
+								},
+							)
+						}
+					})
+
+				// Send connected message with migration status
+				const migrationNeeded = false
+
+				socket.emit(SyncMessageTypes.CONNECTED, {
+					migrated: migrationNeeded,
 				})
 
-			// Send connected message with migration status
-			const migrationNeeded = false
+				// init presence for the user
+				this.broker
+					.call<SyncPresence, any>(
+						'presence.getPresence',
+						{},
+						{
+							//@ts-ignore
+							meta: this.socketGetMeta(socket),
+						},
+					)
+					.then((presence: SyncPresence) => {
+						socket.emit(SyncMessageTypes.PRESENCE, presence)
+					})
 
-			socket.emit(SyncMessageTypes.CONNECTED, {
-				migrated: migrationNeeded,
-			})
-
-			// init presence for the user
-			this.broker.call<SyncPresence>('presence.getPresence').then((presence: SyncPresence) => {
-				socket.emit(SyncMessageTypes.PRESENCE, presence)
-			})
-
-			return user // will be saved to socket.client.user
+				return account // will be saved to socket.client.user
+			} catch (err) {
+				this.logger.error('Error authorizing socket:', err)
+				// Disconnect the socket
+				socket.disconnect()
+			}
 		},
 		socketGetMeta(this: AppService, socket) {
 			// make the context to be the same as API GATEWAY
 			const meta = {
 				$socketId: socket.id,
+				accountInfo: socket.accountInfo,
 				user: socket.user,
-				accountId: socket.user.uid || socket.user.id,
+				teamId: socket.teamId,
+				accountId: socket.user?.uid || socket.user?.id || socket.accountInfo?.id,
 				accessToken: socket.accessToken,
 				$rooms: Array.from(socket.rooms.keys()),
 			}
@@ -293,16 +359,30 @@ const SyncService: AppServiceSchema = {
 			try {
 				if ('environmentUuid' in action) {
 					this.broker
-						.call('presence.updateUserPresence', {
-							userId: socket.user.uid,
-							presenceData: {
-								environmentUuid: action.environmentUuid,
-							},
-						})
-						.then(() =>
-							this.broker.call('presence.getUserPresence', {
+						.call(
+							'presence.updateUserPresence',
+							{
 								userId: socket.user.uid,
-							}),
+								presenceData: {
+									environmentUuid: action.environmentUuid,
+								},
+							},
+							{
+								//@ts-ignore
+								meta: this.socketGetMeta(socket),
+							},
+						)
+						.then(() =>
+							this.broker.call(
+								'presence.getUserPresence',
+								{
+									userId: socket.user.uid,
+								},
+								{
+									//@ts-ignore
+									meta: this.socketGetMeta(socket),
+								},
+							),
 						)
 						.then((userPresence) => {
 							// Broadcast presence update to all connected clients

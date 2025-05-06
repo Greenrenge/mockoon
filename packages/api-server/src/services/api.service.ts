@@ -510,12 +510,24 @@ export default {
 					const accountInfo = await ctx.call<AccountInfo, any>('auth.validateToken', {
 						token,
 					})
+
 					if (accountInfo) {
 						ctx.meta.accountId = accountInfo.id
 						ctx.meta.accessToken = token
 						ctx.meta.accountInfo = accountInfo
 					}
-					return await ctx.call<User, {}>('saas.me', {}, { ctx })
+
+					const user = await ctx.call<User & { id: string; teams: any[]; isAdmin: boolean }, {}>(
+						'saas.me',
+						{},
+						{ ctx },
+					)
+					let teamId = req.headers['x-team-id'] || req.query['x-team-id']
+					const isTeamIDValid = user.teams.find((team) => team.id === teamId)
+					teamId = isTeamIDValid ? teamId : user.teamId
+					ctx.meta.teamId = teamId
+
+					return user
 				} catch (err) {
 					this.logger.error('Error authenticating user:', err)
 					return null

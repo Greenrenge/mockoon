@@ -36,6 +36,7 @@ export type AuthContextMeta<Params = any, AdditionalFields extends object = any>
 	{
 		accountId: string
 		accountInfo: AccountInfo
+		teamId?: string
 		accessToken?: string
 		user?: User & { id: string; teams: any[]; isAdmin: boolean }
 		$serviceInterchange?: boolean
