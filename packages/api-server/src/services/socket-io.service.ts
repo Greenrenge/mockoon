@@ -384,18 +384,18 @@ const SyncService: AppServiceSchema = {
 								})
 							})
 
-						if (action.type === SyncActionTypes.REMOVE_CLOUD_ENVIRONMENT)
-							console.log('REMOVE_CLOUD_ENVIRONMENT', action)
-						await this.broker.call(
-							'deployments.permanentlyDelete',
-							{
-								environmentUuid: action.environmentUuid,
-							},
-							{
-								//@ts-ignore
-								meta: this.socketGetMeta(socket),
-							},
-						)
+						if (action.type === SyncActionTypes.REMOVE_CLOUD_ENVIRONMENT) {
+							await this.broker.call(
+								'deployments.permanentlyDelete',
+								{
+									environmentUuid: action.environmentUuid,
+								},
+								{
+									//@ts-ignore
+									meta: this.socketGetMeta(socket),
+								},
+							)
+						}
 
 						if (doc) {
 							return { hash: doc.hash }
