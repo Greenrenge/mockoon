@@ -186,7 +186,7 @@ export class EnvironmentsService {
           if (this.isWeb) {
             return of({
               settings,
-              environmentsData: []
+              environmentsData: [] // put seed / demo file here
             });
           } else {
             this.loggerService.logMessage(
@@ -959,6 +959,7 @@ export class EnvironmentsService {
       );
 
       if (!environment) {
+        // TODO: Green Team wont find the environment in the store
         return;
       }
 

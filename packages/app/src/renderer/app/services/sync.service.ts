@@ -355,6 +355,7 @@ export class SyncService {
                 })
               );
             }
+            //  TODO: Green Team wont find the environment in the store
             const foundEnv = this.store.getEnvironmentByUUID(
               updatedCloudEnvironment.environmentUuid
             );

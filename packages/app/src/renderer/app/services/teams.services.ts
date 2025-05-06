@@ -331,8 +331,8 @@ export class TeamsService implements OnDestroy {
 
       // Reload settings and environments
       settingsService.monitorSettings().subscribe();
-      settingsService.loadSettings().subscribe();
-      // settingsService.saveSettings().subscribe();
+      settingsService.loadSettings().subscribe(); // load from localStorage and update to store
+      // settingsService.saveSettings().subscribe(); // put store into localStorage
       environmentsService.loadEnvironments().subscribe();
       // environmentsService.saveEnvironments().subscribe();
       // environmentsService.listenServerTransactions().subscribe();
