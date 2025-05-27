@@ -13,7 +13,8 @@ export const mustLogin = (...paths: string[]) =>
 		},
 		methods: {
 			mustLoggedIn(ctx: AuthContextMeta) {
-				if (!ctx.meta.accountId && !ctx.meta.$serviceInterchange)
+				const isAuthDisabled = process.env.AUTH_PROVIDER === 'disabled'
+				if (!isAuthDisabled && !ctx.meta.accountId && !ctx.meta.$serviceInterchange)
 					throw new Errors.MoleculerClientError('Unauthorized', 401, 'UNAUTHORIZED')
 			},
 		},
