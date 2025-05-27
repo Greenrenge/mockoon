@@ -1,4 +1,4 @@
-import { DataTypes, Model, Options, Sequelize } from 'sequelize'
+import { DataTypes, Model, Op, Options, Sequelize } from 'sequelize'
 import { IEnvironmentDatabase } from '../db-environment-store'
 import { syncSequelize } from './sequelize-utils'
 
@@ -10,6 +10,7 @@ class EnvironmentModel extends Model {
 	declare environment: any
 	declare environmentUuid: string
 	declare timestamp: number
+	declare deletedAt: Date | null
 }
 
 export type EnvironmentModelType = {
@@ -17,6 +18,7 @@ export type EnvironmentModelType = {
 	environment: any
 	environmentUuid: string
 	timestamp: number
+	deletedAt?: Date | null
 }
 
 /**
@@ -66,6 +68,11 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 					},
 					timestamp: {
 						type: DataTypes.DECIMAL,
+					},
+					deletedAt: {
+						type: DataTypes.DATE,
+						allowNull: true,
+						defaultValue: null,
 					},
 				},
 				{
@@ -132,9 +139,13 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 	 */
 	public async loadEnvironments(): Promise<EnvironmentModelType[]> {
 		try {
-			const environmentRecords = (await EnvironmentModel.findAll({})).map((e) =>
-				e.get({ plain: true }),
-			)
+			const environmentRecords = (
+				await EnvironmentModel.findAll({
+					where: {
+						deletedAt: null,
+					},
+				})
+			).map((e) => e.get({ plain: true }))
 			return environmentRecords
 		} catch (error) {
 			console.error('Error loading environments from database:', error)
@@ -144,10 +155,7 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 
 	/**
 	 * Save an environment to the database
-	 * @param uuid The environment UUID
-	 * @param environment The environment object
-	 * @param hash The calculated hash for the environment
-	 * @param timestamp The timestamp (usually from sync action)
+	 * @param data The environment data including UUID, environment object, timestamp, and deletedAt
 	 */
 	public async saveEnvironment(data: EnvironmentModelType): Promise<void> {
 		try {
@@ -156,6 +164,7 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 				environment: data.environment,
 				environmentUuid: data.environmentUuid,
 				timestamp: data.timestamp,
+				deletedAt: data.deletedAt || null,
 			})
 		} catch (error) {
 			console.error(`Error saving environment ${data.environmentUuid} to database:`, error)
@@ -164,16 +173,77 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 	}
 
 	/**
-	 * Delete an environment from the database
-	 * @param uuid The environment UUID to delete
+	 * Soft delete an environment from the database
+	 * @param uuid The environment UUID to soft delete
 	 */
 	public async deleteEnvironment(uuid: string): Promise<void> {
+		try {
+			await EnvironmentModel.update(
+				{ deletedAt: new Date() },
+				{
+					where: {
+						id: uuid,
+						deletedAt: null,
+					},
+				},
+			)
+		} catch (error) {
+			console.error(`Error soft deleting environment ${uuid} from database:`, error)
+			throw error
+		}
+	}
+
+	/**
+	 * Restore a soft-deleted environment
+	 * @param uuid The environment UUID to restore
+	 */
+	public async restoreEnvironment(uuid: string): Promise<void> {
+		try {
+			await EnvironmentModel.update(
+				{ deletedAt: null },
+				{
+					where: {
+						id: uuid,
+						deletedAt: { [Op.ne]: null },
+					},
+				},
+			)
+		} catch (error) {
+			console.error(`Error restoring environment ${uuid} from database:`, error)
+			throw error
+		}
+	}
+
+	/**
+	 * Load all soft-deleted environments from the database
+	 */
+	public async loadDeletedEnvironments(): Promise<EnvironmentModelType[]> {
+		try {
+			const environmentRecords = (
+				await EnvironmentModel.findAll({
+					where: {
+						deletedAt: { [Op.ne]: null },
+					},
+				})
+			).map((e) => e.get({ plain: true }))
+			return environmentRecords
+		} catch (error) {
+			console.error('Error loading deleted environments from database:', error)
+			return []
+		}
+	}
+
+	/**
+	 * Permanently delete an environment from the database
+	 * @param uuid The environment UUID to permanently delete
+	 */
+	public async permanentDeleteEnvironment(uuid: string): Promise<void> {
 		try {
 			await EnvironmentModel.destroy({
 				where: { id: uuid },
 			})
 		} catch (error) {
-			console.error(`Error deleting environment ${uuid} from database:`, error)
+			console.error(`Error permanently deleting environment ${uuid} from database:`, error)
 			throw error
 		}
 	}
@@ -195,12 +265,15 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 	}
 
 	/**
-	 * Get all environment UUIDs from the database
+	 * Get all environment UUIDs from the database (excluding soft-deleted ones)
 	 */
 	public async getAllEnvironmentUuids(): Promise<string[]> {
 		try {
 			const records = await EnvironmentModel.findAll({
 				attributes: ['environmentUuid'],
+				where: {
+					deletedAt: null,
+				},
 				raw: true,
 			})
 

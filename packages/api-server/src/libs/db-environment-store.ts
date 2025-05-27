@@ -22,6 +22,10 @@ export interface IEnvironmentDatabase {
 	updateLastSync(timestamp: number): Promise<void>
 	getAllEnvironmentUuids(): Promise<string[]>
 	close(): Promise<void>
+	// Soft delete management methods
+	restoreEnvironment(uuid: string): Promise<void>
+	loadDeletedEnvironments(): Promise<EnvironmentModelType[]>
+	permanentDeleteEnvironment(uuid: string): Promise<void>
 }
 
 /**
@@ -138,6 +142,42 @@ export class DatabaseStore extends EventEmitter {
 	}
 
 	/**
+	 * Get all soft-deleted environments
+	 * @returns Array of soft-deleted environments
+	 */
+	public async getDeletedEnvironments(): Promise<EnvironmentModelType[]> {
+		if (!this.dbAdapter) {
+			throw new Error('Database adapter not initialized')
+		}
+		return this.dbAdapter.loadDeletedEnvironments()
+	}
+
+	/**
+	 * Restore a soft-deleted environment
+	 * @param uuid Environment UUID to restore
+	 */
+	public async restoreEnvironment(uuid: string): Promise<void> {
+		if (!this.dbAdapter) {
+			throw new Error('Database adapter not initialized')
+		}
+		await this.dbAdapter.restoreEnvironment(uuid)
+		// Reload state to include the restored environment
+		await this.loadFromDatabase()
+		this.emit('stateUpdated', this.state)
+	}
+
+	/**
+	 * Permanently delete an environment (hard delete)
+	 * @param uuid Environment UUID to permanently delete
+	 */
+	public async permanentDeleteEnvironment(uuid: string): Promise<void> {
+		if (!this.dbAdapter) {
+			throw new Error('Database adapter not initialized')
+		}
+		await this.dbAdapter.permanentDeleteEnvironment(uuid)
+	}
+
+	/**
 	 * Close the database connection and clean up resources
 	 */
 	public async close(): Promise<void> {
@@ -216,11 +256,11 @@ export class DatabaseStore extends EventEmitter {
 					(envWithTimestamp) => envWithTimestamp.environment.uuid,
 				)
 
-				// Delete environments that no longer exist in state
+				// Delete environments that no longer exist in state (soft delete)
 				for (const uuid of existingUuids) {
 					if (!currentUuids.includes(uuid)) {
 						await this.dbAdapter!.deleteEnvironment(uuid)
-						console.info(`[DB-STORE] Deleted environment with UUID: ${uuid} from database`)
+						console.info(`[DB-STORE] Soft deleted environment with UUID: ${uuid} from database`)
 					}
 				}
 

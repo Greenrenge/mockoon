@@ -118,7 +118,7 @@ export default class EnvironmentService extends Service<EnvironmentServiceSettin
 				},
 
 				/**
-				 * Remove an environment
+				 * Remove an environment (soft delete)
 				 */
 				remove: {
 					params: {
@@ -164,6 +164,47 @@ export default class EnvironmentService extends Service<EnvironmentServiceSettin
 				forceSync: {
 					handler: async () => {
 						await this.store.forceSync()
+						return { success: true }
+					},
+				},
+
+				/**
+				 * Get all soft-deleted environments
+				 */
+				listDeleted: {
+					handler: async () => {
+						const deletedEnvs = await this.store.getDeletedEnvironments()
+						return deletedEnvs.map((d) => ({
+							...d,
+							hash: calcHash(d.environment),
+						}))
+					},
+				},
+
+				/**
+				 * Restore a soft-deleted environment
+				 */
+				restore: {
+					params: {
+						uuid: { type: 'string' },
+					},
+					handler: async (ctx) => {
+						const { uuid } = ctx.params
+						await this.store.restoreEnvironment(uuid)
+						return { success: true }
+					},
+				},
+
+				/**
+				 * Permanently delete an environment (hard delete)
+				 */
+				permanentDelete: {
+					params: {
+						uuid: { type: 'string' },
+					},
+					handler: async (ctx) => {
+						const { uuid } = ctx.params
+						await this.store.permanentDeleteEnvironment(uuid)
 						return { success: true }
 					},
 				},
