@@ -71,7 +71,11 @@
     "build:api-server": "lerna run --stream --scope api-server build:prod",
     "build:desktop:prod:custom": "lerna run --stream --scope @mockoon/app build:prod:all:custom",
     "main-web:dev": "lerna run --stream --scope main-web dev",
-    "main-web:build": "lerna run --stream --scope main-web build"
+    "main-web:build": "lerna run --stream --scope main-web build",
+    "migrate:check": "lerna run --stream --scope api-server migrate:check",
+    "migrate:run": "lerna run --stream --scope api-server migrate:run",
+    "migrate:sql": "lerna run --stream --scope api-server migrate:sql",
+    "migrate:help": "lerna run --stream --scope api-server migrate:help"
   },
   "devDependencies": {
     "@eslint/js": "9.22.0",

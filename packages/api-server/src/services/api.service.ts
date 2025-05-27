@@ -494,7 +494,7 @@ export default {
 				req.headers.authorization.startsWith('Bearer ') &&
 				req.headers.authorization.slice(7)
 
-			if (token || config.configuration.authProvider === 'disabled') {
+			if (token || config.configuration?.authProvider === 'disabled') {
 				if (
 					config.configuration.authProvider === 'supabase' &&
 					config.supabase.serviceRoleKey &&
