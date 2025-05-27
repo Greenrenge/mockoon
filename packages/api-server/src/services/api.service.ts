@@ -286,7 +286,7 @@ export default {
 				req.headers.authorization.startsWith('Bearer ') &&
 				req.headers.authorization.slice(7)
 
-			if (token) {
+			if (token || config.configuration?.authProvider === 'disabled') {
 				if (token === config.supabase.serviceRoleKey) {
 					ctx.meta.accountId = 'service-role'
 					ctx.meta.accessToken = token
