@@ -1,5 +1,6 @@
 import { DataTypes, Model, Op, Options, Sequelize } from 'sequelize'
 import { IEnvironmentDatabase } from '../db-environment-store'
+import { DatabaseMigrations } from './database-migrations'
 import { syncSequelize } from './sequelize-utils'
 
 /**
@@ -110,6 +111,9 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 				Model: MetadataModel,
 				sequelize: this.sequelize,
 			})
+
+			// Run migrations for production safety
+			await this.runMigrations()
 
 			// Test the connection
 			await this.sequelize.authenticate()
@@ -291,6 +295,28 @@ export class EnvironmentDatabase implements IEnvironmentDatabase {
 		if (this.sequelize) {
 			await this.sequelize.close()
 			console.log('PostgreSQL connection closed')
+		}
+	}
+
+	/**
+	 * Run database migrations for production safety
+	 * This ensures new columns are added without breaking existing data
+	 */
+	private async runMigrations(): Promise<void> {
+		if (!this.sequelize) {
+			throw new Error('Sequelize not initialized')
+		}
+
+		try {
+			const migrations = new DatabaseMigrations(this.sequelize)
+			await migrations.runAllMigrations()
+		} catch (error) {
+			console.error('❌ Migration failed:', error)
+			// Don't throw error to prevent app startup failure
+			// Log the error and continue - manual intervention may be needed
+			console.warn(
+				'⚠️  Migration failed but continuing startup. Manual schema check may be required.',
+			)
 		}
 	}
 }
