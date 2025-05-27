@@ -506,6 +506,9 @@ const SyncService: AppServiceSchema = {
 			return colors[Math.abs(hash) % colors.length]
 		},
 	},
+	started() {
+		this.logger.info('Socket IO service started')
+	},
 }
 
 export default SyncService
