@@ -45,6 +45,7 @@ import hexColor from './hexColor';
 import includes from './includes';
 import indexOf from './indexOf';
 import int from './int';
+import intersect from './intersect';
 import ipv4 from './ipv4';
 import ipv6 from './ipv6';
 import isValidDate from './isValidDate';
@@ -132,6 +133,7 @@ export const Helpers = {
   includes,
   indexOf,
   int,
+  intersect,
   ipv4,
   ipv6,
   join,
